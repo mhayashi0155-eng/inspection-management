@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点検表管理システム - 現場管理</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Sidebar Decorations */
+        .app-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-decoration {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 220px;
+            /* Widened from 150px */
+            z-index: 0;
+            background: #1e293b;
+            /* Dark blue-grey (slate-800) instead of pure black for better aesthetics, or use black if strictly requested. Let's use a stylish dark color first. */
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .sidebar-decoration.left {
+            left: 0;
+        }
+
+        .sidebar-decoration.right {
+            right: 0;
+        }
+
+        /* Hidden on smaller screens */
+        @media (max-width: 1400px) {
+            .sidebar-decoration {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Date Display -->
+        <div id="global-date-display" class="date-display"></div>
+
+        <!-- 現場一覧画面 -->
+        <div id="site-list-view">
+            <header class="main-nav">
+                <h1>施工現場一覧</h1>
+                <div class="nav-actions">
+                    <a href="manual_sp.html" target="_blank" class="btn secondary-btn">📱 スマホ説明書</a>
+                    <a href="manual_pc.html" target="_blank" class="btn secondary-btn">💻 PC説明書</a>
+                    <button class="primary-btn" id="new-site-btn">+ 新規現場作成</button>
+                </div>
+            </header>
+
+            <section class="filter-bar">
+                <div class="filter-group">
+                    <label>期間:</label>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <input type="date" id="date-from">
+                        <span>~</span>
+                        <input type="date" id="date-to">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>ステータス:</label>
+                    <select id="status-filter">
+                        <option value="all">すべて</option>
+                        <option value="施工中">施工中</option>
+                        <option value="完了">完了</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="flex-grow:1;">
+                    <label>現場名:</label>
+                    <div class="search-wrapper">
+                        <input type="text" id="site-search" placeholder="プロジェクト検索">
+                    </div>
+                </div>
+            </section>
+
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>現場名</th>
+                            <th>期間</th>
+                            <th>ステータス</th>
+                            <th>最終更新</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="site-list-body">
+                        <!-- JSで生成 -->
+                    </tbody>
+                </table>
+                <div id="no-site-message" class="no-data" style="display: none;">
+                    現場データがありません。「新規現場作成」から追加してください。
+                </div>
+            </div>
+        </div>
+
+        <!-- 現場別機械一覧画面（Site Detail） -->
+        <div id="site-detail-view" style="display: none;">
+            <header class="main-nav">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <button class="ghost-btn" id="back-to-sites">← 戻る</button>
+                    <h1 id="current-site-title">現場名</h1>
+                </div>
+                <button class="primary-btn" id="register-machine-btn">+ 点検表の新規登録</button>
+            </header>
+
+            <div class="data-table-container">
+                <!-- 車両系建設機械 -->
+                <h3
+                    style="margin-top:20px; margin-bottom:10px; color:var(--text-primary); border-left:4px solid var(--primary-color); padding-left:10px;">
+                    車両系建設機械（ショベル・クレーン等）</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px; text-align: center;">種別</th>
+                                <th>現場管理No.</th>
+                                <th>型式</th>
+                                <th>会社管理No.</th>
+                                <th>点検状況</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machine-list-body-vehicle">
+                            <!-- JSで生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-data-message-vehicle" class="no-data" style="display: none;">
+                    データがありません
+                </div>
+
+                <!-- その他設備 -->
+                <h3
+                    style="margin-top:40px; margin-bottom:10px; color:var(--text-primary); border-left:4px solid var(--accent-color); padding-left:10px;">
+                    その他設備・工具（発電機・土のう等）</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px; text-align: center;">種別</th>
+                                <th>現場管理No.</th>
+                                <th>型式</th>
+                                <th>会社管理No.</th>
+                                <th>点検状況</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machine-list-body-other">
+                            <!-- JSで生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-data-message-other" class="no-data" style="display: none;">
+                    データがありません
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 現場登録/編集モーダル -->
+    <div id="site-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="site-modal-title">新規現場登録</h2>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>現場名 <span class="required-mark">*</span></label>
+                <input type="text" id="new-site-name" placeholder="例：上清川 第2幹線用水路">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="input-group" style="flex:1;">
+                    <label>工期開始</label>
+                    <input type="date" id="new-site-start">
+                </div>
+                <div class="input-group" style="flex:1;">
+                    <label>工期終了</label>
+                    <input type="date" id="new-site-end">
+                </div>
+            </div>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>ステータス</label>
+                <select id="new-site-status">
+                    <option value="施工中">施工中</option>
+                    <option value="完了">完了</option>
+                </select>
+            </div>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>現場代理人</label>
+                <input type="text" id="new-site-representative" placeholder="例：山田 太郎">
+            </div>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>点検者</label>
+                <input type="text" id="new-site-inspector" placeholder="例：佐藤 次郎">
+            </div>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>安全管理者</label>
+                <input type="text" id="new-site-safety-manager" placeholder="例：鈴木 三郎">
+            </div>
+            <input type="hidden" id="edit-site-id">
+            <div class="modal-actions">
+                <button class="secondary-btn" id="close-site-modal">キャンセル</button>
+                <button class="primary-btn" id="save-site-btn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div id="delete-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>削除の確認</h2>
+            <p>このデータ（履歴含む）を削除してもよろしいですか？<br>この操作は取り消せません。</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" id="cancel-delete">キャンセル</button>
+                <button class="danger-btn" id="confirm-delete" style="border-radius:9999px;">削除する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 点検履歴モーダル -->
+    <div id="history-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2 id="history-modal-title" style="margin:0;">点検履歴</h2>
+                <button class="ghost-btn" id="close-history-modal" style="font-size:1.5rem;">&times;</button>
+            </div>
+            <div id="history-controls"
+                style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-bottom:1rem;">
+                <button class="secondary-btn" id="history-prev-btn">&lt;</button>
+                <span id="history-current-period" style="font-weight:bold; font-size:1.2rem;"></span>
+                <button class="secondary-btn" id="history-next-btn">&gt;</button>
+            </div>
+
+            <div id="history-calendar-container" class="calendar-container">
+                <!-- JSでカレンダー生成 -->
+            </div>
+            <div id="history-loading" style="text-align:center; padding:2rem; display:none;">
+                読み込み中...
+            </div>
+        </div>
+    </div>
+
+    <!-- QRコードモーダル -->
+    <div id="qr-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="text-align: center; max-width: 400px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2 style="margin:0; font-size:1.2rem;">点検用QRコード</h2>
+                <button class="ghost-btn" id="close-qr-modal" style="font-size:1.5rem;">&times;</button>
+            </div>
+            <div id="qrcode-container" style="display: flex; justify-content: center; margin: 2rem 0;"></div>
+            <p id="qr-caption"
+                style="margin-bottom: 2rem; color:var(--text-secondary); word-break: break-all; font-size: 0.9rem;"></p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button class="secondary-btn" onclick="window.print()">印刷する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <div class="sidebar-decoration left"></div>
+    <div class="sidebar-decoration right"></div>
+</body>
+
+</html>

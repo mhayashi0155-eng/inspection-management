@@ -1,0 +1,787 @@
+﻿:root {
+    /* Base Colors - Light Theme */
+    --bg-color: #f1f5f9;
+    /* 譏弱ｋ縺・レ譎ｯ濶ｲ */
+    --surface-color: #ffffff;
+    /* 繧ｫ繝ｼ繝峨・繝・・繝悶Ν陦後・閭梧勹・夂區 */
+    --card-hover: #f8fafc;
+    /* 繝帙ヰ繝ｼ・壹＃縺剰埋縺・げ繝ｬ繝ｼ */
+    --border-color: #cbd5e1;
+    /* 蠅・阜邱夲ｼ壼ｰ代＠豼・＞繧√・繧ｰ繝ｬ繝ｼ */
+    --text-primary: #0f172a;
+    /* 繝｡繧､繝ｳ譁・ｭ暦ｼ壽ｿ・＞邏ｺ/鮟・*/
+    --text-secondary: #64748b;
+    /* 繧ｵ繝匁枚蟄暦ｼ壹げ繝ｬ繝ｼ */
+
+    /* Brand Colors */
+    --primary-color: #3b82f6;
+    /* 繝悶Ν繝ｼ */
+    --primary-hover: #2563eb;
+    --accent-color: #0ea5e9;
+
+    /* Semantic Colors */
+    --status-active-bg: #d1fae5;
+    /* 譁ｽ蟾･荳ｭ縺ｮ閭梧勹・夊埋縺・ｷ・*/
+    --status-active-text: #059669;
+    /* 譁ｽ蟾･荳ｭ縺ｮ譁・ｭ暦ｼ壽ｿ・＞邱・*/
+    --status-done-bg: #e2e8f0;
+    /* 螳御ｺ・・閭梧勹・夊埋縺・げ繝ｬ繝ｼ */
+    --status-done-text: #475569;
+    /* 螳御ｺ・・譁・ｭ暦ｼ壽ｿ・＞繧ｰ繝ｬ繝ｼ */
+
+    --danger-color: #ef4444;
+    --success-color: #22c55e;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* --- Layout Components --- */
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    /* Ensure content is above decorations */
+}
+
+.date-display {
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+header.main-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* --- Typography --- */
+h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* --- Buttons --- */
+button,
+.btn {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 9999px;
+    /* Pill shape */
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: 0.2s;
+    text-decoration: none;
+    line-height: 1.5;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.secondary-btn:hover {
+    background-color: var(--card-hover);
+}
+
+.ghost-btn {
+    background-color: transparent;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+}
+
+.ghost-btn:hover {
+    color: var(--text-primary);
+}
+
+/* --- Filter Bar --- */
+.filter-bar {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.search-wrapper {
+    position: relative;
+    width: 300px;
+}
+
+.search-wrapper input {
+    width: 100%;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+}
+
+input[readonly] {
+    background-color: var(--bg-color) !important;
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+select,
+input[type="date"],
+input[type="text"],
+input[type="number"],
+textarea {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    width: 100%;
+    /* 讓ｪ蟷・＞縺｣縺ｱ縺・↓ */
+}
+
+/* 轤ｹ讀懆｡ｨ縺ｮ荳企Κ諠・ｱ・亥梛蠑上∫ｮ｡逅・o.縺ｪ縺ｩ・・*/
+.machine-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* --- Table Styles --- */
+.data-table-container {
+    overflow-x: auto;
+}
+
+table.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+}
+
+table.data-table th {
+    text-align: left;
+    padding: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+table.data-table tbody tr {
+    background-color: var(--surface-color);
+    transition: 0.2s;
+}
+
+table.data-table tbody tr:hover {
+    background-color: var(--card-hover);
+}
+
+table.data-table td {
+    padding: 1.2rem 1rem;
+}
+
+table.data-table td:first-child {
+    border-radius: 0.75rem 0 0 0.75rem;
+}
+
+table.data-table td:last-child {
+    border-radius: 0 0.75rem 0.75rem 0;
+}
+
+/* Status Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: var(--status-active-bg);
+    color: var(--status-active-text);
+}
+
+.badge-done {
+    background: var(--status-done-bg);
+    color: var(--status-done-text);
+}
+
+/* --- Site Card Details --- */
+.site-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.site-period {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.last-updated {
+    font-size: 1.1rem;
+    /* Increased from 0.85rem */
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Table Machine Icons */
+table.data-table td img.machine-icon-img,
+table.data-table td svg {
+    width: 60px;
+    /* Maximize size in cell */
+    height: 60px;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+/* --- Inspection Form Specifics --- */
+.inspection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.category-group {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.category-title {
+    background: #f8fafc;
+    /* 譏弱ｋ縺・げ繝ｬ繝ｼ */
+    color: var(--text-primary);
+    padding: 0.8rem 1rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.inspection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.current-status {
+    width: 2.2rem;
+    height: 2.2rem;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.current-status.good {
+    color: #059669;
+    border-color: #059669;
+    background: #ecfdf5;
+}
+
+.current-status.adjust {
+    color: #d97706;
+    border-color: #d97706;
+    background: #fffbeb;
+}
+
+.current-status.repair {
+    color: #dc2626;
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+/* --- Modal & Overlays --- */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: var(--surface-color);
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    width: 90%;
+    max-width: 800px;
+    /* 蟆代＠蠎・￡繧・*/
+    max-height: 90vh;
+    /* 鬮倥＆蛻ｶ髯・*/
+    overflow-y: auto;
+    /* 繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ蜿ｯ閭ｽ縺ｫ */
+    border: 1px solid var(--border-color);
+}
+
+.modal-section {
+    margin-bottom: 2rem;
+}
+
+.modal-section h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    display: inline-block;
+}
+
+.machine-grid.compact {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+
+.machine-grid.compact .machine-btn {
+    padding: 0.8rem;
+    flex-direction: row;
+    justify-content: center;
+    min-height: auto;
+    background: #ffffff;
+    /* White background */
+    border-color: var(--border-color);
+}
+
+/* Machine Icons in Modal */
+.machine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.machine-btn {
+    background: #ffffff;
+    border: 2px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transition: 0.2s;
+    width: 100%;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.machine-btn:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.machine-btn .icon img {
+    width: 60px;
+    height: 60px;
+    max-width: 60px;
+    /* 蠑ｷ蛻ｶ逧・↓蛻ｶ髯・*/
+    max-height: 60px;
+    /* 蠑ｷ蛻ｶ逧・↓蛻ｶ髯・*/
+    object-fit: contain;
+}
+
+.machine-btn .text {
+    font-size: 0.95rem;
+    /* Slightly larger */
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* --- Utilities --- */
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mt-2 {
+    margin-top: 2rem;
+}
+
+.required-mark {
+    color: var(--danger-color);
+    margin-left: 2px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .inspection-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .search-wrapper {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .inspection-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .app-container {
+        padding: 1rem;
+    }
+}
+
+/* --- Monthly Grid Sheet Styles --- */
+.monthly-grid-container {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.grid-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#monthly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 1200px;
+}
+
+#monthly-table th,
+#monthly-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    text-align: center;
+    min-width: 40px;
+}
+
+#monthly-table th:first-child,
+#monthly-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: #ffffff;
+    min-width: 250px;
+    text-align: left;
+    padding-left: 1rem;
+}
+
+#monthly-table thead tr {
+    background: #f8fafc;
+}
+
+#monthly-table .day-cell {
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+#monthly-table .day-cell:hover {
+    background: var(--card-hover);
+}
+
+.status-cell-good {
+    color: #34d399;
+    font-weight: bold;
+}
+
+.status-cell-adjust {
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.status-cell-repair {
+    color: #f87171;
+    font-weight: bold;
+}
+
+/* Weekend Coloring */
+#monthly-table th.sat,
+#monthly-table td.sat {
+    background-color: rgba(186, 230, 253, 0.3);
+    /* sky-200 with opacity */
+    color: #0369a1;
+}
+
+#monthly-table th.sun,
+#monthly-table td.sun {
+    background-color: rgba(254, 202, 202, 0.3);
+    /* red-200 with opacity */
+    color: #b91c1c;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    .app-container {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+    }
+
+    .main-nav,
+    .filter-bar,
+    .action-buttons,
+    .ghost-btn {
+        display: none !important;
+    }
+
+    .inspection-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .category-group {
+        border-color: #000;
+    }
+
+    .current-status {
+        border-color: #000;
+        background: none !important;
+        color: black !important;
+    }
+}
+
+/ *   g~k]~l]~s]~ ]~|ｻ㌃A荊辛:~ng~yg~g~d]~k  * /     . c a l e n d a r - c o n t a i n e r    {
+                 p a d d i n g :    1 r e m ;
+                 b a c k g r o u n d :    v a r ( - - s u r f a c e - c o l o r ) ;
+                 b o r d e r - r a d i u s :    8 p x ;
+         
+}
+
+         / *   t笞刔M0]~l]~s]~ ]~|  ( [近Wlad准凝aQu)   * /     . y e a r l y - c a l e n d a r - g r i d    {
+                 d i s p l a y :    g r i d ;
+                 g r i d - t e m p l a t e - c o l u m n s :    r e p e a t ( 4 ,    1 f r ) ;
+                 g a p :    1 r e m ;
+         
+}
+
+         . m o n t h - c a r d    {
+                 b a c k g r o u n d :    v a r ( - - b g - c o l o r ) ;
+                 b o r d e r :    1 p x   s o l i d   v a r ( - - b o r d e r - c o l o r ) ;
+                 b o r d e r - r a d i u s :    8 p x ;
+                 p a d d i n g :    1 r e m ;
+                 t e x t - a l i g n :    c e n t e r ;
+                 p o s i t i o n :    r e l a t i v e ;
+                 c u r s o r :    d e f a u l t ;
+                 t r a n s i t i o n :    a l l   0 . 2 s ;
+         
+}
+
+         . m o n t h - c a r d . h a s - d a t a    {
+                 b o r d e r - c o l o r :    v a r ( - - s t a t u s - a c t i v e - t e x t ) ;
+                 b a c k g r o u n d :    # f 0 f d f 4 ;
+                 / *   .油0ｱ箭0* /             c u r s o r :    p o i n t e r ;
+         
+}
+
+         . m o n t h - c a r d . h a s - d a t a : h o v e r    {
+                 t r a n s f o r m :    t r a n s l a t e Y ( - 2 p x ) ;
+                 b o x - s h a d o w :    0   4 p x   6 p x   r g b a ( 0 ,    0 ,    0 ,    0 . 1 ) ;
+         
+}
+
+         . m o n t h - l a b e l    {
+                 f o n t - w e i g h t :    b o l d ;
+                 c o l o r :    v a r ( - - t e x t - p r i m a r y ) ;
+                 m a r g i n - b o t t o m :    0 . 5 r e m ;
+         
+}
+
+         . s t a t u s - m a r k    {
+                 d i s p l a y :    i n l i n e - b l o c k ;
+                 p a d d i n g :    0 . 2 r e m   0 . 5 r e m ;
+                 b o r d e r - r a d i u s :    4 p x ;
+                 f o n t - s i z e :    0 . 9 r e m ;
+                 f o n t - w e i g h t :    b o l d ;
+         
+}
+
+         . s t a t u s - m a r k . d o n e    {
+                 c o l o r :    # 1 5 8 0 3 d ;
+                 b a c k g r o u n d :    # d c f c e 7 ;
+                 b o r d e r :    1 p x   s o l i d   # 1 6 6 5 3 4 ;
+         
+}
+
+         . s t a t u s - m a r k . n o n e    {
+                 c o l o r :    v a r ( - - t e x t - s e c o n d a r y ) ;
+                 f o n t - s i z e :    0 . 8 r e m ;
+         
+}
+
+         / *   [具x絨g~k]~l]~s]~ ]~|  ( L菊xd准凝aQu)   * /     . m o n t h l y - c a l e n d a r - g r i d    {
+                 d i s p l a y :    g r i d ;
+                 g r i d - t e m p l a t e - c o l u m n s :    r e p e a t ( 7 ,    1 f r ) ;
+                 g a p :    0 . 5 r e m ;
+         
+}
+
+         . d a y - c e l l - h i s t o r y    {
+                 b a c k g r o u n d :    v a r ( - - b g - c o l o r ) ;
+                 b o r d e r :    1 p x   s o l i d   v a r ( - - b o r d e r - c o l o r ) ;
+                 b o r d e r - r a d i u s :    4 p x ;
+                 a s p e c t - r a t i o :    1 ;
+                 d i s p l a y :    f l e x ;
+                 f l e x - d i r e c t i o n :    c o l u m n ;
+                 a l i g n - i t e m s :    c e n t e r ;
+                 j u s t i f y - c o n t e n t :    c e n t e r ;
+                 p o s i t i o n :    r e l a t i v e ;
+         
+}
+
+         . d a y - c e l l - h i s t o r y   . d a y - n u m    {
+                 f o n t - s i z e :    0 . 8 r e m ;
+                 c o l o r :    v a r ( - - t e x t - s e c o n d a r y ) ;
+                 p o s i t i o n :    a b s o l u t e ;
+                 t o p :    2 p x ;
+                 l e f t :    4 p x ;
+         
+}
+
+         . d a y - c e l l - h i s t o r y . d o n e - d a y    {
+                 b a c k g r o u n d :    # f 0 f d f 4 ;
+                 b o r d e r - c o l o r :    # 8 6 e f a c ;
+         
+}
+
+         . d a y - c e l l - h i s t o r y   . d o n e - m a r k    {
+                 c o l o r :    # 1 5 8 0 3 d ;
+                 f o n t - w e i g h t :    b o l d ;
+                 f o n t - s i z e :    1 . 2 r e m ;
+         
+}
+
+     
+
+/* Sidebar Decorations */
+.app-container {
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-decoration {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.sidebar-decoration.left {
+    left: 2rem;
+    background-image: url('sidebar_left.png');
+    background-position: left center;
+}
+
+.sidebar-decoration.right {
+    right: 2rem;
+    background-image: url('sidebar_right.png');
+    background-position: right center;
+}
+
+@media (max-width: 1200px) {
+    .sidebar-decoration {
+        display: none;
+    }
+}

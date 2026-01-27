@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>車両系建設機械 定期自主検査表</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for a premium look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+
+<body>
+
+    <!-- 機種選択モーダル -->
+    <div id="machine-modal" class="modal">
+        <div class="modal-content">
+            <h2>点検する機械を選択</h2>
+
+            <div class="modal-section">
+                <h3>月次点検（車両系）</h3>
+                <div class="machine-grid">
+                    <button class="machine-btn" onclick="selectMachine('shovel')">
+                        <span class="icon"><img src="assets/icons/backhoe.png" alt="バックホウ"></span>
+                        <span class="text">ショベル系<br><small>(バックホウ)</small></span>
+                    </button>
+                    <button class="machine-btn" onclick="selectMachine('tractor')">
+                        <span class="icon"><img src="assets/icons/trailer.png" alt="トレーラーヘッド"></span>
+                        <span class="text">トラクタ系<br><small>(トレーラーヘッド等)</small></span>
+                    </button>
+                    <button class="machine-btn" onclick="selectMachine('crane')">
+                        <span class="icon"><img src="assets/icons/crane.png" alt="クレーン"></span>
+                        <span class="text">移動式クレーン</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>日常始業点検 <span
+                        style="font-size:0.8rem; font-weight:normal; color:#e11d48; margin-left:0.5rem;">※ショベル系は月次点検を作成すると自動で作成されます</span>
+                </h3>
+                <div class="machine-grid compact">
+                    <button class="machine-btn" onclick="selectMachine('sandbag')">大型土のう</button>
+                    <button class="machine-btn" onclick="selectMachine('power_tool')">電動工具</button>
+                    <button class="machine-btn" onclick="selectMachine('generator')">発電機</button>
+                    <button class="machine-btn" onclick="selectMachine('dist_board')">分電盤</button>
+                    <button class="machine-btn" onclick="selectMachine('pump')">水中ポンプ</button>
+                    <button class="machine-btn" onclick="selectMachine('arc_welder')">アーク溶接機</button>
+                    <button class="machine-btn" onclick="selectMachine('elec_equip')">電気設備・機器</button>
+                    <button class="machine-btn" onclick="selectMachine('hanging_tools')">玉掛け用具</button>
+                    <button class="machine-btn" onclick="selectMachine('iron_plate')">敷鉄板</button>
+                    <button class="machine-btn" onclick="selectMachine('security_daily')">保安点検</button>
+                    <button class="machine-btn" onclick="selectMachine('excavation_daily')">地山掘削・土止め</button>
+                    <button class="machine-btn" onclick="selectMachine('crane_daily')">移動式クレーン(始業)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインアプリ画面 -->
+    <div class="app-container" id="app-container" style="display: none;">
+
+        <header class="main-header">
+            <div class="header-top">
+                <button onclick="goDashBoard()" class="secondary-btn" style="margin-right:auto;">&lt; 一覧へ戻る</button>
+                <h1 id="form-title">車両系建設機械 定期自主検査表(月例)</h1>
+                <button id="change-machine-btn" class="secondary-btn">機種変更</button>
+            </div>
+
+            <div class="machine-info-grid">
+                <div class="input-group" id="month-selector-group" style="display: none;">
+                    <label>点検年月</label>
+                    <input type="month" id="inspection-month">
+                </div>
+                <div class="input-group" id="site-name-group">
+                    <label>現場名</label>
+                    <input type="text" id="site-name" readonly>
+                </div>
+                <div class="input-group" id="model-type-group">
+                    <label>型式 <span class="required-mark">*</span></label>
+                    <input type="text" id="model-type" placeholder="PC200-11">
+                </div>
+                <div class="input-group" id="company-machine-id-group">
+                    <label>会社管理No. <span class="required-mark">*</span></label>
+                    <input type="text" id="company-machine-id" placeholder="社内管理番号">
+                </div>
+                <div class="input-group" id="machine-id-group">
+                    <label>現場管理No. <span class="required-mark">*</span></label>
+                    <input type="text" id="machine-id" placeholder="123456">
+                </div>
+                <div class="input-group" id="inspection-date-group">
+                    <label>検査年月日</label>
+                    <input type="date" id="inspection-date">
+                </div>
+                <div class="input-group" id="operating-hours-group">
+                    <label>運転時間 (Hr) <span class="required-mark">*</span></label>
+                    <input type="number" id="operating-hours" placeholder="1234.5">
+                </div>
+                <div class="input-group">
+                    <label>現場代理人</label>
+                    <input type="text" id="representative" placeholder="氏名">
+                </div>
+                <div class="input-group">
+                    <label>点検者</label>
+                    <input type="text" id="inspector-name" placeholder="氏名">
+                </div>
+                <div class="input-group">
+                    <label>安全管理者</label>
+                    <input type="text" id="safety-manager" placeholder="氏名">
+                </div>
+            </div>
+
+            <div class="legend" id="legend-section">
+                <span class="legend-item"><span class="mark good">レ</span> 良好</span>
+                <span class="legend-item"><span class="mark adjust">A</span> 調整</span>
+                <span class="legend-item"><span class="mark repair">△</span> 修理</span>
+                <span class="legend-item"><span class="mark replace">X</span> 取替</span>
+                <span class="legend-item"><span class="mark oil">L</span> 給油水</span>
+                <span class="legend-item"><span class="mark clean">C</span> 清掃</span>
+            </div>
+        </header>
+
+        <!-- 月間シート形式のコンテナ（日常点検用） -->
+        <div id="monthly-grid-view" class="monthly-grid-container" style="display: none;">
+            <div class="grid-scroll-wrapper">
+                <table id="monthly-table">
+                    <thead>
+                        <tr id="monthly-table-head">
+                            <!-- JSで生成 -->
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-table-body">
+                        <!-- JSで生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <main id="inspection-form" class="inspection-grid">
+            <!-- 3カラムの点検項目がここにJSで生成されます -->
+            <div class="column" id="col-1">
+                <!-- エンジン・本体など -->
+            </div>
+            <div class="column" id="col-2">
+                <!-- 走行・作業装置など -->
+            </div>
+            <div class="column" id="col-3">
+                <!-- 電気・安全装置・その他 -->
+            </div>
+        </main>
+
+        <footer class="main-footer">
+            <div class="footer-input">
+                <label>備考</label>
+                <textarea id="remarks" rows="3"></textarea>
+            </div>
+            <div class="footer-input">
+                <label>補修措置</label>
+                <textarea id="repairs" rows="3"></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button id="reset-btn" class="danger-btn">リセット</button>
+                <button id="save-btn" class="primary-btn">保存</button>
+                <button id="print-btn" class="success-btn">PDF発行 / 印刷</button>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

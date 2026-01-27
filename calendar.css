@@ -1,0 +1,99 @@
+/* カレンダー履歴用のスタイル */
+.calendar-container {
+    padding: 1rem;
+    background: var(--surface-color);
+    border-radius: 8px;
+}
+
+/* 年間カレンダー (月次点検用) */
+.yearly-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.month-card {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+    cursor: default;
+    transition: all 0.2s;
+}
+
+.month-card.has-data {
+    border-color: var(--status-active-text);
+    background: #f0fdf4;
+    /* 薄い緑 */
+    cursor: pointer;
+}
+
+.month-card.has-data:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.month-label {
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.status-mark {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.status-mark.done {
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #166534;
+}
+
+.status-mark.none {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* 月間カレンダー (日常点検用) */
+.monthly-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.day-cell-history {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.day-cell-history .day-num {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    position: absolute;
+    top: 2px;
+    left: 4px;
+}
+
+.day-cell-history.done-day {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.day-cell-history .done-mark {
+    color: #15803d;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
