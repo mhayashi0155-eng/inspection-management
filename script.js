@@ -64,6 +64,53 @@ function renderStaffList() {
         option.value = name;
         dataList.appendChild(option);
     });
+});
+}
+
+// 機械マスターデータ
+// ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
+const machineList = [
+    { id: "101", model: "PC200-11", company_id: "K-101" },
+    { id: "102", model: "ZX135US", company_id: "H-102" },
+    { id: "201", model: "D65PX-17", company_id: "K-201" },
+    { id: "305", model: "CAT320", company_id: "C-305" }
+    // 必要に応じてここに追加してください: { id: "管理No", model: "型式", company_id: "会社No" },
+];
+
+function renderMachineList() {
+    const dataList = document.getElementById('machine-master-list');
+    if (!dataList) return;
+
+    dataList.innerHTML = '';
+    machineList.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m.id;
+        // 候補に型式なども表示する（ブラウザによるが表示される場合がある）
+        option.label = `${m.model} / ${m.company_id}`;
+        dataList.appendChild(option);
+    });
+}
+
+function setupMachineAutoFill() {
+    const idInput = document.getElementById('machine-id');
+    const modelInput = document.getElementById('model-type');
+    const companyInput = document.getElementById('company-machine-id');
+
+    if (!idInput) return;
+
+    idInput.addEventListener('input', () => {
+        const val = idInput.value;
+        const match = machineList.find(m => m.id === val);
+        if (match) {
+            if (modelInput) {
+                modelInput.value = match.model;
+                // 自動入力されたことを視覚的に分かるように一時的にハイライトしたりもできるが今回はシンプルに
+            }
+            if (companyInput) {
+                companyInput.value = match.company_id;
+            }
+        }
+    });
 }
 
 // 点検データの定義
@@ -1539,12 +1586,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 日付表示の更新
     updateDateDisplay();
     renderStaffList();
+    renderMachineList(); // 機械リスト初期化
 
     // DatalistのUX改善 (フォーカス時にリストを表示させる)
     setupDatalistUX([
         'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
-        'representative', 'inspector-name', 'safety-manager' // 点検表画面
+        'representative', 'inspector-name', 'safety-manager', // 点検表画面
+        'machine-id' // 機械IDも対象に追加
     ]);
+    setupMachineAutoFill(); // 自動入力設定
 
     if (document.getElementById('site-list-view')) {
         initIndex();
