@@ -182,42 +182,6 @@ function updateDateDisplay() {
 }
 
 // --- 共通初期化 ---
-document.addEventListener('DOMContentLoaded', async () => {
-    // LIFF初期化
-    if (typeof liff !== 'undefined') {
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                lineUserInfo = await liff.getProfile();
-            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
-                liff.login();
-            }
-        } catch (err) { console.error("LIFF err", err); }
-    }
-
-    // 日付表示の更新
-    updateDateDisplay();
-
-    if (document.getElementById('site-list-view')) {
-        initIndex();
-        // URLにsite_idがある場合は直接詳細を開く
-        if (currentSiteId) {
-            // 現場名を取得するために一旦リストを読み込んだ後に詳細を開く
-            setTimeout(() => {
-                const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
-                if (siteRow) {
-                    siteRow.click();
-                } else {
-                    // ボタンが見つからない場合（初回の非同期読み込み中など）は直接IDで開く
-                    // ただし、名前が不明なので「現場詳細」とする
-                    openSiteDetail(currentSiteId, "現場詳細");
-                }
-            }, 500);
-        }
-    } else if (document.getElementById('machine-modal')) {
-        initInspection();
-    }
-});
 
 // --- インデックス画面 (現場管理) ---
 function initIndex() {
@@ -650,7 +614,7 @@ function showQrCode(siteId, machineType, machineId, modelType) {
     // パラメータ付きURLを作成
     // 注意: URIエンコードを行う
     // パラメータ短縮: s=site_id, mt=machine_type, id=machine_id, mo=model_type
-    const url = `${baseUrl}?s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(machineType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}`;
+    const url = `${baseUrl}?action=new&s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(machineType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}`;
 
     // QRコード生成 (密度を下げるために誤り訂正レベルをLに、サイズを大きめに)
     new QRCode(container, {
@@ -875,98 +839,90 @@ function renderMonthlyHistory() {
 // --- 点検表画面 (inspection.html) ---
 async function initInspection() {
     const urlParams = new URLSearchParams(window.location.search);
-    const copyFromId = urlParams.get('copy_from_id');
+    console.log("DEBUG: initInspection called. Params:", Object.fromEntries(urlParams.entries()));
+
     const action = urlParams.get('action');
+    const copyFromId = urlParams.get('copy_from_id');
 
     // グローバル変数更新
     currentSiteId = urlParams.get('site_id') || urlParams.get('s');
+    currentInspectionId = null; // 初期化
 
-    // 日付・月入力の初期化を先に行う (loadMonthlyDataで使用するため)
-    const monthInput = document.getElementById('inspection-month');
-    if (monthInput) {
-        if (!monthInput.value) {
-            monthInput.value = new Date().toISOString().slice(0, 7);
-        }
-        monthInput.onchange = () => {
-            if (currentMachineId) loadMonthlyData();
-        };
-    }
-    const dateInput = document.getElementById('inspection-date');
-    if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
-
-    // 短縮パラメータを含む全てのパラメータを取得
+    // パラメータ取得
     const mType = urlParams.get('mt') || urlParams.get('machine_type');
     const mId = urlParams.get('id') || urlParams.get('machine_id');
     const model = urlParams.get('mo') || urlParams.get('model_type');
     const cmid = urlParams.get('cmid');
     const mode = urlParams.get('mode');
 
-    // レコードID (詳細・編集用) の特定
-    // action=new の場合は id パラメータがあってもレコードIDとしては扱わない
+    console.log("DEBUG: Parsed params -> mType:", mType, ", mId:", mId, ", action:", action);
+
+    // 1. レコードID (既存データの詳細・編集用) の特定
     let recordId = null;
     if (action !== 'new') {
-        // idパラメータがあればレコードIDとして扱う
-        if (urlParams.has('id') && !mType && !urlParams.has('machine_id')) {
-            // mtやmachine_idがない、かつidがある場合のみレコードIDとみなす（安全策）
-            // ※これまでは単に urlParams.get('id') だったが、点検ボタンの url には id=機械ID が含まれるため
-            //   action=new チェックだけで十分なはずだが、念のため構成を確認
-            recordId = urlParams.get('id');
-        } else if (urlParams.has('id') && action !== 'new') {
-            // 点検ボタン以外（一覧の詳細ボタンなど）は action=new がない。
-            // その場合 id はレコードID。
+        // mt (機種名) がない場合に限り、id をレコードUUIDとみなす
+        if (urlParams.has('id') && !mType && (!mId || mId.length > 20)) {
             recordId = urlParams.get('id');
         }
     }
 
+    // 早期表示制御: 何らかの指定がある場合はモーダルを隠す
+    if (recordId || copyFromId || mType) {
+        const modal = document.getElementById('machine-modal');
+        if (modal) modal.style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+    }
+
+    // 入力項目の初期化 (日付・月)
+    const monthInput = document.getElementById('inspection-month');
+    if (monthInput && !monthInput.value) {
+        monthInput.value = new Date().toISOString().slice(0, 7);
+    }
+    const dateInput = document.getElementById('inspection-date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // --- 各種パスによる分岐 ---
     if (recordId) {
-        // --- 1. 既存レコード編集 ---
-        currentInspectionId = recordId;
-        await loadInspectionData(currentInspectionId);
+        // A. 既存レコードの編集・詳細表示
+        await loadInspectionData(recordId);
 
     } else if (copyFromId) {
-        // --- 2. コピー作成 ---
+        // B. 既存レコードをベースにしたコピー作成
         await loadInspectionData(copyFromId);
-        currentInspectionId = null;
-        document.getElementById('inspection-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('operating-hours').value = '';
+        currentInspectionId = null; // 新規扱いにする
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
         const titleEl = document.getElementById('form-title');
         if (titleEl) titleEl.innerText += " (再点検)";
 
     } else if (mType) {
-        // --- 3. 新規作成 (QR / 点検ボタン) ---
-        currentMachineId = mType;
-        renderForm(mType);
+        // C. QRコードやボタンからの新規作成 (機種・ID指定あり)
 
-        // 値セット
+        // 先にフォーム内の値をセット (loadMonthlyDataで使用するため)
         const midEl = document.getElementById('machine-id');
         if (midEl && mId) midEl.value = mId;
-
         const modelEl = document.getElementById('model-type');
         if (modelEl && model) modelEl.value = model;
-
         const cmidEl = document.getElementById('company-machine-id');
         if (cmidEl && cmid) cmidEl.value = cmid;
 
-        document.getElementById('inspection-date').value = new Date().toISOString().split('T')[0];
+        // 次に機種選択を実行
+        selectMachine(mType);
 
-        // 月次データ読み込み
+        // 日常点検などの月間シート形式の場合、既存の同一月レコードを探して読み込む
         if (dailyMonthlyTypes.includes(mType) && mId) {
-            loadMonthlyData();
+            await loadMonthlyData();
         }
 
     } else {
-        // --- 4. 機種選択 (通常新規) ---
+        // D. 真の新規作成 (機種選択から開始)
         const modal = document.getElementById('machine-modal');
         if (modal) modal.style.display = 'flex';
-        document.getElementById('inspection-date').value = new Date().toISOString().split('T')[0];
     }
 
-    // 共通後処理: 現場情報反映
-    if (currentSiteId) {
-        fetchSiteInfo(currentSiteId);
-    }
+    // 共通後処理
+    if (currentSiteId) fetchSiteInfo(currentSiteId);
 
     // 点検モード制御 (読み取り専用化)
     if (mode === 'check') {
@@ -982,22 +938,9 @@ async function initInspection() {
         });
         const changeBtn = document.getElementById('change-machine-btn');
         if (changeBtn) changeBtn.style.display = 'none';
-
-        // 詳細ボタン等からの遷移と区別したい場合タイトル変更も可
-        // const titleEl = document.getElementById('form-title');
-        // if(titleEl) titleEl.innerText += " (点検実行)";
     }
 
-    // イベントリスナー設定
-    const midInput = document.getElementById('machine-id');
-    if (midInput) {
-        midInput.onblur = () => {
-            if (currentMachineId && dailyMonthlyTypes.includes(currentMachineId)) {
-                loadMonthlyData();
-            }
-        };
-    }
-
+    // イベントリスナー設定 (保存・リセット・機種変更)
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn) saveBtn.onclick = () => saveInspection();
 
@@ -1010,8 +953,20 @@ async function initInspection() {
     if (resetBtn) resetBtn.onclick = () => {
         if (confirm("入力をリセットしますか？")) renderForm(currentMachineId);
     };
-}
 
+    const monthIn = document.getElementById('inspection-month');
+    if (monthIn) {
+        monthIn.onchange = () => { if (currentMachineId) loadMonthlyData(); };
+    }
+    const midIn = document.getElementById('machine-id');
+    if (midIn) {
+        midIn.onblur = () => {
+            if (currentMachineId && dailyMonthlyTypes.includes(currentMachineId)) {
+                loadMonthlyData();
+            }
+        };
+    }
+}
 async function fetchSiteInfo(siteId) {
     if (!supabaseClient) return;
     const { data: site, error } = await supabaseClient
@@ -1180,7 +1135,12 @@ function toggleDailyStatus(uid) {
 async function loadMonthlyData() {
     const month = document.getElementById('inspection-month').value; // YYYY-MM
     const mid = document.getElementById('machine-id').value;
-    if (!month || !mid || !currentSiteId || !currentMachineId) return;
+    console.log(`DEBUG: loadMonthlyData called. Month:${month}, Mid:${mid}, Site:${currentSiteId}, Type:${currentMachineId}`);
+
+    if (!month || !mid || !currentSiteId || !currentMachineId) {
+        console.warn("DEBUG: loadMonthlyData aborted due to missing params");
+        return;
+    }
 
     // 月間シート形式で、同一月のレコードを探す
     const { data: list, error } = await supabaseClient
@@ -1191,7 +1151,9 @@ async function loadMonthlyData() {
         .eq('machine_id', mid)
         .eq('is_deleted', false)
         .like('inspection_date', `${month}-%`)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
+
+    console.log("DEBUG: loadMonthlyData result:", list, error);
 
     // グリッドを一旦リセット
     document.querySelectorAll('.day-cell').forEach(el => {
@@ -1494,6 +1456,41 @@ function getMachineIcon(type) {
 
     return `<svg viewBox="0 0 24 24" fill="${color}" style="vertical-align:middle;">${svg}</svg>`;
 }
+
+// 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
+document.addEventListener('DOMContentLoaded', async () => {
+    // LIFF初期化
+    if (typeof liff !== 'undefined') {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                lineUserInfo = await liff.getProfile();
+            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
+                liff.login();
+            }
+        } catch (err) { console.error("LIFF err", err); }
+    }
+
+    // 日付表示の更新
+    updateDateDisplay();
+
+    if (document.getElementById('site-list-view')) {
+        initIndex();
+        // URLにsite_idがある場合は直接詳細を開く
+        if (currentSiteId) {
+            setTimeout(() => {
+                const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
+                if (siteRow) {
+                    siteRow.click();
+                } else {
+                    openSiteDetail(currentSiteId, "現場詳細");
+                }
+            }, 500);
+        }
+    } else if (document.getElementById('machine-modal')) {
+        initInspection();
+    }
+});
 
 // グローバル公開
 window.selectMachine = selectMachine;

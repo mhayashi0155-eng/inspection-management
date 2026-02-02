@@ -19,39 +19,7 @@
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        /* Sidebar Decorations */
-        .app-container {
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-decoration {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            width: 220px;
-            /* Widened from 150px */
-            z-index: 0;
-            background: #1e293b;
-            /* Dark blue-grey (slate-800) instead of pure black for better aesthetics, or use black if strictly requested. Let's use a stylish dark color first. */
-            opacity: 1;
-            pointer-events: none;
-        }
-
-        .sidebar-decoration.left {
-            left: 0;
-        }
-
-        .sidebar-decoration.right {
-            right: 0;
-        }
-
-        /* Hidden on smaller screens */
-        @media (max-width: 1400px) {
-            .sidebar-decoration {
-                display: none;
-            }
-        }
+        /* モバイル対応の微調整などが必要な場合のみここに記述 */
     </style>
 </head>
 
@@ -59,6 +27,7 @@
 
     <div class="app-container">
         <!-- Date Display -->
+        <div class="company-title">株式会社山内組　点検表</div>
         <div id="global-date-display" class="date-display"></div>
 
         <!-- 現場一覧画面 -->
