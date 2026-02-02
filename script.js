@@ -929,7 +929,8 @@ async function initInspection() {
         const lockFields = ['machine-id', 'company-machine-id', 'model-type', 'site-name'];
         lockFields.forEach(fid => {
             const el = document.getElementById(fid);
-            if (el) {
+            // 値が入っている場合のみロックする（未入力の場合は入力させる）
+            if (el && el.value) {
                 el.readOnly = true;
                 el.style.backgroundColor = '#f1f5f9';
                 el.style.color = '#64748b';
