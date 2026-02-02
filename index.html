@@ -178,15 +178,15 @@
             </div>
             <div class="input-group" style="margin-bottom: 1rem;">
                 <label>現場代理人</label>
-                <input type="text" id="new-site-representative" placeholder="例：山田 太郎">
+                <input type="text" id="new-site-representative" placeholder="例：山田 太郎" list="staff-list">
             </div>
             <div class="input-group" style="margin-bottom: 1rem;">
                 <label>点検者</label>
-                <input type="text" id="new-site-inspector" placeholder="例：佐藤 次郎">
+                <input type="text" id="new-site-inspector" placeholder="例：佐藤 次郎" list="staff-list">
             </div>
             <div class="input-group" style="margin-bottom: 1rem;">
                 <label>安全管理者</label>
-                <input type="text" id="new-site-safety-manager" placeholder="例：鈴木 三郎">
+                <input type="text" id="new-site-safety-manager" placeholder="例：鈴木 三郎" list="staff-list">
             </div>
             <input type="hidden" id="edit-site-id">
             <div class="modal-actions">
@@ -247,6 +247,7 @@
         </div>
     </div>
 
+    <datalist id="staff-list"></datalist>
     <script src="script.js"></script>
     <div class="sidebar-decoration left"></div>
     <div class="sidebar-decoration right"></div>

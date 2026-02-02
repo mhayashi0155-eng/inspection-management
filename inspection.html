@@ -107,17 +107,21 @@
                 </div>
                 <div class="input-group">
                     <label>現場代理人</label>
-                    <input type="text" id="representative" placeholder="氏名">
+                    <input type="text" id="representative" placeholder="氏名" list="staff-list">
                 </div>
                 <div class="input-group">
                     <label>点検者</label>
-                    <input type="text" id="inspector-name" placeholder="氏名">
+                    <input type="text" id="inspector-name" placeholder="氏名" list="staff-list">
                 </div>
                 <div class="input-group">
                     <label>安全管理者</label>
-                    <input type="text" id="safety-manager" placeholder="氏名">
+                    <input type="text" id="safety-manager" placeholder="氏名" list="staff-list">
                 </div>
             </div>
+
+            <datalist id="staff-list">
+                <!-- JSで動的に追加されます -->
+            </datalist>
 
             <div class="legend" id="legend-section">
                 <span class="legend-item"><span class="mark good">レ</span> 良好</span>
