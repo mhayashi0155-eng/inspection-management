@@ -209,6 +209,21 @@ textarea {
     /* 讓ｪ蟷・＞縺｣縺ｱ縺・↓ */
 }
 
+/* Placeholder Styling - Very Light Sky Blue */
+::placeholder {
+    color: #bae6fd;
+    opacity: 1;
+    /* Firefox */
+}
+
+:-ms-input-placeholder {
+    color: #bae6fd;
+}
+
+::-ms-input-placeholder {
+    color: #bae6fd;
+}
+
 /* 轤ｹ讀懆｡ｨ縺ｮ荳企Κ諠・ｱ・亥梛蠑上∫ｮ｡逅・o.縺ｪ縺ｩ・・*/
 .machine-info-grid {
     display: grid;
