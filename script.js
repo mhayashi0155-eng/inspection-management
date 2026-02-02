@@ -69,11 +69,34 @@ function renderStaffList() {
 // 機械マスターデータ
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
 const machineList = [
-    { id: "101", model: "PC200-11", company_id: "K-101" },
-    { id: "102", model: "ZX135US", company_id: "H-102" },
-    { id: "201", model: "D65PX-17", company_id: "K-201" },
-    { id: "305", model: "CAT320", company_id: "C-305" }
-    // 必要に応じてここに追加してください: { id: "管理No", model: "型式", company_id: "会社No" },
+    { id: "41", model: "SK200-10", company_id: "41" },
+    { id: "42", model: "HB205-1", company_id: "42" },
+    { id: "43", model: "SK125SR-2", company_id: "43" },
+    { id: "45", model: "SK225SR-5", company_id: "45" },
+    { id: "46", model: "SK200-8", company_id: "46" },
+    { id: "47", model: "SK200-9", company_id: "47" },
+    { id: "49", model: "SK200-10", company_id: "49" },
+    { id: "51", model: "SK200-10", company_id: "51" },
+    { id: "52", model: "SK330-10", company_id: "52" },
+    { id: "53", model: "SK200-10", company_id: "53" },
+    { id: "54", model: "SK330-10", company_id: "54" },
+    { id: "59", model: "SK225SR-5", company_id: "59" },
+    { id: "100", model: "SK55SR-6E", company_id: "100" },
+    { id: "102", model: "SK50UR", company_id: "102" },
+    { id: "103", model: "SK80UR-6E", company_id: "103" },
+    { id: "105", model: "SK75SR-7", company_id: "105" },
+    { id: "64", model: "SK200H-9", company_id: "64" },
+    { id: "66", model: "SK225SR-3", company_id: "66" },
+    { id: "67", model: "PC200i-11", company_id: "67" },
+    { id: "68", model: "PC200i-12", company_id: "68" },
+    { id: "T-2", model: "SK200-8", company_id: "T-2" },
+    { id: "T-3", model: "SK200-10", company_id: "T-3" },
+    { id: "T-5", model: "SK260LC-10", company_id: "T-5" },
+    { id: "T-6", model: "SK125SR", company_id: "T-6" },
+    { id: "T-7", model: "SK200-8", company_id: "T-7" },
+    { id: "T-9", model: "SK200-8", company_id: "T-9" },
+    { id: "T-10", model: "SK135SR-3", company_id: "T-10" },
+    { id: "T-11", model: "SK330-10", company_id: "T-11" }
 ];
 
 function renderMachineList() {
