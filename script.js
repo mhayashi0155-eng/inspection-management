@@ -64,7 +64,6 @@ function renderStaffList() {
         option.value = name;
         dataList.appendChild(option);
     });
-});
 }
 
 // 機械マスターデータ
