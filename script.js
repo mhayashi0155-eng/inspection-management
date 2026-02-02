@@ -106,9 +106,9 @@ function renderMachineList() {
     dataList.innerHTML = '';
     machineList.forEach(m => {
         const option = document.createElement('option');
-        option.value = m.id;
-        // 候補に型式なども表示する（ブラウザによるが表示される場合がある）
-        option.label = `${m.model} / ${m.company_id}`;
+        // 型式で検索・選択できるように value に型式を含める
+        // 選択後にJSで ID のみに書き換える処理を入れる
+        option.value = `${m.model} | No.${m.id}`;
         dataList.appendChild(option);
     });
 }
@@ -122,15 +122,38 @@ function setupMachineAutoFill() {
 
     idInput.addEventListener('input', () => {
         const val = idInput.value;
-        const match = machineList.find(m => m.id === val);
+
+        // 1. リストから選択された形式 "Model | No.ID" かチェック
+        let match = null;
+        if (val.includes('| No.')) {
+            const parts = val.split('| No.');
+            if (parts.length === 2) {
+                const selectedId = parts[1].trim();
+                match = machineList.find(m => m.id === selectedId);
+            }
+        }
+        // 2. 直接ID入力された場合もチェック
+        else {
+            match = machineList.find(m => m.id === val);
+        }
+
         if (match) {
+            // "Model | No.ID" の形式で入力されている場合、IDのみ書き換える
+            if (val !== match.id) {
+                // ユーザー入力イベントループを防ぐため、値をセットするだけにする
+                // ※ inputイベント内で value を書き換えると、再度 input イベントが発火するブラウザもあるが、
+                // 通常はユーザー操作のみで発火する。念のため。
+                idInput.value = match.id;
+            }
+
             if (modelInput) {
                 modelInput.value = match.model;
-                // 自動入力されたことを視覚的に分かるように一時的にハイライトしたりもできるが今回はシンプルに
             }
             if (companyInput) {
                 companyInput.value = match.company_id;
             }
+
+            // 自動補完が完了した後、少しハイライトなどの演出があると良いが、ここでは実装しない
         }
     });
 }
