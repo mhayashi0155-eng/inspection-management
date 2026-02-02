@@ -1171,6 +1171,12 @@ async function loadMonthlyData() {
         document.getElementById('remarks').value = latest.remarks || '';
         document.getElementById('repairs').value = latest.repairs || '';
 
+        // 会社管理Noを復元
+        if (latest.statuses && latest.statuses._company_machine_id) {
+            const cmidEl = document.getElementById('company-machine-id');
+            if (cmidEl) cmidEl.value = latest.statuses._company_machine_id;
+        }
+
         if (latest.statuses) {
             Object.keys(latest.statuses).forEach(uid => {
                 if (uid.startsWith('_')) return; // メタデータはスキップ
