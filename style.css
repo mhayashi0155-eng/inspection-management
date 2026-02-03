@@ -209,6 +209,22 @@ textarea {
     /* 讓ｪ蟷・＞縺｣縺ｱ縺・↓ */
 }
 
+/* Force Dropdown Arrow for Datalist */
+input[list]::-webkit-calendar-picker-indicator {
+    display: block !important;
+    opacity: 1 !important;
+    cursor: pointer;
+    background-color: transparent;
+    padding: 5px;
+    margin-right: -10px;
+    transition: 0.2s;
+}
+
+input[list]:hover::-webkit-calendar-picker-indicator {
+    background-color: var(--card-hover);
+    border-radius: 50%;
+}
+
 /* Placeholder Styling - Very Light Sky Blue */
 ::placeholder {
     color: #bae6fd;
