@@ -1616,18 +1616,7 @@ function setupDatalistUX(ids) {
 
 // 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
 document.addEventListener('DOMContentLoaded', async () => {
-    // LIFF初期化
-    if (typeof liff !== 'undefined') {
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                lineUserInfo = await liff.getProfile();
-            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
-                liff.login();
-            }
-        } catch (err) { console.error("LIFF err", err); }
-    }
-
+    // --- UI系の初期化を最優先で行う ---
     // 日付表示の更新
     updateDateDisplay();
     renderStaffList();
@@ -1640,6 +1629,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         'machine-id' // 機械IDも対象に追加
     ]);
     setupMachineAutoFill(); // 自動入力設定
+
+    // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
+    // LIFF初期化
+    if (typeof liff !== 'undefined') {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                lineUserInfo = await liff.getProfile();
+            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
+                liff.login();
+            }
+        } catch (err) { console.error("LIFF err", err); }
+    }
 
     if (document.getElementById('site-list-view')) {
         initIndex();
