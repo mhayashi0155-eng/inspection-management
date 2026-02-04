@@ -304,18 +304,20 @@ function updateDateDisplay() {
 
 // --- インデックス画面 (現場管理) ---
 function initIndex() {
-    // --- Reset Filters on Load (FIX: Reset BEFORE rendering) ---
+    // --- Filters Removed ---
+    /*
     const statusFilter = document.getElementById('status-filter');
     if (statusFilter) statusFilter.value = 'all';
-
+    
     const dateFrom = document.getElementById('date-from');
     if (dateFrom) dateFrom.value = '';
-
+    
     const dateTo = document.getElementById('date-to');
     if (dateTo) dateTo.value = '';
-
+    
     const siteSearch = document.getElementById('site-search');
     if (siteSearch) siteSearch.value = '';
+    */
 
     renderSiteList();
 
@@ -383,10 +385,13 @@ function initIndex() {
         }
     });
 
+    // --- Filters Removed ---
+    /*
     document.getElementById('site-search')?.addEventListener('input', renderSiteList);
     document.getElementById('status-filter')?.addEventListener('change', renderSiteList);
     document.getElementById('date-from')?.addEventListener('change', renderSiteList);
     document.getElementById('date-to')?.addEventListener('change', renderSiteList);
+    */
 
     document.getElementById('cancel-delete')?.addEventListener('click', () => {
         document.getElementById('delete-modal').style.display = 'none';
@@ -480,10 +485,11 @@ async function renderSiteList() {
     const listBody = document.getElementById('site-list-body');
     if (!listBody || !supabaseClient) return;
 
-    // DEBUG: Remove is_deleted filter temporarily to find missing data
-    // let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
-    let query = supabaseClient.from('sites').select('*'); // Fetch ALL sites including deleted ones
+    // --- Filter Logic Removed per user request ---
+    // Make sure to fetch valid sites (not deleted)
+    let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
 
+    /*
     const search = document.getElementById('site-search').value;
     const status = document.getElementById('status-filter').value;
     const from = document.getElementById('date-from').value;
@@ -493,15 +499,18 @@ async function renderSiteList() {
     if (status !== 'all') query = query.eq('status', status);
     if (from) query = query.gte('start_date', from);
     if (to) query = query.lte('end_date', to);
+    */
 
     const { data: sites, error } = await query.order('last_updated', { ascending: false });
 
-    // DEBUG: Alert to check data on user's device
+    // DEBUG: Alert check removed
+    /*
     if (error) {
         alert("データ取得エラー: " + error.message);
     } else {
         // alert(`デバッグ: ${sites?.length} 件の現場データを取得しました。\nステータス: ${status}`);
     }
+    */
 
     listBody.innerHTML = '';
 
