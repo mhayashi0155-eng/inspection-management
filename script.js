@@ -1,4 +1,4 @@
-// --- è¨­å®šæƒ…å ± ---
+ï»¿// --- è¨­å®šæƒ…å ± ---
 const SUPABASE_URL = 'https://vaxlifsrimttefjevpbx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GZ3Up6r_pcrcOXq3oFiEsA_nKo-tO0A';
 const LIFF_ID = '2008902635-5DQbjvmz';
@@ -1619,7 +1619,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- UIç³»ã®åˆæœŸåŒ–ã‚’æœ€å„ªå…ˆã§è¡Œã† ---
     // æ—¥ä»˜è¡¨ç¤ºã®æ›´æ–°
     updateDateDisplay();
-    renderStaffList();
+    renderStaffList(); renderRepresentativeList();
     populateMachineDatalist(); // æ©Ÿæ¢°ãƒªã‚¹ãƒˆåˆæœŸåŒ–
 
     // Datalistã®UXæ”¹å–„ (ãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚ã«ãƒªã‚¹ãƒˆã‚’è¡¨ç¤ºã•ã›ã‚‹)
@@ -1672,16 +1672,16 @@ window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
 window.goDashBoard = goDashBoard;
 
 function setupMachineAutoFill() {
-    const idInput = document.getElementById('machine-id'); // Œ»êŠÇ—No. (‰½‚à‚µ‚È‚¢)
+    const idInput = document.getElementById('machine-id'); // ï¿½ï¿½ï¿½ï¿½Ç—ï¿½No. (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½)
     const modelInput = document.getElementById('model-type');
-    const companyInput = document.getElementById('company-machine-id'); // ‰ïŽÐŠÇ—No. (‚±‚±‚É“ü—Í)
+    const companyInput = document.getElementById('company-machine-id'); // ï¿½ï¿½ÐŠÇ—ï¿½No. (ï¿½ï¿½ï¿½ï¿½ï¿½É“ï¿½ï¿½ï¿½)
     
     if (!companyInput) return;
 
     companyInput.addEventListener('input', () => {
         const val = companyInput.value;
         
-        // 1. ƒŠƒXƒg‚©‚ç‘I‘ð‚³‚ê‚½Œ`Ž® 'Model | No.CompanyID' ‚©ƒ`ƒFƒbƒN
+        // 1. ï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ê‚½ï¿½`ï¿½ï¿½ 'Model | No.CompanyID' ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½N
         let match = null;
         if (val.includes('| No.')) {
             const parts = val.split('| No.');
@@ -1690,15 +1690,15 @@ function setupMachineAutoFill() {
                 match = machineList.find(m => m.company_id === selectedCompanyId);
             }
         } 
-        // 2. ’¼Ú“ü—Í‚³‚ê‚½ê‡‚àƒ`ƒFƒbƒN (company_id‚ÅŒŸõ)
+        // 2. ï¿½ï¿½ï¿½Ú“ï¿½ï¿½Í‚ï¿½ï¿½ê‚½ï¿½ê‡ï¿½ï¿½`ï¿½Fï¿½bï¿½N (company_idï¿½ÅŒï¿½ï¿½ï¿½)
         else {
             match = machineList.find(m => m.company_id === val);
         }
 
         if (match) {
-            // 'Model | No.CompanyID' ‚ÌŒ`Ž®‚Å“ü—Í‚³‚ê‚Ä‚¢‚éê‡AID‚Ì‚Ý‘‚«Š·‚¦‚é
+            // 'Model | No.CompanyID' ï¿½ÌŒ`ï¿½ï¿½ï¿½Å“ï¿½ï¿½Í‚ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ê‡ï¿½AIDï¿½Ì‚Ýï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (val !== match.company_id) {
-                // ƒ†[ƒU[“ü—ÍƒCƒxƒ“ƒgƒ‹[ƒv‚ð–h‚®‚½‚ßA’l‚ðƒZƒbƒg‚·‚é‚¾‚¯‚É‚·‚é
+                // ï¿½ï¿½ï¿½[ï¿½Uï¿½[ï¿½ï¿½ï¿½ÍƒCï¿½xï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ßAï¿½lï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½é‚¾ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
                 companyInput.value = match.company_id;
             }
 
@@ -1706,8 +1706,32 @@ function setupMachineAutoFill() {
                 modelInput.value = match.model;
             }
             
-            // machine-id (Œ»êŠÇ—No.) ‚ÍŽ©“®“ü—Í‚µ‚È‚¢ (ƒ†[ƒU[—v–])
+            // machine-id (ï¿½ï¿½ï¿½ï¿½Ç—ï¿½No.) ï¿½ÍŽï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½È‚ï¿½ (ï¿½ï¿½ï¿½[ï¿½Uï¿½[ï¿½vï¿½])
         }
     });
 }
 
+
+const representativeList = [
+    ""æ‰æœ¬ é‰„ä¹Ÿ"",
+    ""æž— æˆå¸"",
+    ""ä½è—¤ å…‰ä¸€"",
+    ""è¾» æˆäºº"",
+    ""ç™½æˆ¸ å˜‰äºº"",
+    ""åº„å¸ æ˜Ž"",
+    ""åæ²³ å¼˜æ¨¹"",
+    ""æž— çœŸäºº"",
+    ""é‡‘ç”° å¤§ä½œ""
+];
+
+function renderRepresentativeList() {
+    const dataList = document.getElementById('representative-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    representativeList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+window.renderRepresentativeList = renderRepresentativeList;
