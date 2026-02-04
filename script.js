@@ -304,6 +304,19 @@ function updateDateDisplay() {
 
 // --- インデックス画面 (現場管理) ---
 function initIndex() {
+    // --- Reset Filters on Load (FIX: Reset BEFORE rendering) ---
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) statusFilter.value = 'all';
+
+    const dateFrom = document.getElementById('date-from');
+    if (dateFrom) dateFrom.value = '';
+
+    const dateTo = document.getElementById('date-to');
+    if (dateTo) dateTo.value = '';
+
+    const siteSearch = document.getElementById('site-search');
+    if (siteSearch) siteSearch.value = '';
+
     renderSiteList();
 
     const siteModal = document.getElementById('site-modal');
@@ -324,19 +337,6 @@ function initIndex() {
         document.getElementById('new-site-safety-manager').value = '';
         siteModal.style.display = 'flex';
     });
-
-    // --- Reset Filters on Load ---
-    const statusFilter = document.getElementById('status-filter');
-    if (statusFilter) statusFilter.value = 'all';
-
-    const dateFrom = document.getElementById('date-from');
-    if (dateFrom) dateFrom.value = '';
-
-    const dateTo = document.getElementById('date-to');
-    if (dateTo) dateTo.value = '';
-
-    const siteSearch = document.getElementById('site-search');
-    if (siteSearch) siteSearch.value = '';
 
 
     closeSiteModal?.addEventListener('click', () => siteModal.style.display = 'none');
