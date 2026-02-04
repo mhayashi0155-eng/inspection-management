@@ -1435,11 +1435,12 @@ async function loadInspectionData(id) {
         companyMidEl.value = i.company_machine_id || (i.statuses && i.statuses._company_machine_id) || '';
     }
 
-    const siteNameEl = document.getElementById('site-name');
     const representativeEl = document.getElementById('representative');
     const safetyEl = document.getElementById('safety-manager');
+    const headerSiteNameEl = document.getElementById('header-site-name');
 
-    if (siteNameEl) siteNameEl.value = i.site_name || '';
+    // if (siteNameEl) siteNameEl.value = i.site_name || ''; // Removed from input
+    if (headerSiteNameEl) headerSiteNameEl.innerText = i.site_name || ''; // Set header text
     if (representativeEl) representativeEl.value = i.representative || '';
     if (safetyEl) safetyEl.value = i.safety_manager || '';
 
@@ -1599,13 +1600,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
 
 
-    // DatalistのUX改善 (フォーカス時にリストを表示させる)
     setupDatalistUX([
         'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
         'representative', 'inspector-name', 'safety-manager', // 点検表画面
         'company-machine-id' // 会社管理No.に対象を変更
     ]);
     setupMachineAutoFill(); // 自動入力設定
+
+    // 現場名の取得・表示 (ヘッダー用)
+    if (currentSiteId) {
+        const headerSiteNameEl = document.getElementById('header-site-name');
+        if (headerSiteNameEl) {
+            // 初期表示はロード中...とかにする？あるいはDB取得する
+            supabaseClient.from('sites').select('name').eq('id', currentSiteId).single()
+                .then(({ data, error }) => {
+                    if (data && !error) {
+                        headerSiteNameEl.innerText = data.name;
+                    }
+                });
+        }
+    }
 
     // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
     // LIFF初期化
