@@ -480,7 +480,10 @@ async function renderSiteList() {
     const listBody = document.getElementById('site-list-body');
     if (!listBody || !supabaseClient) return;
 
-    let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
+    // DEBUG: Remove is_deleted filter temporarily to find missing data
+    // let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
+    let query = supabaseClient.from('sites').select('*'); // Fetch ALL sites including deleted ones
+
     const search = document.getElementById('site-search').value;
     const status = document.getElementById('status-filter').value;
     const from = document.getElementById('date-from').value;
@@ -492,6 +495,14 @@ async function renderSiteList() {
     if (to) query = query.lte('end_date', to);
 
     const { data: sites, error } = await query.order('last_updated', { ascending: false });
+
+    // DEBUG: Alert to check data on user's device
+    if (error) {
+        alert("データ取得エラー: " + error.message);
+    } else {
+        // alert(`デバッグ: ${sites?.length} 件の現場データを取得しました。\nステータス: ${status}`);
+    }
+
     listBody.innerHTML = '';
 
     if (sites?.length === 0) {
