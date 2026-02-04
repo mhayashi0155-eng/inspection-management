@@ -102,6 +102,100 @@ h2 {
     margin-bottom: 1rem;
 }
 
+/* --- Header Layout --- */
+.header-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#form-title {
+    font-size: 1.25rem;
+    margin: 0;
+    text-align: center;
+    flex-grow: 1;
+    order: 0;
+    /* Default order */
+}
+
+#header-site-name {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .header-controls {
+        justify-content: space-between;
+        order: 1;
+        /* Button row first */
+    }
+
+    #header-site-name {
+        order: 2;
+        /* Site name second */
+        text-align: right;
+        font-size: 1.1rem;
+    }
+
+    #form-title {
+        order: 3;
+        /* Title last (or first, depending on preference) */
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--border-color);
+    }
+}
+
+@media (min-width: 769px) {
+
+    /* PC Layout: Controls Left, Title Center (Absolute-ish), Site Name Right */
+    .header-top {
+        position: relative;
+        flex-wrap: nowrap;
+        height: auto;
+        min-height: 50px;
+    }
+
+    .header-controls {
+        margin-right: auto;
+        z-index: 2;
+    }
+
+    #form-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        z-index: 1;
+    }
+
+    #header-site-name {
+        margin-left: auto;
+        z-index: 2;
+    }
+}
+
+
 /* --- Buttons --- */
 button,
 .btn {
