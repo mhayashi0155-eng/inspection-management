@@ -304,24 +304,8 @@ function updateDateDisplay() {
 
 // --- インデックス画面 (現場管理) ---
 function initIndex() {
-    // --- Filters Removed ---
-    /*
-    const statusFilter = document.getElementById('status-filter');
-    if (statusFilter) statusFilter.value = 'all';
-    
-    const dateFrom = document.getElementById('date-from');
-    if (dateFrom) dateFrom.value = '';
-    
-    const dateTo = document.getElementById('date-to');
-    if (dateTo) dateTo.value = '';
-    
-    const siteSearch = document.getElementById('site-search');
-    if (siteSearch) siteSearch.value = '';
-    */
-
     renderSiteList();
     if (window.renderRepresentativeList) window.renderRepresentativeList();
-
 
     const siteModal = document.getElementById('site-modal');
     const newSiteBtn = document.getElementById('new-site-btn');
@@ -487,32 +471,15 @@ async function renderSiteList() {
     const listBody = document.getElementById('site-list-body');
     if (!listBody || !supabaseClient) return;
 
-    // --- Filter Logic Removed per user request ---
-    // Make sure to fetch valid sites (not deleted)
-    let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
-
-    /*
-    const search = document.getElementById('site-search').value;
-    const status = document.getElementById('status-filter').value;
-    const from = document.getElementById('date-from').value;
-    const to = document.getElementById('date-to').value;
-
-    if (search) query = query.ilike('name', `%${search}%`);
-    if (status !== 'all') query = query.eq('status', status);
-    if (from) query = query.gte('start_date', from);
-    if (to) query = query.lte('end_date', to);
-    */
+    // List sites (fetch all sites including deleted ones per user request)
+    let query = supabaseClient.from('sites').select('*');
 
     const { data: sites, error } = await query.order('last_updated', { ascending: false });
 
-    // DEBUG: Alert check removed
-    /*
     if (error) {
-        alert("データ取得エラー: " + error.message);
-    } else {
-        // alert(`デバッグ: ${sites?.length} 件の現場データを取得しました。\nステータス: ${status}`);
+        console.error("Data fetch error:", error);
+        // Optionally show a subtle toast or keep silent if not critical
     }
-    */
 
     listBody.innerHTML = '';
 
