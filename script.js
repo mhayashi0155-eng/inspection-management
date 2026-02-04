@@ -43,96 +43,84 @@ const supabaseClient = (typeof window.supabase !== 'undefined') ? window.supabas
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
 
 
-// 機械マスターデータ
-// ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
+// 機械マスターデータ (User requested update from image)
 const machineList = [
-    { id: "41", model: "SK200-10", company_id: "41" },
-    { id: "42", model: "HB205-1", company_id: "42" },
-    { id: "43", model: "SK125SR-2", company_id: "43" },
-    { id: "45", model: "SK225SR-5", company_id: "45" },
-    { id: "46", model: "SK200-8", company_id: "46" },
-    { id: "47", model: "SK200-9", company_id: "47" },
-    { id: "49", model: "SK200-10", company_id: "49" },
-    { id: "51", model: "SK200-10", company_id: "51" },
-    { id: "52", model: "SK330-10", company_id: "52" },
-    { id: "53", model: "SK200-10", company_id: "53" },
-    { id: "54", model: "SK330-10", company_id: "54" },
-    { id: "59", model: "SK225SR-5", company_id: "59" },
-    { id: "100", model: "SK55SR-6E", company_id: "100" },
-    { id: "102", model: "SK50UR", company_id: "102" },
-    { id: "103", model: "SK80UR-6E", company_id: "103" },
-    { id: "105", model: "SK75SR-7", company_id: "105" },
-    { id: "64", model: "SK200H-9", company_id: "64" },
-    { id: "66", model: "SK225SR-3", company_id: "66" },
-    { id: "67", model: "PC200i-11", company_id: "67" },
-    { id: "68", model: "PC200i-12", company_id: "68" },
-    { id: "T-2", model: "SK200-8", company_id: "T-2" },
-    { id: "T-3", model: "SK200-10", company_id: "T-3" },
-    { id: "T-5", model: "SK260LC-10", company_id: "T-5" },
-    { id: "T-6", model: "SK125SR", company_id: "T-6" },
-    { id: "T-7", model: "SK200-8", company_id: "T-7" },
-    { id: "T-9", model: "SK200-8", company_id: "T-9" },
-    { id: "T-10", model: "SK135SR-3", company_id: "T-10" },
-    { id: "T-11", model: "SK330-10", company_id: "T-11" }
+    { name: "コベルコバックホー", model: "SK200-10", company_id: "41" },
+    { name: "コマツバックホー", model: "HB205-1", company_id: "42" },
+    { name: "コベルコバックホー", model: "SK125SR-2", company_id: "43" },
+    { name: "コベルコバックホー", model: "SK225SR-5", company_id: "45" },
+    { name: "コベルコバックホー", model: "SK200-8", company_id: "46" },
+    { name: "コベルコバックホー", model: "SK200-9", company_id: "47" },
+    { name: "コベルコバックホー", model: "SK200-10", company_id: "49" },
+    { name: "コベルコバックホー", model: "SK200-10", company_id: "51" },
+    { name: "コベルコバックホー", model: "SK330-10", company_id: "52" },
+    { name: "コベルコバックホー", model: "SK200-10", company_id: "53" },
+    { name: "コベルコバックホー", model: "SK330-10", company_id: "54" },
+    { name: "コベルコバックホー", model: "SK225SR-5", company_id: "59" },
+    { name: "コベルコバックホー", model: "SK55SR-6E", company_id: "100" },
+    { name: "コベルコバックホー", model: "SK50UR", company_id: "102" },
+    { name: "コベルコバックホー", model: "SK80UR-6E", company_id: "103" },
+    { name: "コベルコバックホー", model: "SK75SR-7", company_id: "105" },
+    { name: "コベルコバックホー", model: "SK200H-9", company_id: "64" },
+    { name: "コベルコバックホー", model: "SK225SR-3", company_id: "66" },
+    { name: "コマツバックホー", model: "PC200i-11", company_id: "67" },
+    { name: "コマツバックホー", model: "PC200i-12", company_id: "68" },
+    { name: "コベルコバックホー", model: "SK200-8", company_id: "T-2" },
+    { name: "コベルコバックホー", model: "SK200-10", company_id: "T-3" },
+    { name: "コベルコバックホー", model: "SK260LC-10", company_id: "T-5" },
+    { name: "コベルコバックホー", model: "SK125SR", company_id: "T-6" },
+    { name: "コベルコバックホー", model: "SK200-8", company_id: "T-7" },
+    { name: "コベルコバックホー", model: "SK200-8", company_id: "T-9" },
+    { name: "コベルコバックホー", model: "SK135SR-3", company_id: "T-10" },
+    { name: "コベルコバックホー", model: "SK330-10", company_id: "T-11" }
 ];
 
-function populateMachineDatalist() {
-    const dataList = document.getElementById('machine-master-list');
-    if (!dataList) return;
-
-    dataList.innerHTML = '';
-    machineList.forEach(m => {
-        const option = document.createElement('option');
-        // 型式で検索・選択できるように value に型式を含める
-        // 会社管理No. (company_id) を使用
-        option.value = `${m.model} | No.${m.company_id}`;
-        dataList.appendChild(option);
-    });
-}
-
 function setupMachineAutoFill() {
-    const idInput = document.getElementById('machine-id');
+    const idInput = document.getElementById('machine-id'); // 現場管理No.
     const modelInput = document.getElementById('model-type');
-    const companyInput = document.getElementById('company-machine-id');
+    const companyInput = document.getElementById('company-machine-id'); // 会社管理No.
+    const nameInput = document.getElementById('machine-name'); // 機械名
 
-    if (!idInput) return;
+    // リストのレンダリング
+    const machineMasterList = document.getElementById('machine-master-list');
+    const machineNameList = document.getElementById('machine-name-list');
 
-    idInput.addEventListener('input', () => {
-        const val = idInput.value;
+    if (machineMasterList) {
+        machineMasterList.innerHTML = '';
+        machineList.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.company_id;
+            opt.innerText = `${m.model} (${m.name})`;
+            machineMasterList.appendChild(opt);
+        });
+    }
 
-        // 1. リストから選択された形式 "Model | No.ID" かチェック
-        let match = null;
-        if (val.includes('| No.')) {
-            const parts = val.split('| No.');
-            if (parts.length === 2) {
-                const selectedId = parts[1].trim();
-                match = machineList.find(m => m.id === selectedId);
+    if (machineNameList) {
+        machineNameList.innerHTML = '';
+        // ユニークな機械名のみ抽出
+        const uniqueNames = [...new Set(machineList.map(m => m.name))];
+        uniqueNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            machineNameList.appendChild(opt);
+        });
+    }
+
+    // 会社管理No -> その他を自動入力
+    if (companyInput) {
+        companyInput.addEventListener('change', () => { // input, change
+            const val = companyInput.value;
+            const match = machineList.find(m => m.company_id === val);
+            if (match) {
+                if (modelInput) modelInput.value = match.model;
+                if (nameInput) nameInput.value = match.name;
+                // if (idInput) idInput.value = match.id; // IDは現場管理Noと異なる場合があるので自動補完しない方が安全か？
+                // 画像には "管理No." (41等) があるが、これは company_id と同じに見える。
+                // 既存コードでは machine-id (現場管理No) と company-machine-id (会社管理No) がある。
+                // 画像の No. は company_id (key: 41) と一致している。
             }
-        }
-        // 2. 直接ID入力された場合もチェック
-        else {
-            match = machineList.find(m => m.id === val);
-        }
-
-        if (match) {
-            // "Model | No.ID" の形式で入力されている場合、IDのみ書き換える
-            if (val !== match.id) {
-                // ユーザー入力イベントループを防ぐため、値をセットするだけにする
-                // ※ inputイベント内で value を書き換えると、再度 input イベントが発火するブラウザもあるが、
-                // 通常はユーザー操作のみで発火する。念のため。
-                idInput.value = match.id;
-            }
-
-            if (modelInput) {
-                modelInput.value = match.model;
-            }
-            if (companyInput) {
-                companyInput.value = match.company_id;
-            }
-
-            // 自動補完が完了した後、少しハイライトなどの演出があると良いが、ここでは実装しない
-        }
-    });
+        });
+    }
 }
 
 // 点検データの定義
@@ -1608,7 +1596,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 日付表示の更新
     updateDateDisplay();
     renderStaffList(); renderRepresentativeList();
-    populateMachineDatalist(); // 機械リスト初期化
+    // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
+
 
     // DatalistのUX改善 (フォーカス時にリストを表示させる)
     setupDatalistUX([
