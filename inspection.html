@@ -82,8 +82,11 @@
                     <input type="month" id="inspection-month">
                 </div>
                 <div class="input-group" id="site-name-group">
-                    <label>現場名</label>
-                    <input type="text" id="site-name" readonly>
+                    <label>機械名</label>
+                    <input type="text" id="machine-name" placeholder="例：コベルコバックホー" list="machine-name-list">
+                    <datalist id="machine-name-list">
+                        <!-- JSで生成 -->
+                    </datalist>
                 </div>
                 <div class="input-group" id="model-type-group">
                     <label>型式 <span class="required-mark">*</span></label>

@@ -1660,43 +1660,50 @@ window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
 window.goDashBoard = goDashBoard;
 
 function setupMachineAutoFill() {
-    const idInput = document.getElementById('machine-id'); // ����Ǘ�No. (������Ȃ�)
+    const idInput = document.getElementById('machine-id'); // 現場管理No.
     const modelInput = document.getElementById('model-type');
-    const companyInput = document.getElementById('company-machine-id'); // ��ЊǗ�No. (�����ɓ���)
+    const companyInput = document.getElementById('company-machine-id'); // 会社管理No.
+    const nameInput = document.getElementById('machine-name'); // 機械名
 
-    if (!companyInput) return;
+    // リストのレンダリング
+    const machineMasterList = document.getElementById('machine-master-list');
+    const machineNameList = document.getElementById('machine-name-list');
 
-    companyInput.addEventListener('input', () => {
-        const val = companyInput.value;
+    if (machineMasterList) {
+        machineMasterList.innerHTML = '';
+        machineList.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.company_id;
+            opt.innerText = `${m.model} (${m.name})`;
+            machineMasterList.appendChild(opt);
+        });
+    }
 
-        // 1. ���X�g����I����ꂽ�`�� 'Model | No.CompanyID' ���`�F�b�N
-        let match = null;
-        if (val.includes('| No.')) {
-            const parts = val.split('| No.');
-            if (parts.length === 2) {
-                const selectedCompanyId = parts[1].trim();
-                match = machineList.find(m => m.company_id === selectedCompanyId);
+    if (machineNameList) {
+        machineNameList.innerHTML = '';
+        // ユニークな機械名のみ抽出
+        const uniqueNames = [...new Set(machineList.map(m => m.name))];
+        uniqueNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            machineNameList.appendChild(opt);
+        });
+    }
+
+    // 会社管理No -> その他を自動入力
+    if (companyInput) {
+        companyInput.addEventListener('change', () => { // input, change
+            const val = companyInput.value;
+            const match = machineList.find(m => m.company_id === val);
+            if (match) {
+                if (modelInput) modelInput.value = match.model;
+                if (nameInput) nameInput.value = match.name;
             }
-        }
-        // 2. ���ړ��͂��ꂽ�ꍇ��`�F�b�N (company_id�Ō���)
-        else {
-            match = machineList.find(m => m.company_id === val);
-        }
+        });
+    }
 
-        if (match) {
-            // 'Model | No.CompanyID' �̌`���œ��͂���Ă���ꍇ�AID�̂ݏ���������
-            if (val !== match.company_id) {
-                // ���[�U�[���̓C�x���g���[�v��h�����߁A�l��Z�b�g���邾���ɂ���
-                companyInput.value = match.company_id;
-            }
-
-            if (modelInput) {
-                modelInput.value = match.model;
-            }
-
-            // machine-id (����Ǘ�No.) �͎������͂��Ȃ� (���[�U�[�v�])
-        }
-    });
+    // 機械名入力時の挙動は「絞り込み」にしたいが、一意に決まらないので補完は難しい
+    // ここでは管理No入力時の自動補完をメインとする
 }
 
 
