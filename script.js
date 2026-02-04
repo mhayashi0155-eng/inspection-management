@@ -320,6 +320,8 @@ function initIndex() {
     */
 
     renderSiteList();
+    if (window.renderRepresentativeList) window.renderRepresentativeList();
+
 
     const siteModal = document.getElementById('site-modal');
     const newSiteBtn = document.getElementById('new-site-btn');
@@ -1753,15 +1755,15 @@ function setupMachineAutoFill() {
 
 
 const representativeList = [
-    ""杉本 鉄也"",
-    ""林 成司"",
-    ""佐藤 光一"",
-    ""辻 成人"",
-    ""白戸 嘉人"",
-    ""庄司 明"",
-    ""十河 弘樹"",
-    ""林 真人"",
-    ""金田 大作""
+    "杉本 鉄也",
+    "林 成司",
+    "佐藤 光一",
+    "辻 成人",
+    "白戸 嘉人",
+    "庄司 明",
+    "十河 弘樹",
+    "林 真人",
+    "金田 大作"
 ];
 
 function renderRepresentativeList() {
