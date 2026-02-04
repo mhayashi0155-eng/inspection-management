@@ -1075,12 +1075,12 @@ async function fetchSiteInfo(siteId) {
 
     const siteNameEl = document.getElementById('site-name');
     const representativeEl = document.getElementById('representative');
-    const inspectorEl = document.getElementById('inspector-name');
+    // const inspectorEl = document.getElementById('inspector-name'); // Removed
     const safetyEl = document.getElementById('safety-manager');
 
     if (siteNameEl) siteNameEl.value = site.name || '';
     if (representativeEl) representativeEl.value = site.representative || '';
-    if (inspectorEl && !inspectorEl.value) inspectorEl.value = site.site_inspector || '';
+    // if (inspectorEl && !inspectorEl.value) inspectorEl.value = site.site_inspector || '';
     if (safetyEl) safetyEl.value = site.safety_manager || '';
 }
 
@@ -1262,7 +1262,7 @@ async function loadMonthlyData() {
         const latest = list[0];
         currentInspectionId = latest.id;
         document.getElementById('model-type').value = latest.model_type || '';
-        document.getElementById('inspector-name').value = latest.inspector_name || '';
+        // document.getElementById('inspector-name').value = latest.inspector_name || ''; // Removed
         document.getElementById('remarks').value = latest.remarks || '';
         document.getElementById('repairs').value = latest.repairs || '';
 
@@ -1358,7 +1358,7 @@ async function saveInspection() {
         machine_id: mid,
         inspection_date: inspectionDate,
         operating_hours: hours ? parseFloat(hours) : 0,
-        inspector_name: document.getElementById('inspector-name').value,
+        inspector_name: "", // Removed from UI but keeping DB column for compatibility
         remarks: document.getElementById('remarks').value,
         repairs: document.getElementById('repairs').value,
         statuses: statuses,
@@ -1428,13 +1428,13 @@ async function loadInspectionData(id) {
     // 先に値をセットしておく（自動ロード時にmid等が必要になるため）
     const modelEl = document.getElementById('model-type');
     const midEl = document.getElementById('machine-id');
-    const inspectorEl = document.getElementById('inspector-name');
+    // const inspectorEl = document.getElementById('inspector-name'); // Removed
     const remarksEl = document.getElementById('remarks');
     const repairsEl = document.getElementById('repairs');
 
     if (modelEl) modelEl.value = i.model_type || '';
     if (midEl) midEl.value = i.machine_id || '';
-    if (inspectorEl) inspectorEl.value = i.inspector_name || '';
+    // if (inspectorEl) inspectorEl.value = i.inspector_name || '';
 
     // Add Main/Sub Inspector
     const inspectorMainEl = document.getElementById('inspector-main');
@@ -1618,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupDatalistUX([
         'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
-        'representative', 'inspector-name', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
+        'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
         'company-machine-id' // 会社管理No.に対象を変更
     ]);
     setupMachineAutoFill(); // 自動入力設定
