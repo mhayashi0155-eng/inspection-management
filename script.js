@@ -1670,3 +1670,44 @@ window.openEditSite = (id) => window.openEditSite(id);
 window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
 window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
 window.goDashBoard = goDashBoard;
+
+function setupMachineAutoFill() {
+    const idInput = document.getElementById('machine-id'); // 現場管理No. (何もしない)
+    const modelInput = document.getElementById('model-type');
+    const companyInput = document.getElementById('company-machine-id'); // 会社管理No. (ここに入力)
+    
+    if (!companyInput) return;
+
+    companyInput.addEventListener('input', () => {
+        const val = companyInput.value;
+        
+        // 1. リストから選択された形式 'Model | No.CompanyID' かチェック
+        let match = null;
+        if (val.includes('| No.')) {
+            const parts = val.split('| No.');
+            if (parts.length === 2) {
+                const selectedCompanyId = parts[1].trim();
+                match = machineList.find(m => m.company_id === selectedCompanyId);
+            }
+        } 
+        // 2. 直接入力された場合もチェック (company_idで検索)
+        else {
+            match = machineList.find(m => m.company_id === val);
+        }
+
+        if (match) {
+            // 'Model | No.CompanyID' の形式で入力されている場合、IDのみ書き換える
+            if (val !== match.company_id) {
+                // ユーザー入力イベントループを防ぐため、値をセットするだけにする
+                companyInput.value = match.company_id;
+            }
+
+            if (modelInput) {
+                modelInput.value = match.model;
+            }
+            
+            // machine-id (現場管理No.) は自動入力しない (ユーザー要望)
+        }
+    });
+}
+
