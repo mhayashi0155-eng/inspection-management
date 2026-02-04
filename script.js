@@ -39,32 +39,9 @@ const dailyMonthlyTypes = [
 // Supabaseクライアントの初期化
 const supabaseClient = (typeof window.supabase !== 'undefined') ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-const staffList = [
-    "山内 信男", "山内 俊男", "山内 正裕", "川瀬 康成", "泉 昌則", "山内 和子", "井口 勇夫",
-    "平本奈三子", "村田 渚", "堀越 正志", "小丹枝 和男", "杉本 鉄也", "林 成司", "佐藤 光一",
-    "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都",
-    "五十嵐 友人", "広島 庚大", "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介",
-    "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹", "赤城 宜生", "高野 公彰",
-    "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩",
-    "桶井 哲也", "大羅飛 雄馬", "小玉 迅", "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
-    "(株)ティー・ワイ", "山内 優也", "清和 孝徳", "布谷 縒史", "岡本 晃全", "三好 宏幸",
-    "勝見 美咲", "服部 有紀子", "上重 亜梨紗", "山内 いち子", "堀 邦寿", "鋇野 真理",
-    "及川 陽介", "相田 健志", "劔持 修次", "(株)とかち興産", "郷 樹美"
-];
+// 機械マスターデータ
+// ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
 
-function renderStaffList() {
-    const dataList = document.getElementById('staff-list');
-    if (!dataList) return;
-
-    // 既存のオプションをクリア (念のため)
-    dataList.innerHTML = '';
-
-    staffList.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        dataList.appendChild(option);
-    });
-}
 
 // 機械マスターデータ
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
