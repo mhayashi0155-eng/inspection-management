@@ -449,10 +449,11 @@ async function renderSiteList() {
     const listBody = document.getElementById('site-list-body');
     if (!listBody || !supabaseClient) return;
 
-    // List sites (fetch all sites including deleted ones per user request)
-    let query = supabaseClient.from('sites').select('*');
+    // List sites (fetch valid sites: is_deleted is null OR is_deleted is false)
+    let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
 
     const { data: sites, error } = await query.order('last_updated', { ascending: false });
+
 
     if (error) {
         console.error("Data fetch error:", error);
