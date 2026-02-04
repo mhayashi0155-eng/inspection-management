@@ -325,6 +325,20 @@ function initIndex() {
         siteModal.style.display = 'flex';
     });
 
+    // --- Reset Filters on Load ---
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) statusFilter.value = 'all';
+
+    const dateFrom = document.getElementById('date-from');
+    if (dateFrom) dateFrom.value = '';
+
+    const dateTo = document.getElementById('date-to');
+    if (dateTo) dateTo.value = '';
+
+    const siteSearch = document.getElementById('site-search');
+    if (siteSearch) siteSearch.value = '';
+
+
     closeSiteModal?.addEventListener('click', () => siteModal.style.display = 'none');
     backToSites?.addEventListener('click', () => {
         showView('site-list-view');
@@ -1675,12 +1689,12 @@ function setupMachineAutoFill() {
     const idInput = document.getElementById('machine-id'); // ����Ǘ�No. (������Ȃ�)
     const modelInput = document.getElementById('model-type');
     const companyInput = document.getElementById('company-machine-id'); // ��ЊǗ�No. (�����ɓ���)
-    
+
     if (!companyInput) return;
 
     companyInput.addEventListener('input', () => {
         const val = companyInput.value;
-        
+
         // 1. ���X�g����I����ꂽ�`�� 'Model | No.CompanyID' ���`�F�b�N
         let match = null;
         if (val.includes('| No.')) {
@@ -1689,7 +1703,7 @@ function setupMachineAutoFill() {
                 const selectedCompanyId = parts[1].trim();
                 match = machineList.find(m => m.company_id === selectedCompanyId);
             }
-        } 
+        }
         // 2. ���ړ��͂��ꂽ�ꍇ��`�F�b�N (company_id�Ō���)
         else {
             match = machineList.find(m => m.company_id === val);
@@ -1705,7 +1719,7 @@ function setupMachineAutoFill() {
             if (modelInput) {
                 modelInput.value = match.model;
             }
-            
+
             // machine-id (����Ǘ�No.) �͎������͂��Ȃ� (���[�U�[�v�])
         }
     });
