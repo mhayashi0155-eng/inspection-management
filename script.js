@@ -480,7 +480,7 @@ async function renderSiteList() {
     const listBody = document.getElementById('site-list-body');
     if (!listBody || !supabaseClient) return;
 
-    let query = supabaseClient.from('sites').select('*').eq('is_deleted', false);
+    let query = supabaseClient.from('sites').select('*').or('is_deleted.is.null,is_deleted.eq.false');
     const search = document.getElementById('site-search').value;
     const status = document.getElementById('status-filter').value;
     const from = document.getElementById('date-from').value;
@@ -504,7 +504,13 @@ async function renderSiteList() {
         const row = document.createElement('tr');
         const badgeClass = site.status === '施工中' ? 'badge-active' : 'badge-done';
         const dateStr = site.start_date ? `${site.start_date.replace(/-/g, '/')} 〜 ${site.end_date ? site.end_date.replace(/-/g, '/') : '未定'}` : '-';
-        const updatedAt = new Date(site.last_updated).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+
+        let updatedAt = '-';
+        try {
+            updatedAt = site.last_updated ? new Date(site.last_updated).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '') : '-';
+        } catch (e) {
+            console.warn('Date parse error', e);
+        }
 
         row.innerHTML = `
             <td><div class="site-name">${site.name}</div></td>
