@@ -99,7 +99,7 @@ const machineList = [
     { id: "T-11", model: "SK330-10", company_id: "T-11" }
 ];
 
-function renderMachineList() {
+function populateMachineDatalist() {
     const dataList = document.getElementById('machine-master-list');
     if (!dataList) return;
 
@@ -1620,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 日付表示の更新
     updateDateDisplay();
     renderStaffList();
-    renderMachineList(); // 機械リスト初期化
+    populateMachineDatalist(); // 機械リスト初期化
 
     // DatalistのUX改善 (フォーカス時にリストを表示させる)
     setupDatalistUX([
