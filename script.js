@@ -306,6 +306,7 @@ function updateDateDisplay() {
 function initIndex() {
     renderSiteList();
     if (window.renderRepresentativeList) window.renderRepresentativeList();
+    if (window.renderStaffList) window.renderStaffList();
 
     const siteModal = document.getElementById('site-modal');
     const newSiteBtn = document.getElementById('new-site-btn');
@@ -1733,6 +1734,15 @@ const representativeList = [
     "金田 大作"
 ];
 
+const staffList = [
+    "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
+    "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
+    "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
+    "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
+    "堀 邦寿",
+    "郷 樹美"
+];
+
 function renderRepresentativeList() {
     const dataList = document.getElementById('representative-list');
     if (!dataList) return;
@@ -1743,4 +1753,17 @@ function renderRepresentativeList() {
         dataList.appendChild(option);
     });
 }
+
+function renderStaffList() {
+    const dataList = document.getElementById('staff-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    staffList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+
 window.renderRepresentativeList = renderRepresentativeList;
+window.renderStaffList = renderStaffList;
