@@ -107,8 +107,8 @@ function populateMachineDatalist() {
     machineList.forEach(m => {
         const option = document.createElement('option');
         // 型式で検索・選択できるように value に型式を含める
-        // 選択後にJSで ID のみに書き換える処理を入れる
-        option.value = `${m.model} | No.${m.id}`;
+        // 会社管理No. (company_id) を使用
+        option.value = `${m.model} | No.${m.company_id}`;
         dataList.appendChild(option);
     });
 }
@@ -1626,7 +1626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupDatalistUX([
         'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
         'representative', 'inspector-name', 'safety-manager', // 点検表画面
-        'machine-id' // 機械IDも対象に追加
+        'company-machine-id' // 会社管理No.に対象を変更
     ]);
     setupMachineAutoFill(); // 自動入力設定
 
