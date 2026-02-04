@@ -1266,6 +1266,12 @@ async function loadMonthlyData() {
         document.getElementById('remarks').value = latest.remarks || '';
         document.getElementById('repairs').value = latest.repairs || '';
 
+        // 点検者(正)・(副)の復元
+        const mainEl = document.getElementById('inspector-main');
+        const subEl = document.getElementById('inspector-sub');
+        if (mainEl) mainEl.value = (latest.statuses && latest.statuses._inspector_main) || '';
+        if (subEl) subEl.value = (latest.statuses && latest.statuses._inspector_sub) || '';
+
         // 会社管理Noを復元
         if (latest.statuses && latest.statuses._company_machine_id) {
             const cmidEl = document.getElementById('company-machine-id');
@@ -1341,6 +1347,9 @@ async function saveInspection() {
 
     // 会社管理No.をstatusesに追加して保存（カラム不足回避のため）
     statuses['_company_machine_id'] = companyMid;
+    // 点検者(正)・(副)もstatusesに追加
+    statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
+    statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
 
     const payload = {
         site_id: currentSiteId || null,
@@ -1426,6 +1435,13 @@ async function loadInspectionData(id) {
     if (modelEl) modelEl.value = i.model_type || '';
     if (midEl) midEl.value = i.machine_id || '';
     if (inspectorEl) inspectorEl.value = i.inspector_name || '';
+
+    // Add Main/Sub Inspector
+    const inspectorMainEl = document.getElementById('inspector-main');
+    const inspectorSubEl = document.getElementById('inspector-sub');
+    if (inspectorMainEl) inspectorMainEl.value = (i.statuses && i.statuses._inspector_main) || '';
+    if (inspectorSubEl) inspectorSubEl.value = (i.statuses && i.statuses._inspector_sub) || '';
+
     if (remarksEl) remarksEl.value = i.remarks || '';
     if (repairsEl) repairsEl.value = i.repairs || '';
 
@@ -1602,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupDatalistUX([
         'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
-        'representative', 'inspector-name', 'safety-manager', // 点検表画面
+        'representative', 'inspector-name', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
         'company-machine-id' // 会社管理No.に対象を変更
     ]);
     setupMachineAutoFill(); // 自動入力設定
