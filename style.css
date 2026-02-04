@@ -550,6 +550,53 @@ table.data-table td svg {
 }
 
 @media (max-width: 768px) {
+
+    /* --- Mobile Header Layout --- */
+    .main-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .main-nav h1 {
+        text-align: center;
+        font-size: 1.4rem;
+    }
+
+    .nav-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        width: 100%;
+    }
+
+    /* Manual Buttons (Top Row) */
+    .nav-actions .btn.secondary-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.8rem;
+        font-size: 0.95rem;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    /* Create New Site Button (Bottom Row - Full Width) */
+    .nav-actions .primary-btn {
+        grid-column: 1 / -1;
+        /* Span 2 columns */
+        width: 100%;
+        justify-content: center;
+        padding: 1rem;
+        font-size: 1.1rem;
+        margin-top: 0.2rem;
+    }
+
+    /* Filter Bar Adjustments */
+    .filter-bar {
+        padding: 1rem;
+    }
+
     .inspection-grid {
         grid-template-columns: 1fr;
     }
