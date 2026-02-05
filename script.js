@@ -1617,6 +1617,7 @@ async function saveInspection() {
                 .eq('machine_type', 'shovel_daily')
                 .eq('machine_id', mid)
                 .like('inspection_date', `${inspMonth}-%`)
+                .limit(1)
                 .maybeSingle();
 
             if (!existingDaily) {
