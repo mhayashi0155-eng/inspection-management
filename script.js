@@ -1140,6 +1140,9 @@ async function initInspection() {
         // Lock Machine Fields for Existing Records
         lockMachineFields();
 
+        // 親(月次)点検からの点検者同期 (Dailyの場合)
+        await syncInspectorFromParent(currentMachineId, document.getElementById('machine-id').value, currentSiteId);
+
     } else if (copyFromId) {
         // B. 既存レコードをベースにしたコピー作成
         await loadInspectionData(copyFromId);
@@ -1204,6 +1207,9 @@ async function initInspection() {
 
             // Re-lock
             lockMachineFields();
+
+            // 親(月次)点検からの点検者同期
+            await syncInspectorFromParent(currentMachineId, mId, currentSiteId);
 
             // 点検モード制御 (読み取り専用化)
             if (mode === 'check') {
@@ -2014,6 +2020,36 @@ function renderStaffList() {
 
 window.renderRepresentativeList = renderRepresentativeList;
 window.renderStaffList = renderStaffList;
+
+async function syncInspectorFromParent(mType, mId, siteId) {
+    if (!mType || !mType.endsWith('_daily')) return;
+    const parentType = mType.replace('_daily', '');
+    const monthEl = document.getElementById('inspection-month');
+    const month = monthEl ? monthEl.value : null;
+    if (!month || !siteId || !mId) return;
+
+    const { data: parent } = await supabaseClient
+        .from('inspections')
+        .select('statuses')
+        .eq('site_id', siteId)
+        .eq('machine_type', parentType)
+        .eq('machine_id', mId)
+        .like('inspection_date', `${month}-%`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (parent && parent.statuses) {
+        const pMain = parent.statuses._inspector_main;
+        const pSub = parent.statuses._inspector_sub;
+
+        const mainEl = document.getElementById('inspector-main');
+        const subEl = document.getElementById('inspector-sub');
+
+        if (pMain && mainEl) mainEl.value = pMain;
+        if (pSub && subEl) subEl.value = pSub;
+    }
+}
 
 // Helper to lock fields
 function lockMachineFields() {
