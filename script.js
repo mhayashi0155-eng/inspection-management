@@ -43,8 +43,8 @@ const supabaseClient = (typeof window.supabase !== 'undefined') ? window.supabas
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
 
 
-// 機械マスターデータ (User requested update from image)
-const machineList = [
+// 機械マスターデータ (Shovel)
+const shovelMachineList = [
     { name: "コベルコバックホー", model: "SK200-10", company_id: "41" },
     { name: "コマツバックホー", model: "HB205-1", company_id: "42" },
     { name: "コベルコバックホー", model: "SK125SR-2", company_id: "43" },
@@ -75,54 +75,88 @@ const machineList = [
     { name: "コベルコバックホー", model: "SK330-10", company_id: "T-11" }
 ];
 
-function setupMachineAutoFill() {
-    const idInput = document.getElementById('machine-id'); // 現場管理No.
-    const modelInput = document.getElementById('model-type');
-    const companyInput = document.getElementById('company-machine-id'); // 会社管理No.
-    const nameInput = document.getElementById('machine-name'); // 機械名
+// 機械マスターデータ (Tractor)
+const tractorMachineList = [
+    { name: "小松ブルドーザー", model: "D20P-6", company_id: "72" },
+    { name: "小松ブルドーザー", model: "D31PX-22", company_id: "74" },
+    { name: "三菱ブルドーザー", model: "D3C4HJ994", company_id: "76" },
+    { name: "小松ブルドーザー", model: "D65PX-12E", company_id: "81" },
+    { name: "小松ブルドーザー", model: "D85P21E", company_id: "82" },
+    { name: "小松ブルドーザー", model: "D37PX-23", company_id: "83" },
+    { name: "小松ブルドーザー", model: "D65PX-17", company_id: "84" },
+    { name: "小松ブルドーザー", model: "D31Q-16", company_id: "90" },
+    { name: "クローラーダンプ", model: "MST1500", company_id: "91" },
+    { name: "クローラーダンプ", model: "MST2200", company_id: "92" },
+    { name: "クローラーダンプ", model: "IC-100", company_id: "93" },
+    { name: "小松ブルドーザー", model: "DR450-1", company_id: "000" },
+    { name: "小松クローラダンプ 11 t", model: "CD110R-2", company_id: "T-8" }
+];
 
-    // リストのレンダリング
+// 現在のアクティブな機械マスターリスト
+let activeMasterList = shovelMachineList;
+
+function setupMachineAutoFillListener() {
+    const idInput = document.getElementById('machine-id');
+    const modelInput = document.getElementById('model-type');
+    const companyInput = document.getElementById('company-machine-id');
+    const nameInput = document.getElementById('machine-name');
+
+    // 会社管理No -> その他を自動入力
+    if (companyInput) {
+        companyInput.addEventListener('change', () => {
+            const val = companyInput.value;
+            // 現在のアクティブリストから検索
+            const match = activeMasterList.find(m => m.company_id === val);
+            if (match) {
+                if (modelInput) modelInput.value = match.model;
+                if (nameInput) nameInput.value = match.name;
+            }
+        });
+    }
+}
+
+function updateMachineMasterList(machineType) {
+    console.log(`DEBUG: updateMachineMasterList called with type: ${machineType}`);
+
+    // タイプに応じてリストを切り替え
+    if (machineType === 'tractor') {
+        console.log("DEBUG: Switching to TRACTOR list");
+        activeMasterList = tractorMachineList;
+    } else {
+        console.log("DEBUG: Switching to SHOVEL list (default)");
+        // shovel, shovel_daily, crane, etc. (デフォルトはショベルリストで良いか、あるいは各機種ごとに空にするか)
+        // ここではショベルとトラクタ以外はショベルリスト（または空）にする想定だが、
+        // ひとまずショベル以外でトラクタ指定されたもの以外はショベルリストを使う実装にする
+        activeMasterList = shovelMachineList;
+    }
+
+    // リストの再レンダリング
     const machineMasterList = document.getElementById('machine-master-list');
     const machineNameList = document.getElementById('machine-name-list');
 
     if (machineMasterList) {
+        console.log(`DEBUG: Populating machine-master-list with ${activeMasterList.length} items`);
         machineMasterList.innerHTML = '';
-        machineList.forEach(m => {
+        activeMasterList.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.company_id;
             opt.innerText = `${m.model} (${m.name})`;
             machineMasterList.appendChild(opt);
         });
+    } else {
+        console.error("DEBUG: machine-master-list element NOT found!");
     }
 
     if (machineNameList) {
         machineNameList.innerHTML = '';
-        // ユニークな機械名のみ抽出
-        const uniqueNames = [...new Set(machineList.map(m => m.name))];
+        const uniqueNames = [...new Set(activeMasterList.map(m => m.name))];
         uniqueNames.forEach(name => {
             const opt = document.createElement('option');
             opt.value = name;
             machineNameList.appendChild(opt);
         });
     }
-
-    // 会社管理No -> その他を自動入力
-    if (companyInput) {
-        companyInput.addEventListener('change', () => { // input, change
-            const val = companyInput.value;
-            const match = machineList.find(m => m.company_id === val);
-            if (match) {
-                if (modelInput) modelInput.value = match.model;
-                if (nameInput) nameInput.value = match.name;
-                // if (idInput) idInput.value = match.id; // IDは現場管理Noと異なる場合があるので自動補完しない方が安全か？
-                // 画像には "管理No." (41等) があるが、これは company_id と同じに見える。
-                // 既存コードでは machine-id (現場管理No) と company-machine-id (会社管理No) がある。
-                // 画像の No. は company_id (key: 41) と一致している。
-            }
-        });
-    }
 }
-
 // 点検データの定義
 const inspectionData = {
     shovel: {
@@ -1003,6 +1037,7 @@ async function initInspection() {
         if (cmidEl && cmid) cmidEl.value = cmid;
 
         // 次に機種選択を実行
+        updateMachineMasterList(mType); // ★ここに追加: URLパラメータからの初期化時にもリストを更新
         selectMachine(mType);
 
         // 日常点検などの月間シート形式の場合、既存の同一月レコードを探して読み込む
@@ -1088,6 +1123,10 @@ function selectMachine(id) {
     currentMachineId = id;
     document.getElementById('machine-modal').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
+
+    // 機械のタイプに応じて自動入力リストを更新
+    updateMachineMasterList(id);
+
     renderForm(id);
 }
 
@@ -1473,6 +1512,7 @@ async function loadInspectionData(id) {
     }
 
     // 画面構成を切り替え
+    updateMachineMasterList(i.machine_type); // ★ここに追加: 保存データ読み込み時にもリストを更新
     selectMachine(i.machine_type);
 
     // 日常点検の場合は、selectMachine内のrenderFormから呼ばれるloadMonthlyDataが
@@ -1621,7 +1661,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
         'company-machine-id' // 会社管理No.に対象を変更
     ]);
-    setupMachineAutoFill(); // 自動入力設定
+    setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
+    updateMachineMasterList('shovel'); // 初期リストセット
 
     // 現場名の取得・表示 (ヘッダー用)
     if (currentSiteId) {
@@ -1678,52 +1719,8 @@ window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
 window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
 window.goDashBoard = goDashBoard;
 
-function setupMachineAutoFill() {
-    const idInput = document.getElementById('machine-id'); // 現場管理No.
-    const modelInput = document.getElementById('model-type');
-    const companyInput = document.getElementById('company-machine-id'); // 会社管理No.
-    const nameInput = document.getElementById('machine-name'); // 機械名
+// Removed old setupMachineAutoFill
 
-    // リストのレンダリング
-    const machineMasterList = document.getElementById('machine-master-list');
-    const machineNameList = document.getElementById('machine-name-list');
-
-    if (machineMasterList) {
-        machineMasterList.innerHTML = '';
-        machineList.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.company_id;
-            opt.innerText = `${m.model} (${m.name})`;
-            machineMasterList.appendChild(opt);
-        });
-    }
-
-    if (machineNameList) {
-        machineNameList.innerHTML = '';
-        // ユニークな機械名のみ抽出
-        const uniqueNames = [...new Set(machineList.map(m => m.name))];
-        uniqueNames.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            machineNameList.appendChild(opt);
-        });
-    }
-
-    // 会社管理No -> その他を自動入力
-    if (companyInput) {
-        companyInput.addEventListener('change', () => { // input, change
-            const val = companyInput.value;
-            const match = machineList.find(m => m.company_id === val);
-            if (match) {
-                if (modelInput) modelInput.value = match.model;
-                if (nameInput) nameInput.value = match.name;
-            }
-        });
-    }
-
-    // 機械名入力時の挙動は「絞り込み」にしたいが、一意に決まらないので補完は難しい
-    // ここでは管理No入力時の自動補完をメインとする
-}
 
 
 const representativeList = [
