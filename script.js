@@ -703,7 +703,7 @@ async function renderMachineList(siteId) {
                         ${dailyBtns}
                     </div>
                     <div style="display:flex; gap:0.3rem;">
-                         <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; background: #fffbeb; border-color: #fbbf24; color: #d97706;" onclick='showQrCode("${siteId}", "${m.machine_type}", "${m.machine_id}", "${m.model_type}")'>QR</button>
+                         <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; background: #fffbeb; border-color: #fbbf24; color: #d97706;" onclick='showQrCode("${siteId}", "${m.machine_type}", "${m.machine_id}", "${m.model_type}", "${(m.statuses && m.statuses._company_machine_id) || ''}")'>QR</button>
                         <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="location.href='inspection.html?id=${targetIdForEdit}&site_id=${siteId}'">詳細</button>
                         <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="openMachineHistory('${siteId}', '${m.machine_id}')">履歴</button>
                         <button class="ghost-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; color:var(--danger-color);" onclick="confirmDeleteMachine('${siteId}', '${m.machine_id}')">削除</button>
@@ -729,42 +729,106 @@ async function renderMachineList(siteId) {
     }
 }
 
-function showQrCode(siteId, machineType, machineId, modelType) {
+function showQrCode(siteId, machineType, machineId, modelType, companyMachineId) {
     const modal = document.getElementById('qr-modal');
-    const container = document.getElementById('qrcode-container');
-    const caption = document.getElementById('qr-caption');
-    if (!modal || !container) return;
+    // const container = document.getElementById('qrcode-container'); // Changed: dynamic generation
 
-    container.innerHTML = '';
+    if (!modal) return;
 
-    // ベースURLを取得 (現在のパスからinspection.htmlへのパスを構築)
-    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/inspection.html';
+    // A5 Label Layout Generation
+    // We will inject the HTML dynamically into modal-content
 
-    // パラメータ付きURLを作成
-    // 注意: URIエンコードを行う
-    // パラメータ短縮: s=site_id, mt=machine_type, id=machine_id, mo=model_type
-    const url = `${baseUrl}?action=new&s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(machineType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}`;
+    // Machine Name lookup
+    let machineName = "（不明）";
+    // Combine lists to search
+    const allMachines = [...(typeof shovelMachineList !== 'undefined' ? shovelMachineList : []), ...(typeof tractorMachineList !== 'undefined' ? tractorMachineList : [])];
+    const match = allMachines.find(m => m.company_id === companyMachineId);
+    if (match) machineName = match.name;
+    else if (!companyMachineId) machineName = ""; // If no ID, leave empty or logic?
 
-    // QRコード生成 (密度を下げるために誤り訂正レベルをLに、サイズを大きめに)
-    new QRCode(container, {
-        text: url,
-        width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.L // 密度を下げる
-    });
+    // Site Name
+    const siteName = document.getElementById('current-site-title')?.innerText || "";
 
-    caption.innerHTML = `${modelType} <br> <span style="font-weight:bold; font-size:1.1rem;">${machineId}</span>`;
+    const contentHtml = `
+        <div class="print-label-container">
+            <div class="label-header">
+                株式会社山内組 管理機械
+            </div>
+            <div class="label-body">
+                <div class="label-info-col">
+                    <div class="label-row">
+                        <span class="label-key">現場名</span>
+                        <span class="label-val">${siteName}</span>
+                    </div>
+                    <div class="label-row">
+                        <span class="label-key">機械名</span>
+                        <span class="label-val">${machineName}</span>
+                    </div>
+                    <div class="label-row half">
+                        <div class="split-item">
+                            <span class="label-key">型式</span>
+                            <span class="label-val text-lg">${modelType}</span>
+                        </div>
+                        <div class="split-item">
+                            <span class="label-key">社内No.</span>
+                            <span class="label-val text-lg">${companyMachineId || '-'}</span>
+                        </div>
+                    </div>
+                    <div class="label-row">
+                        <span class="label-key">現場管理No.</span>
+                        <span class="label-val text-xl em-text">${machineId}</span>
+                    </div>
+                    <div class="label-row half">
+                        <div class="split-item">
+                            <span class="label-key">点検者(正)</span>
+                            <input type="text" class="print-input" placeholder="氏名記入">
+                        </div>
+                        <div class="split-item">
+                            <span class="label-key">点検者(副)</span>
+                            <input type="text" class="print-input" placeholder="氏名記入">
+                        </div>
+                    </div>
+                </div>
+                <div class="label-qr-col">
+                    <div id="qrcode-target"></div>
+                    <div class="qr-note">スマホで読取</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-actions" style="justify-content: center; margin-top: 1rem;">
+             <button class="secondary-btn" id="close-qr-btn">閉じる</button>
+             <button class="primary-btn" onclick="window.print()">🖨️ 印刷 (A5)</button>
+        </div>
+        
+        <p style="text-align:center; font-size:0.8rem; color:#666; margin-top:0.5rem;">
+            ※印刷設定で「A5」「横」「倍率100%」等に調整してください
+        </p>
+    `;
 
-    // fileプロトコルの場合の警告
-    if (window.location.protocol === 'file:') {
-        const warning = document.createElement('p');
-        warning.style.color = 'red';
-        warning.style.fontSize = '0.8rem';
-        warning.style.marginTop = '1rem';
-        warning.innerText = "※ ご注意: PC上のローカルファイルを開いているため、このQRコードはスマホでは正しく開けない可能性があります。Webサーバー上に公開してからご利用ください。";
-        container.parentElement.appendChild(warning);
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.innerHTML = contentHtml;
+        // Re-attach close handler since we wiped it
+        document.getElementById('close-qr-btn').onclick = () => modal.style.display = 'none';
+    }
+
+    // Generate QR
+    const container = document.getElementById('qrcode-target');
+    if (container) {
+        container.innerHTML = '';
+        // ベースURLを取得 (現在のパスからinspection.htmlへのパスを構築)
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/inspection.html';
+        const url = `${baseUrl}?action=new&s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(machineType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}&cmid=${encodeURIComponent(companyMachineId || '')}`;
+
+        new QRCode(container, {
+            text: url,
+            width: 160, // Smaller for label? or Big enough
+            height: 160,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
     }
 
     modal.style.display = 'flex';
