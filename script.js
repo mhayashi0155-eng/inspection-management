@@ -1838,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 日付表示の更新
     updateDateDisplay();
     renderStaffList(); renderRepresentativeList();
+    fetchDynamicStaffList(); // 非同期で最新リスト取得
     // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
 
 
@@ -1928,6 +1929,66 @@ const staffList = [
     "堀 邦寿",
     "郷 樹美"
 ];
+
+
+async function fetchDynamicStaffList() {
+    if (!supabaseClient) return;
+
+    // Fetch from Sites (Representatives, etc)
+    const { data: sites } = await supabaseClient
+        .from('sites')
+        .select('representative, site_inspector, safety_manager')
+        .order('last_updated', { ascending: false })
+        .limit(50);
+
+    // Fetch from Inspections (Inspectors)
+    const { data: inspections } = await supabaseClient
+        .from('inspections')
+        .select('statuses')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    const newStaff = new Set();
+    const newRep = new Set();
+
+    if (sites) {
+        sites.forEach(s => {
+            if (s.representative && s.representative.trim()) newRep.add(s.representative.trim());
+            if (s.site_inspector && s.site_inspector.trim()) newStaff.add(s.site_inspector.trim());
+            if (s.safety_manager && s.safety_manager.trim()) newStaff.add(s.safety_manager.trim());
+        });
+    }
+
+    if (inspections) {
+        inspections.forEach(i => {
+            if (i.statuses) {
+                if (i.statuses._inspector_main && i.statuses._inspector_main.trim()) newStaff.add(i.statuses._inspector_main.trim());
+                if (i.statuses._inspector_sub && i.statuses._inspector_sub.trim()) newStaff.add(i.statuses._inspector_sub.trim());
+            }
+        });
+    }
+
+    // Merge into arrays
+    let updated = false;
+    newRep.forEach(name => {
+        if (!representativeList.includes(name)) {
+            representativeList.push(name);
+            updated = true;
+        }
+    });
+
+    newStaff.forEach(name => {
+        if (!staffList.includes(name)) {
+            staffList.push(name);
+            updated = true;
+        }
+    });
+
+    if (updated) {
+        renderRepresentativeList();
+        renderStaffList();
+    }
+}
 
 function renderRepresentativeList() {
     const dataList = document.getElementById('representative-list');
