@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 /* =========================================
-   Dedicated Print Stylesheet
+   Dedicated Print Stylesheet (Native A4 Optimization - Compact)
    ========================================= */
 
 /* 1. Global Print Resets */
@@ -10,6 +10,11 @@ body {
     color: black !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    font-size: 8pt !important;
+    /* Reduced to 8pt for single page assurance */
+    line-height: 1.05 !important;
+    /* Very tight line height */
+    font-family: "Noto Sans JP", sans-serif !important;
 }
 
 /* Hide non-essential elements */
@@ -24,63 +29,81 @@ body {
 
 /* 2. Page Margins & Size */
 @page {
-    margin: 5mm;
+    margin: 2mm;
+    /* Minimal printer margin */
     size: A4 landscape;
 }
 
-/* 3. FORCE DESKTOP LAYOUT via SCALING */
+/* 3. Main Container */
 .app-container {
-    /* Force desktop width so grid remains 3 columns */
-    min-width: 1024px !important;
-    max-width: 100% !important;
     width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-
-    /* Scale down to fit A4 paper width */
-    zoom: 0.65;
-    -moz-transform: scale(0.65);
-    -moz-transform-origin: top left;
-
+    zoom: normal !important;
+    transform: none !important;
     display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
 
-/* Force Main Content Visibility */
 #inspection-form {
     display: block !important;
     visibility: visible !important;
 }
 
-/* 4. Header Info Grid - Strict Horizontal */
+/* 4. Header Info Grid */
 .machine-info-grid {
     display: grid !important;
     grid-template-columns: repeat(6, 1fr) !important;
-    gap: 0.5rem !important;
-    padding: 0.2rem !important;
-    margin-bottom: 0.2rem !important;
+    gap: 1px !important;
+    padding: 0 !important;
+    margin-bottom: 2px !important;
+    border: 1px solid #000 !important;
 }
 
 .machine-info-grid .input-group {
     margin-bottom: 0 !important;
+    padding: 1px !important;
+    border-right: 1px solid #ccc !important;
+}
+
+.machine-info-grid .input-group:last-child {
+    border-right: none !important;
+}
+
+.machine-info-grid label {
+    font-size: 6pt !important;
+    /* Micro label */
+    margin-bottom: 0 !important;
+    display: block;
+}
+
+.machine-info-grid input {
+    font-size: 8pt !important;
+    padding: 0 !important;
+    height: auto !important;
+    border: none !important;
+    background: transparent !important;
+    width: 100% !important;
 }
 
 .company-title {
-    font-size: 1.1rem !important;
-    margin-bottom: 0.2rem !important;
+    font-size: 10pt !important;
+    margin-bottom: 2px !important;
+    font-weight: bold;
+    text-align: center;
 }
 
-/* 5. Inspection Grid - Strict 3 Columns */
+/* 5. Inspection Grid */
 .inspection-grid {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 1rem !important;
+    gap: 2px !important;
+    /* Minimal col gap */
     width: 100% !important;
-    margin-top: 0.5rem !important;
+    margin-top: 0 !important;
 }
 
-/* Reset any mobile-induced flex changes */
 .column {
     width: 100% !important;
 }
@@ -89,54 +112,79 @@ body {
     border: 1px solid #000 !important;
     break-inside: avoid;
     page-break-inside: avoid;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 2px !important;
 }
 
 .category-title {
     background: #f0f0f0 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    font-size: 1rem !important;
-    padding: 0.3rem !important;
+    font-size: 8pt !important;
+    padding: 1px !important;
+    font-weight: bold;
+    border-bottom: 1px solid #000 !important;
 }
 
 .inspection-item {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.9rem !important;
-    line-height: 1.2 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0 2px !important;
+    /* Almost no padding */
+    font-size: 8pt !important;
+    border-bottom: 1px dotted #ccc !important;
+    min-height: 14px !important;
+    /* Ensure min height */
 }
 
-/* Status mark */
+.inspection-item:last-child {
+    border-bottom: none !important;
+}
+
+.inspection-item label {
+    flex: 1 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Status marks */
 .current-status {
-    width: 1.5rem !important;
-    height: 1.5rem !important;
-    font-size: 0.8rem !important;
+    width: 12px !important;
+    height: 12px !important;
+    font-size: 8pt !important;
+    line-height: 10px !important;
     border: 1px solid #000 !important;
     background: none !important;
     color: black !important;
     margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
 }
 
 /* Footer */
 .main-footer {
     display: flex !important;
     flex-direction: row !important;
-    gap: 1rem !important;
-    margin-top: 1rem !important;
-}
-
-.footer-input {
-    flex: 1 !important;
+    gap: 4px !important;
+    margin-top: 2px !important;
+    border-top: 1px solid #000 !important;
+    padding-top: 2px !important;
 }
 
 .footer-input textarea {
-    height: 3rem !important;
+    height: 1.8rem !important;
+    /* Smaller textarea */
     resize: none !important;
+    font-size: 8pt !important;
+    border: 1px solid #ccc !important;
+    padding: 1px;
 }
 
-/* =========================================
-   A5 LABEL MODE (QR Code) - Reset Zoom
-   ========================================= */
+/* Label Mode - QR */
 body.print-mode-label {
     background: #fff !important;
     width: 100% !important;
@@ -155,7 +203,6 @@ body.print-mode-label .app-container {
     display: none !important;
 }
 
-/* Ensure Print Label Container is visible */
 body.print-mode-label .print-label-container {
     display: block !important;
     position: fixed;
@@ -163,18 +210,32 @@ body.print-mode-label .print-label-container {
     left: 0;
     width: 100%;
     border: 4px solid #000;
-    padding: 10mm;
+    padding: 5mm;
     box-sizing: border-box;
     z-index: 100000;
 }
 
-/* Hide Modal Elements just in case */
-body.print-mode-label #qr-modal,
-body.print-mode-label .modal-content {
-    display: none !important;
-    /* Usually we want to hide the modal wrapper and show the label container */
+body.print-mode-label .label-header {
+    border-bottom: 2px solid #000 !important;
+    font-weight: bold;
+    font-size: 14pt;
+    margin-bottom: 5px;
 }
 
-/* Exception: If we were showing the modal as the label in previous logic, ensure consistency.
-   New logic uses .print-label-container injected into body. 
-   So we hide everything else. */
+body.print-mode-label .label-row {
+    border-bottom: 1px solid #000 !important;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+body.print-mode-label .label-key {
+    font-weight: bold;
+}
+
+body.print-mode-label #qr-modal,
+body.print-mode-label .modal-content,
+body.print-mode-label .modal-backdrop {
+    display: none !important;
+}
