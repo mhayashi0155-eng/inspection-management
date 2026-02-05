@@ -299,6 +299,56 @@ function updateDateDisplay() {
     el.innerText = `${y}.${m}.${d} (${day})`;
 }
 
+// --- 印刷用タイトル動的更新 ---
+function updateDocumentTitle() {
+    // 1. 日付の取得 (inspection-month 優先、なければ inspection-date)
+    const monthVal = document.getElementById('inspection-month')?.value;
+    const dateVal = document.getElementById('inspection-date')?.value;
+
+    let dateStr = "";
+    if (monthVal) {
+        dateStr = monthVal; // YYYY-MM
+    } else if (dateVal) {
+        // YYYY-MM-DD -> 必要に応じて短縮するかそのままか。
+        // リクエスト例は "2026-02" なので、月次なら年月、日時なら年月日が良いかも
+        dateStr = dateVal;
+    } else {
+        // 未入力時は現在年月
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = (now.getMonth() + 1).toString().padStart(2, '0');
+        dateStr = `${y}-${m}`;
+    }
+
+    // 2. 型式の取得
+    const modelByKey = document.getElementById('model-type')?.value || "";
+    // 入力がなければ "型式未定" などにするか、空文字にするか。今回は空文字で詰める。
+
+    // 3. 現場管理Noの取得
+    const machineId = document.getElementById('machine-id')?.value || "";
+
+    // 結合: [日付]_[型式]_[現場管理No]
+    // 空の要素は除外して結合
+    const parts = [dateStr, modelByKey, machineId].filter(p => p && p.trim() !== "");
+
+    if (parts.length > 0) {
+        document.title = parts.join('_');
+    } else {
+        // デフォルト
+        document.title = "点検表";
+    }
+}
+
+// --- ラベル印刷用 (A5) ---
+function printLabel() {
+    document.body.classList.add('print-mode-label');
+    window.print();
+}
+
+window.addEventListener('afterprint', () => {
+    document.body.classList.remove('print-mode-label');
+});
+
 // --- 共通初期化 ---
 
 // --- インデックス画面 (現場管理) ---
@@ -830,7 +880,7 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
         
         <div class="modal-actions" style="justify-content: center; margin-top: 1rem;">
              <button class="secondary-btn" id="close-qr-btn">閉じる</button>
-             <button class="primary-btn" onclick="window.print()">🖨️ 印刷 (A5)</button>
+             <button class="primary-btn" onclick="printLabel()">🖨️ 印刷 (A5)</button>
         </div>
         
         <p style="text-align:center; font-size:0.8rem; color:#666; margin-top:0.5rem;">
@@ -1265,7 +1315,24 @@ async function initInspection() {
     };
 
     const printBtn = document.getElementById('print-btn');
-    if (printBtn) printBtn.onclick = () => window.print();
+    if (printBtn) printBtn.onclick = () => {
+        document.body.classList.remove('print-mode-label'); // Safety: Ensure label mode is off
+        updateDocumentTitle(); // 印刷直前に更新
+        window.print();
+    };
+
+    // タイトル更新用のイベントリスナー
+    const titleTriggerIds = ['inspection-month', 'inspection-date', 'model-type', 'machine-id'];
+    titleTriggerIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', updateDocumentTitle);
+            el.addEventListener('input', updateDocumentTitle);
+        }
+    });
+
+    // 初期化時にも一度実行
+    updateDocumentTitle();
 
     // 共通後処理
     if (currentSiteId && typeof fetchSiteInfo === 'function') fetchSiteInfo(currentSiteId);
@@ -1351,6 +1418,7 @@ function renderForm(machineId) {
             });
         });
     }
+    updateDocumentTitle();
 }
 
 function renderMonthlyGrid(machineId) {
@@ -1440,7 +1508,9 @@ function toggleDailyStatus(uid) {
     el.setAttribute('data-status', next.code);
 }
 
+
 async function loadMonthlyData() {
+    updateDocumentTitle(); // データ読み込み開始時にも更新（入力値ベース）
     const month = document.getElementById('inspection-month').value; // YYYY-MM
     const mid = document.getElementById('machine-id').value;
     console.log(`DEBUG: loadMonthlyData called. Month:${month}, Mid:${mid}, Site:${currentSiteId}, Type:${currentMachineId}`);
@@ -1505,6 +1575,7 @@ async function loadMonthlyData() {
                 }
             });
         }
+        updateDocumentTitle(); // 読み込んだデータでタイトル更新
         return latest; // 取得したデータを返す
     } else {
         currentInspectionId = null;
@@ -1730,6 +1801,7 @@ async function loadInspectionData(id) {
             }
         });
     }
+    updateDocumentTitle();
 }
 
 function goDashBoard() {
@@ -1911,6 +1983,7 @@ window.openEditSite = (id) => window.openEditSite(id);
 window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
 window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
 window.goDashBoard = goDashBoard;
+window.printLabel = printLabel;
 
 // Removed old setupMachineAutoFill
 
