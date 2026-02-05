@@ -1161,16 +1161,26 @@ async function initInspection() {
         selectMachine(mType);
 
         // 日常点検などの月間シート形式の場合、既存の同一月レコードを探して読み込む
-        // ★重要: initInspectionで渡されたmainInsp/subInspは、loadMonthlyDataが呼ばれると
-        // その月の既存データ（もしあれば）で上書きされるべき。
-        // 新規作成(データなし)の時のみ、この初期値が生きる。
         if (dailyMonthlyTypes.includes(mType) && mId) {
             await loadMonthlyData();
 
-            // Fallback sync after loadMonthlyData if empty
+            // Fallback sync for Inspectors
             if (mainEl && !mainEl.value && mainInsp) mainEl.value = mainInsp;
             if (subEl && !subEl.value && subInsp) subEl.value = subInsp;
 
+            // Fallback sync for Machine Data (Name, Model, CMID) - Critical for existing records or if cleared
+            if (midEl && !midEl.value && mId) midEl.value = mId;
+            if (modelEl && !modelEl.value && model) modelEl.value = model;
+            if (cmidEl && !cmidEl.value && cmid) cmidEl.value = cmid;
+
+            if (nameEl && !nameEl.value && cmid) {
+                const allMachines = [...(typeof shovelMachineList !== 'undefined' ? shovelMachineList : []), ...(typeof tractorMachineList !== 'undefined' ? tractorMachineList : [])];
+                const match = allMachines.find(m => m.company_id === cmid);
+                if (match) nameEl.value = match.name;
+            }
+
+            // Re-lock
+            lockMachineFields();
 
             // 点検モード制御 (読み取り専用化)
             if (mode === 'check') {
@@ -1188,6 +1198,7 @@ async function initInspection() {
                 const changeBtn = document.getElementById('change-machine-btn');
                 if (changeBtn) changeBtn.style.display = 'none';
             }
+
 
             // イベントリスナー設定 (保存・リセット・機種変更)
             const saveBtn = document.getElementById('save-btn');
