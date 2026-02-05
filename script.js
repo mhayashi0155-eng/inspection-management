@@ -690,9 +690,11 @@ async function renderMachineList(siteId) {
                 // 既存があればそのID
                 const did = m.daily ? m.daily.id : '';
                 // 新規作成時: main/sub をURLパラメータに含める
-                const action = did
+                const baseAction = did
                     ? `id=${did}&mode=check`
-                    : `action=new&mt=${dailyType}&id=${m.base.machine_id}&mo=${encodeURIComponent(m.base.model_type)}&cmid=${encodeURIComponent((m.base.statuses && m.base.statuses._company_machine_id) || '')}&main=${encodeURIComponent(inspectorMain)}&sub=${encodeURIComponent(inspectorSub)}`;
+                    : `action=new&mt=${dailyType}&id=${m.base.machine_id}&mo=${encodeURIComponent(m.base.model_type)}&cmid=${encodeURIComponent((m.base.statuses && m.base.statuses._company_machine_id) || '')}`;
+
+                const action = `${baseAction}&main=${encodeURIComponent(inspectorMain)}&sub=${encodeURIComponent(inspectorSub)}`;
 
                 const label = did ? '日常点検' : '日常作成';
                 const style = did ? 'background:#e0f2fe; color:#075985; border-color:#7dd3fc;' : '';
@@ -1106,6 +1108,12 @@ async function initInspection() {
         // A. 既存レコードの編集・詳細表示
         await loadInspectionData(recordId);
 
+        // Fallback sync for existing records if empty
+        const mainEl = document.getElementById('inspector-main');
+        if (mainEl && !mainEl.value && mainInsp) mainEl.value = mainInsp;
+        const subEl = document.getElementById('inspector-sub');
+        if (subEl && !subEl.value && subInsp) subEl.value = subInsp;
+
     } else if (copyFromId) {
         // B. 既存レコードをベースにしたコピー作成
         await loadInspectionData(copyFromId);
@@ -1125,7 +1133,7 @@ async function initInspection() {
         const cmidEl = document.getElementById('company-machine-id');
         if (cmidEl && cmid) cmidEl.value = cmid;
 
-        // Inspectors Pre-fill
+        // Inspectors Pre-fill (Initial set)
         const mainEl = document.getElementById('inspector-main');
         if (mainEl && mainInsp) mainEl.value = mainInsp;
         const subEl = document.getElementById('inspector-sub');
@@ -1141,12 +1149,10 @@ async function initInspection() {
         // 新規作成(データなし)の時のみ、この初期値が生きる。
         if (dailyMonthlyTypes.includes(mType) && mId) {
             await loadMonthlyData();
-            // loadMonthlyData内で、データが見つかればDB値で上書きされる。
-            // データがなければ (return null)、ここでセットした値が残るはず...
-            // だが loadMonthlyData は入力欄をクリアする処理を含んでいるか？
-            // -> loadMonthlyDataの実装を見ると、見つからない場合はクリアしていないが、見つかった場合はDB値を入れる。
-            // なのでOK。ただし、念のためloadMonthlyDataがnullを返した場合に再セットするロジックは不要か確認。
-            // loadMonthlyDataの冒頭でクリア処理はないが、見つからない場合は currentInspectionId=null にするだけ。
+
+            // Fallback sync after loadMonthlyData if empty
+            if (mainEl && !mainEl.value && mainInsp) mainEl.value = mainInsp;
+            if (subEl && !subEl.value && subInsp) subEl.value = subInsp;
         }
 
     } else {
