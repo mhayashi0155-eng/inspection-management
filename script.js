@@ -1575,6 +1575,24 @@ async function saveInspection() {
         // company_machine_id: ... カラムがないので削除
     };
 
+    // 日常点検の場合、既存レコードのID再確認 (二重登録防止)
+    if (isDaily && !currentInspectionId) {
+        const { data: existing } = await supabaseClient
+            .from('inspections')
+            .select('id')
+            .eq('site_id', payload.site_id)
+            .eq('machine_type', payload.machine_type)
+            .eq('machine_id', payload.machine_id)
+            .eq('inspection_date', payload.inspection_date)
+            .limit(1)
+            .maybeSingle();
+
+        if (existing) {
+            console.log("DEBUG: Found existing daily record, switching to update mode:", existing.id);
+            currentInspectionId = existing.id;
+        }
+    }
+
     const { error } = currentInspectionId
         ? await supabaseClient.from('inspections').update(payload).eq('id', currentInspectionId)
         : await supabaseClient.from('inspections').insert([payload]);
