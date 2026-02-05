@@ -1,0 +1,180 @@
+@charset "UTF-8";
+
+/* =========================================
+   Dedicated Print Stylesheet
+   ========================================= */
+
+/* 1. Global Print Resets */
+body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Hide non-essential elements */
+.main-nav,
+.filter-bar,
+.action-buttons,
+.ghost-btn,
+.sidebar-decoration,
+.legend {
+    display: none !important;
+}
+
+/* 2. Page Margins & Size */
+@page {
+    margin: 5mm;
+    size: A4 landscape;
+}
+
+/* 3. FORCE DESKTOP LAYOUT via SCALING */
+.app-container {
+    /* Force desktop width so grid remains 3 columns */
+    min-width: 1024px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    /* Scale down to fit A4 paper width */
+    zoom: 0.65;
+    -moz-transform: scale(0.65);
+    -moz-transform-origin: top left;
+
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Force Main Content Visibility */
+#inspection-form {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* 4. Header Info Grid - Strict Horizontal */
+.machine-info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+.machine-info-grid .input-group {
+    margin-bottom: 0 !important;
+}
+
+.company-title {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+/* 5. Inspection Grid - Strict 3 Columns */
+.inspection-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    margin-top: 0.5rem !important;
+}
+
+/* Reset any mobile-induced flex changes */
+.column {
+    width: 100% !important;
+}
+
+.category-group {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+}
+
+.category-title {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 1rem !important;
+    padding: 0.3rem !important;
+}
+
+.inspection-item {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.2 !important;
+}
+
+/* Status mark */
+.current-status {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    font-size: 0.8rem !important;
+    border: 1px solid #000 !important;
+    background: none !important;
+    color: black !important;
+    margin: 0 !important;
+}
+
+/* Footer */
+.main-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+}
+
+.footer-input {
+    flex: 1 !important;
+}
+
+.footer-input textarea {
+    height: 3rem !important;
+    resize: none !important;
+}
+
+/* =========================================
+   A5 LABEL MODE (QR Code) - Reset Zoom
+   ========================================= */
+body.print-mode-label {
+    background: #fff !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    zoom: 0.75 !important;
+    -moz-transform: scale(0.75);
+    -moz-transform-origin: top left;
+    transform: scale(0.75);
+    transform-origin: top left;
+}
+
+body.print-mode-label .app-container {
+    display: none !important;
+}
+
+/* Ensure Print Label Container is visible */
+body.print-mode-label .print-label-container {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: 4px solid #000;
+    padding: 10mm;
+    box-sizing: border-box;
+    z-index: 100000;
+}
+
+/* Hide Modal Elements just in case */
+body.print-mode-label #qr-modal,
+body.print-mode-label .modal-content {
+    display: none !important;
+    /* Usually we want to hide the modal wrapper and show the label container */
+}
+
+/* Exception: If we were showing the modal as the label in previous logic, ensure consistency.
+   New logic uses .print-label-container injected into body. 
+   So we hide everything else. */
