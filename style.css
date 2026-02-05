@@ -1249,8 +1249,13 @@ table.data-table td svg {
         display: none !important;
     }
 
-    /* Show only the modal, but strip its layout properties */
+    /* Hide ALL modals by default to prevent "Delete Confirmation" etc from showing */
     .modal {
+        display: none !important;
+    }
+
+    /* Show ONLY the QR modal, and strip its layout properties */
+    #qr-modal {
         display: block !important;
         position: static !important;
         background: none !important;
@@ -1291,7 +1296,6 @@ table.data-table td svg {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
         width: 200mm;
         /* Just under A5 width */
         height: 135mm;
