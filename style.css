@@ -135,7 +135,7 @@ h2 {
 }
 
 /* Responsive improvements */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .header-top {
         flex-direction: column;
         align-items: stretch;
@@ -165,7 +165,7 @@ h2 {
     }
 }
 
-@media (min-width: 769px) {
+@media screen and (min-width: 769px) {
 
     /* PC Layout: Controls Left, Title Center (Absolute-ish), Site Name Right */
     .header-top {
@@ -178,14 +178,19 @@ h2 {
     .header-controls {
         margin-right: auto;
         z-index: 2;
+        /* Ensure buttons are clickable */
     }
 
     #form-title {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        width: max-content;
+        margin: 0;
+        width: auto;
+        text-align: center;
         z-index: 1;
+        /* Behind buttons if overlap (unlikely) */
+        white-space: nowrap;
     }
 
     #header-site-name {
@@ -1062,7 +1067,7 @@ table.data-table td svg {
     background-position: right center;
 }
 
-@media (max-width: 1200px) {
+@media screen and (max-width: 1200px) {
     .sidebar-decoration {
         display: none;
     }
