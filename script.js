@@ -1216,676 +1216,686 @@ async function initInspection() {
                 };
             }
         }
-        async function fetchSiteInfo(siteId) {
-            if (!supabaseClient) return;
-            const { data: site, error } = await supabaseClient
-                .from('sites')
-                .select('*')
-                .eq('id', siteId)
-                .single();
+    } else {
+        // D. 真っさらな新規作成 (メニューから)
+        const modal = document.getElementById('machine-modal');
+        if (modal) modal.style.display = 'flex';
+    }
 
-            if (error || !site) return;
+    // 共通後処理
+    if (currentSiteId && typeof fetchSiteInfo === 'function') fetchSiteInfo(currentSiteId);
+}
 
-            const siteNameEl = document.getElementById('site-name');
-            const representativeEl = document.getElementById('representative');
-            // const inspectorEl = document.getElementById('inspector-name'); // Removed
-            const safetyEl = document.getElementById('safety-manager');
+async function fetchSiteInfo(siteId) {
+    if (!supabaseClient) return;
+    const { data: site, error } = await supabaseClient
+        .from('sites')
+        .select('*')
+        .eq('id', siteId)
+        .single();
 
-            if (siteNameEl) siteNameEl.value = site.name || '';
-            if (representativeEl) representativeEl.value = site.representative || '';
-            // if (inspectorEl && !inspectorEl.value) inspectorEl.value = site.site_inspector || '';
-            if (safetyEl) safetyEl.value = site.safety_manager || '';
-        }
+    if (error || !site) return;
 
-        function selectMachine(id) {
-            currentMachineId = id;
-            document.getElementById('machine-modal').style.display = 'none';
-            document.getElementById('app-container').style.display = 'block';
+    const siteNameEl = document.getElementById('site-name');
+    const representativeEl = document.getElementById('representative');
+    // const inspectorEl = document.getElementById('inspector-name'); // Removed
+    const safetyEl = document.getElementById('safety-manager');
 
-            // 機械のタイプに応じて自動入力リストを更新
-            updateMachineMasterList(id);
+    if (siteNameEl) siteNameEl.value = site.name || '';
+    if (representativeEl) representativeEl.value = site.representative || '';
+    // if (inspectorEl && !inspectorEl.value) inspectorEl.value = site.site_inspector || '';
+    if (safetyEl) safetyEl.value = site.safety_manager || '';
+}
 
-            renderForm(id);
-        }
+function selectMachine(id) {
+    currentMachineId = id;
+    document.getElementById('machine-modal').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
 
-        function renderForm(machineId) {
-            const data = inspectionData[machineId];
-            if (!data) return;
-            document.getElementById('form-title').innerText = data.title;
+    // 機械のタイプに応じて自動入力リストを更新
+    updateMachineMasterList(id);
 
-            if (dailyMonthlyTypes.includes(machineId)) {
-                // 日常始業点検（月間シート）の場合
-                document.getElementById('inspection-form').style.display = 'none';
-                document.getElementById('monthly-grid-view').style.display = 'block';
-                document.getElementById('legend-section').style.display = 'none';
-                document.getElementById('month-selector-group').style.display = 'block';
-                document.getElementById('inspection-date-group').style.display = 'none';
-                document.getElementById('operating-hours-group').style.display = 'none';
-                renderMonthlyGrid(machineId);
-                loadMonthlyData(); // 月間データを読み込む
-            } else {
-                // 通常の月次点検の場合
-                document.getElementById('inspection-form').style.display = 'grid';
-                document.getElementById('monthly-grid-view').style.display = 'none';
-                document.getElementById('legend-section').style.display = 'flex';
-                document.getElementById('month-selector-group').style.display = 'none';
-                document.getElementById('inspection-date-group').style.display = 'block';
-                document.getElementById('operating-hours-group').style.display = 'block';
+    renderForm(id);
+}
 
-                // 全てのカラムを一旦クリア
-                [1, 2, 3].forEach(i => document.getElementById(`col-${i}`).innerHTML = '');
+function renderForm(machineId) {
+    const data = inspectionData[machineId];
+    if (!data) return;
+    document.getElementById('form-title').innerText = data.title;
 
-                data.columns.forEach((col, idx) => {
-                    const container = document.getElementById(`col-${idx + 1}`);
-                    if (!container) return; // col-1, 2, 3 以外は無視
-                    col.forEach(group => {
-                        const groupEl = document.createElement('div');
-                        groupEl.className = 'category-group';
-                        groupEl.innerHTML = `<div class="category-title">${group.category}</div>`;
-                        group.items.forEach((item, i) => {
-                            const uid = `${machineId}-${group.category}-${i}`;
-                            const itemEl = document.createElement('div');
-                            itemEl.className = 'inspection-item';
-                            itemEl.innerHTML = `
+    if (dailyMonthlyTypes.includes(machineId)) {
+        // 日常始業点検（月間シート）の場合
+        document.getElementById('inspection-form').style.display = 'none';
+        document.getElementById('monthly-grid-view').style.display = 'block';
+        document.getElementById('legend-section').style.display = 'none';
+        document.getElementById('month-selector-group').style.display = 'block';
+        document.getElementById('inspection-date-group').style.display = 'none';
+        document.getElementById('operating-hours-group').style.display = 'none';
+        renderMonthlyGrid(machineId);
+        loadMonthlyData(); // 月間データを読み込む
+    } else {
+        // 通常の月次点検の場合
+        document.getElementById('inspection-form').style.display = 'grid';
+        document.getElementById('monthly-grid-view').style.display = 'none';
+        document.getElementById('legend-section').style.display = 'flex';
+        document.getElementById('month-selector-group').style.display = 'none';
+        document.getElementById('inspection-date-group').style.display = 'block';
+        document.getElementById('operating-hours-group').style.display = 'block';
+
+        // 全てのカラムを一旦クリア
+        [1, 2, 3].forEach(i => document.getElementById(`col-${i}`).innerHTML = '');
+
+        data.columns.forEach((col, idx) => {
+            const container = document.getElementById(`col-${idx + 1}`);
+            if (!container) return; // col-1, 2, 3 以外は無視
+            col.forEach(group => {
+                const groupEl = document.createElement('div');
+                groupEl.className = 'category-group';
+                groupEl.innerHTML = `<div class="category-title">${group.category}</div>`;
+                group.items.forEach((item, i) => {
+                    const uid = `${machineId}-${group.category}-${i}`;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'inspection-item';
+                    itemEl.innerHTML = `
                         <span class="item-name">${item}</span>
                         <div class="current-status good" id="status-${uid}" data-status="good" onclick="toggleStatus('${uid}')">レ</div>
                     `;
-                            groupEl.appendChild(itemEl);
-                        });
-                        container.appendChild(groupEl);
-                    });
+                    groupEl.appendChild(itemEl);
                 });
-            }
-        }
-
-        function renderMonthlyGrid(machineId) {
-            const data = inspectionData[machineId];
-            const head = document.getElementById('monthly-table-head');
-            const body = document.getElementById('monthly-table-body');
-            if (!head || !body) return;
-
-            // ヘッダー生成 (項目名 + 1〜31日)
-            let headHtml = '<th>点検項目</th>';
-
-            // 年月を取得
-            const monthVal = document.getElementById('inspection-month').value;
-            const [yearStr, monthStr] = monthVal ? monthVal.split('-') : [new Date().getFullYear(), new Date().getMonth() + 1];
-            const year = parseInt(yearStr);
-            const month = parseInt(monthStr);
-
-            for (let i = 1; i <= 31; i++) {
-                // 曜日判定
-                const date = new Date(year, month - 1, i);
-                let classStr = "";
-
-                // 月が替わっている場合（例: 2月30日）は曜日判定しない
-                if (date.getMonth() === month - 1) {
-                    const dayOfWeek = date.getDay(); // 0:Sun, 6:Sat
-                    if (dayOfWeek === 0) classStr = "sun";
-                    else if (dayOfWeek === 6) classStr = "sat";
-                }
-
-                headHtml += `<th class="${classStr}">${i}</th>`;
-            }
-            head.innerHTML = headHtml;
-
-            // ボディ生成
-            const today = new Date();
-            const isCurrentMonth = monthVal === `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
-            const todayDate = today.getDate();
-
-            let bodyHtml = '';
-            let itemIdx = 0;
-            data.columns.forEach(col => {
-                col.forEach(group => {
-                    group.items.forEach(item => {
-                        bodyHtml += `<tr><td>${item}</td>`;
-                        for (let d = 1; d <= 31; d++) {
-                            const dayStr = d.toString().padStart(2, '0');
-                            const uid = `day-${dayStr}-item-${itemIdx}`;
-
-                            // 曜日判定 (再度)
-                            const date = new Date(year, month - 1, d);
-                            let classStr = "";
-                            if (date.getMonth() === month - 1) {
-                                const dayOfWeek = date.getDay();
-                                if (dayOfWeek === 0) classStr = "sun";
-                                else if (dayOfWeek === 6) classStr = "sat";
-                            }
-
-                            // 当日の列をハイライト (薄い黄色など) -> 優先度: 当日 > 土日 (ただし土日背景は透過で重ねる想定)
-                            // CSS側で .day-cell.sat, .day-cell.sun を定義する
-                            let style = "";
-                            if (isCurrentMonth && d === todayDate) {
-                                style = "border-left: 2px solid #fbbf24; border-right: 2px solid #fbbf24;";
-                                // 当日背景はCSSクラスと競合するため、ここではボーダーのみにするか、 !important で当日を優先するか
-                                // 今回は土日色を優先しつつ、当日枠を目立たせる方針
-                            }
-
-                            // day-cellに加えて sat/sun クラスを追加
-                            bodyHtml += `<td class="day-cell ${classStr}" id="status-${uid}" data-status="none" onclick="toggleDailyStatus('${uid}')" style="${style}"></td>`;
-                        }
-                        bodyHtml += '</tr>';
-                        itemIdx++;
-                    });
-                });
+                container.appendChild(groupEl);
             });
-            body.innerHTML = bodyHtml;
+        });
+    }
+}
+
+function renderMonthlyGrid(machineId) {
+    const data = inspectionData[machineId];
+    const head = document.getElementById('monthly-table-head');
+    const body = document.getElementById('monthly-table-body');
+    if (!head || !body) return;
+
+    // ヘッダー生成 (項目名 + 1〜31日)
+    let headHtml = '<th>点検項目</th>';
+
+    // 年月を取得
+    const monthVal = document.getElementById('inspection-month').value;
+    const [yearStr, monthStr] = monthVal ? monthVal.split('-') : [new Date().getFullYear(), new Date().getMonth() + 1];
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr);
+
+    for (let i = 1; i <= 31; i++) {
+        // 曜日判定
+        const date = new Date(year, month - 1, i);
+        let classStr = "";
+
+        // 月が替わっている場合（例: 2月30日）は曜日判定しない
+        if (date.getMonth() === month - 1) {
+            const dayOfWeek = date.getDay(); // 0:Sun, 6:Sat
+            if (dayOfWeek === 0) classStr = "sun";
+            else if (dayOfWeek === 6) classStr = "sat";
         }
 
-        function toggleDailyStatus(uid) {
-            const el = document.getElementById(`status-${uid}`);
-            if (!el) return;
-            const curr = el.getAttribute('data-status') || 'none';
-            const idx = dailyStatusOptions.findIndex(o => o.code === curr);
-            const next = dailyStatusOptions[(idx + 1) % dailyStatusOptions.length];
+        headHtml += `<th class="${classStr}">${i}</th>`;
+    }
+    head.innerHTML = headHtml;
 
-            el.className = `day-cell status-cell-${next.code}`;
-            el.innerText = next.mark;
-            el.setAttribute('data-status', next.code);
+    // ボディ生成
+    const today = new Date();
+    const isCurrentMonth = monthVal === `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+    const todayDate = today.getDate();
+
+    let bodyHtml = '';
+    let itemIdx = 0;
+    data.columns.forEach(col => {
+        col.forEach(group => {
+            group.items.forEach(item => {
+                bodyHtml += `<tr><td>${item}</td>`;
+                for (let d = 1; d <= 31; d++) {
+                    const dayStr = d.toString().padStart(2, '0');
+                    const uid = `day-${dayStr}-item-${itemIdx}`;
+
+                    // 曜日判定 (再度)
+                    const date = new Date(year, month - 1, d);
+                    let classStr = "";
+                    if (date.getMonth() === month - 1) {
+                        const dayOfWeek = date.getDay();
+                        if (dayOfWeek === 0) classStr = "sun";
+                        else if (dayOfWeek === 6) classStr = "sat";
+                    }
+
+                    // 当日の列をハイライト (薄い黄色など) -> 優先度: 当日 > 土日 (ただし土日背景は透過で重ねる想定)
+                    // CSS側で .day-cell.sat, .day-cell.sun を定義する
+                    let style = "";
+                    if (isCurrentMonth && d === todayDate) {
+                        style = "border-left: 2px solid #fbbf24; border-right: 2px solid #fbbf24;";
+                        // 当日背景はCSSクラスと競合するため、ここではボーダーのみにするか、 !important で当日を優先するか
+                        // 今回は土日色を優先しつつ、当日枠を目立たせる方針
+                    }
+
+                    // day-cellに加えて sat/sun クラスを追加
+                    bodyHtml += `<td class="day-cell ${classStr}" id="status-${uid}" data-status="none" onclick="toggleDailyStatus('${uid}')" style="${style}"></td>`;
+                }
+                bodyHtml += '</tr>';
+                itemIdx++;
+            });
+        });
+    });
+    body.innerHTML = bodyHtml;
+}
+
+function toggleDailyStatus(uid) {
+    const el = document.getElementById(`status-${uid}`);
+    if (!el) return;
+    const curr = el.getAttribute('data-status') || 'none';
+    const idx = dailyStatusOptions.findIndex(o => o.code === curr);
+    const next = dailyStatusOptions[(idx + 1) % dailyStatusOptions.length];
+
+    el.className = `day-cell status-cell-${next.code}`;
+    el.innerText = next.mark;
+    el.setAttribute('data-status', next.code);
+}
+
+async function loadMonthlyData() {
+    const month = document.getElementById('inspection-month').value; // YYYY-MM
+    const mid = document.getElementById('machine-id').value;
+    console.log(`DEBUG: loadMonthlyData called. Month:${month}, Mid:${mid}, Site:${currentSiteId}, Type:${currentMachineId}`);
+
+    if (!month || !mid || !currentSiteId || !currentMachineId) {
+        console.warn("DEBUG: loadMonthlyData aborted due to missing params");
+        return;
+    }
+
+    // 月間シート形式で、同一月のレコードを探す
+    const { data: list, error } = await supabaseClient
+        .from('inspections')
+        .select('*')
+        .eq('site_id', currentSiteId)
+        .eq('machine_type', currentMachineId)
+        .eq('machine_id', mid)
+        .eq('is_deleted', false)
+        .like('inspection_date', `${month}-%`)
+        .order('created_at', { ascending: false });
+
+    console.log("DEBUG: loadMonthlyData result:", list, error);
+
+    // グリッドを一旦リセット
+    document.querySelectorAll('.day-cell').forEach(el => {
+        el.className = 'day-cell';
+        el.innerText = '';
+        el.setAttribute('data-status', 'none');
+    });
+
+    if (list && list.length > 0) {
+        const latest = list[0];
+        currentInspectionId = latest.id;
+        document.getElementById('model-type').value = latest.model_type || '';
+        // document.getElementById('inspector-name').value = latest.inspector_name || ''; // Removed
+        document.getElementById('remarks').value = latest.remarks || '';
+        document.getElementById('repairs').value = latest.repairs || '';
+
+        // 点検者(正)・(副)の復元
+        const mainEl = document.getElementById('inspector-main');
+        const subEl = document.getElementById('inspector-sub');
+        if (mainEl) mainEl.value = (latest.statuses && latest.statuses._inspector_main) || '';
+        if (subEl) subEl.value = (latest.statuses && latest.statuses._inspector_sub) || '';
+
+        // 会社管理Noを復元
+        if (latest.statuses && latest.statuses._company_machine_id) {
+            const cmidEl = document.getElementById('company-machine-id');
+            if (cmidEl) cmidEl.value = latest.statuses._company_machine_id;
         }
 
-        async function loadMonthlyData() {
-            const month = document.getElementById('inspection-month').value; // YYYY-MM
-            const mid = document.getElementById('machine-id').value;
-            console.log(`DEBUG: loadMonthlyData called. Month:${month}, Mid:${mid}, Site:${currentSiteId}, Type:${currentMachineId}`);
+        if (latest.statuses) {
+            Object.keys(latest.statuses).forEach(uid => {
+                if (uid.startsWith('_')) return; // メタデータはスキップ
+                const el = document.getElementById(`status-${uid}`);
+                if (el) {
+                    const code = latest.statuses[uid];
+                    const opt = dailyStatusOptions.find(o => o.code === code);
+                    if (opt) {
+                        el.className = `day-cell status-cell-${code}`;
+                        el.innerText = opt.mark;
+                        el.setAttribute('data-status', code);
+                    }
+                }
+            });
+        }
+        return latest; // 取得したデータを返す
+    } else {
+        currentInspectionId = null;
+        return null;
+    }
+}
 
-            if (!month || !mid || !currentSiteId || !currentMachineId) {
-                console.warn("DEBUG: loadMonthlyData aborted due to missing params");
-                return;
-            }
+function toggleStatus(uid) {
+    const el = document.getElementById(`status-${uid}`);
+    if (!el) return;
+    const curr = el.getAttribute('data-status');
+    const idx = statusOptions.findIndex(o => o.code === curr);
+    const next = statusOptions[(idx + 1) % statusOptions.length];
+    el.className = `current-status ${next.code}`;
+    el.innerText = next.mark;
+    el.setAttribute('data-status', next.code);
+}
 
-            // 月間シート形式で、同一月のレコードを探す
-            const { data: list, error } = await supabaseClient
+async function saveInspection() {
+    const btn = document.getElementById('save-btn');
+    const model = document.getElementById('model-type').value;
+    const mid = document.getElementById('machine-id').value;
+    const companyMid = document.getElementById('company-machine-id').value;
+    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+
+    const hoursEl = document.getElementById('operating-hours');
+    const hours = hoursEl.value;
+
+    if (!model || !mid || !companyMid || (!isDaily && !hours)) {
+        alert("必須項目(*印)を入力してください");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "保存中...";
+
+    const statuses = {};
+    const selector = isDaily ? '.day-cell' : '.current-status';
+    document.querySelectorAll(selector).forEach(el => {
+        const id = el.id.replace('status-', '');
+        const stat = el.getAttribute('data-status');
+        if (isDaily) {
+            if (stat !== 'none') statuses[id] = stat;
+        } else {
+            statuses[id] = stat;
+        }
+    });
+
+    const inspectionDate = isDaily
+        ? document.getElementById('inspection-month').value + "-01"
+        : document.getElementById('inspection-date').value;
+
+    // 会社管理No.をstatusesに追加して保存（カラム不足回避のため）
+    statuses['_company_machine_id'] = companyMid;
+    // 点検者(正)・(副)もstatusesに追加
+    statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
+    statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
+
+    const payload = {
+        site_id: currentSiteId || null,
+        machine_type: currentMachineId,
+        model_type: model,
+        machine_id: mid,
+        inspection_date: inspectionDate,
+        operating_hours: hours ? parseFloat(hours) : 0,
+        inspector_name: "", // Removed from UI but keeping DB column for compatibility
+        remarks: document.getElementById('remarks').value,
+        repairs: document.getElementById('repairs').value,
+        statuses: statuses,
+        line_user_id: lineUserInfo?.userId || null,
+        site_name: document.getElementById('site-name')?.value || '',
+        representative: document.getElementById('representative')?.value || '',
+        safety_manager: document.getElementById('safety-manager')?.value || ''
+        // company_machine_id: ... カラムがないので削除
+    };
+
+    const { error } = currentInspectionId
+        ? await supabaseClient.from('inspections').update(payload).eq('id', currentInspectionId)
+        : await supabaseClient.from('inspections').insert([payload]);
+
+    if (error) { alert("保存失敗: " + error.message); }
+    else {
+        // ショベル系(shovel)の月次点検保存時、同月の日常点検(shovel_daily)がなければ自動作成
+        let autoCreatedMsg = "";
+        if (currentMachineId === 'shovel') {
+            const inspMonth = inspectionDate.slice(0, 7); // YYYY-MM
+            // 既存チェック
+            const { data: existingDaily } = await supabaseClient
                 .from('inspections')
-                .select('*')
-                .eq('site_id', currentSiteId)
-                .eq('machine_type', currentMachineId)
+                .select('id')
+                .eq('site_id', currentSiteId) // site_idは必須
+                .eq('machine_type', 'shovel_daily')
                 .eq('machine_id', mid)
-                .eq('is_deleted', false)
-                .like('inspection_date', `${month}-%`)
-                .order('created_at', { ascending: false });
+                .like('inspection_date', `${inspMonth}-%`)
+                .maybeSingle();
 
-            console.log("DEBUG: loadMonthlyData result:", list, error);
+            if (!existingDaily) {
+                // 新規作成
+                const dailyPayload = { ...payload }; // コピー
+                dailyPayload.machine_type = 'shovel_daily';
+                dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
+                // 不要なフィールドや上書きすべきフィールドの調整
+                dailyPayload.operating_hours = 0; // 稼働時間はクリア等が望ましいが、コピーでも良いか？一旦そのまま
+                dailyPayload.statuses = {}; // 日常点検のチェック状態は空で開始
 
-            // グリッドを一旦リセット
-            document.querySelectorAll('.day-cell').forEach(el => {
-                el.className = 'day-cell';
-                el.innerText = '';
-                el.setAttribute('data-status', 'none');
-            });
-
-            if (list && list.length > 0) {
-                const latest = list[0];
-                currentInspectionId = latest.id;
-                document.getElementById('model-type').value = latest.model_type || '';
-                // document.getElementById('inspector-name').value = latest.inspector_name || ''; // Removed
-                document.getElementById('remarks').value = latest.remarks || '';
-                document.getElementById('repairs').value = latest.repairs || '';
-
-                // 点検者(正)・(副)の復元
-                const mainEl = document.getElementById('inspector-main');
-                const subEl = document.getElementById('inspector-sub');
-                if (mainEl) mainEl.value = (latest.statuses && latest.statuses._inspector_main) || '';
-                if (subEl) subEl.value = (latest.statuses && latest.statuses._inspector_sub) || '';
-
-                // 会社管理Noを復元
-                if (latest.statuses && latest.statuses._company_machine_id) {
-                    const cmidEl = document.getElementById('company-machine-id');
-                    if (cmidEl) cmidEl.value = latest.statuses._company_machine_id;
+                const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
+                if (!dailyErr) {
+                    autoCreatedMsg = "\n(日常点検表も自動作成しました)";
                 }
-
-                if (latest.statuses) {
-                    Object.keys(latest.statuses).forEach(uid => {
-                        if (uid.startsWith('_')) return; // メタデータはスキップ
-                        const el = document.getElementById(`status-${uid}`);
-                        if (el) {
-                            const code = latest.statuses[uid];
-                            const opt = dailyStatusOptions.find(o => o.code === code);
-                            if (opt) {
-                                el.className = `day-cell status-cell-${code}`;
-                                el.innerText = opt.mark;
-                                el.setAttribute('data-status', code);
-                            }
-                        }
-                    });
-                }
-                return latest; // 取得したデータを返す
-            } else {
-                currentInspectionId = null;
-                return null;
             }
         }
 
-        function toggleStatus(uid) {
-            const el = document.getElementById(`status-${uid}`);
-            if (!el) return;
-            const curr = el.getAttribute('data-status');
-            const idx = statusOptions.findIndex(o => o.code === curr);
-            const next = statusOptions[(idx + 1) % statusOptions.length];
-            el.className = `current-status ${next.code}`;
-            el.innerText = next.mark;
-            el.setAttribute('data-status', next.code);
+        alert("保存しました" + autoCreatedMsg);
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+            liff.closeWindow();
+        } else {
+            const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+            window.location.href = redirectUrl;
         }
+    }
+    btn.disabled = false;
+    btn.innerText = "保存";
+}
 
-        async function saveInspection() {
-            const btn = document.getElementById('save-btn');
-            const model = document.getElementById('model-type').value;
-            const mid = document.getElementById('machine-id').value;
-            const companyMid = document.getElementById('company-machine-id').value;
-            const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+async function loadInspectionData(id) {
+    const { data: i, error } = await supabaseClient.from('inspections').select('*').eq('id', id).single();
+    if (error || !i) return;
 
-            const hoursEl = document.getElementById('operating-hours');
-            const hours = hoursEl.value;
+    currentInspectionId = i.id;
+    currentMachineId = i.machine_type;
+    currentSiteId = i.site_id; // site_idも確実にセット
 
-            if (!model || !mid || !companyMid || (!isDaily && !hours)) {
-                alert("必須項目(*印)を入力してください");
-                return;
-            }
+    // 先に値をセットしておく（自動ロード時にmid等が必要になるため）
+    const modelEl = document.getElementById('model-type');
+    const midEl = document.getElementById('machine-id');
+    // const inspectorEl = document.getElementById('inspector-name'); // Removed
+    const remarksEl = document.getElementById('remarks');
+    const repairsEl = document.getElementById('repairs');
 
-            btn.disabled = true;
-            btn.innerText = "保存中...";
+    if (modelEl) modelEl.value = i.model_type || '';
+    if (midEl) midEl.value = i.machine_id || '';
+    // if (inspectorEl) inspectorEl.value = i.inspector_name || '';
 
-            const statuses = {};
-            const selector = isDaily ? '.day-cell' : '.current-status';
-            document.querySelectorAll(selector).forEach(el => {
-                const id = el.id.replace('status-', '');
-                const stat = el.getAttribute('data-status');
-                if (isDaily) {
-                    if (stat !== 'none') statuses[id] = stat;
-                } else {
-                    statuses[id] = stat;
-                }
-            });
+    // Add Main/Sub Inspector
+    const inspectorMainEl = document.getElementById('inspector-main');
+    const inspectorSubEl = document.getElementById('inspector-sub');
+    if (inspectorMainEl) inspectorMainEl.value = (i.statuses && i.statuses._inspector_main) || '';
+    if (inspectorSubEl) inspectorSubEl.value = (i.statuses && i.statuses._inspector_sub) || '';
 
-            const inspectionDate = isDaily
-                ? document.getElementById('inspection-month').value + "-01"
-                : document.getElementById('inspection-date').value;
+    if (remarksEl) remarksEl.value = i.remarks || '';
+    if (repairsEl) repairsEl.value = i.repairs || '';
 
-            // 会社管理No.をstatusesに追加して保存（カラム不足回避のため）
-            statuses['_company_machine_id'] = companyMid;
-            // 点検者(正)・(副)もstatusesに追加
-            statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
-            statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
+    const companyMidEl = document.getElementById('company-machine-id');
+    // statusesの中に保存されている場合があるためそこから取得
+    if (companyMidEl) {
+        companyMidEl.value = i.company_machine_id || (i.statuses && i.statuses._company_machine_id) || '';
+    }
 
-            const payload = {
-                site_id: currentSiteId || null,
-                machine_type: currentMachineId,
-                model_type: model,
-                machine_id: mid,
-                inspection_date: inspectionDate,
-                operating_hours: hours ? parseFloat(hours) : 0,
-                inspector_name: "", // Removed from UI but keeping DB column for compatibility
-                remarks: document.getElementById('remarks').value,
-                repairs: document.getElementById('repairs').value,
-                statuses: statuses,
-                line_user_id: lineUserInfo?.userId || null,
-                site_name: document.getElementById('site-name')?.value || '',
-                representative: document.getElementById('representative')?.value || '',
-                safety_manager: document.getElementById('safety-manager')?.value || ''
-                // company_machine_id: ... カラムがないので削除
-            };
+    const representativeEl = document.getElementById('representative');
+    const safetyEl = document.getElementById('safety-manager');
+    const headerSiteNameEl = document.getElementById('header-site-name');
 
-            const { error } = currentInspectionId
-                ? await supabaseClient.from('inspections').update(payload).eq('id', currentInspectionId)
-                : await supabaseClient.from('inspections').insert([payload]);
+    // if (siteNameEl) siteNameEl.value = i.site_name || ''; // Removed from input
+    if (headerSiteNameEl) headerSiteNameEl.innerText = i.site_name || ''; // Set header text
+    if (representativeEl) representativeEl.value = i.representative || '';
+    if (safetyEl) safetyEl.value = i.safety_manager || '';
 
-            if (error) { alert("保存失敗: " + error.message); }
-            else {
-                // ショベル系(shovel)の月次点検保存時、同月の日常点検(shovel_daily)がなければ自動作成
-                let autoCreatedMsg = "";
-                if (currentMachineId === 'shovel') {
-                    const inspMonth = inspectionDate.slice(0, 7); // YYYY-MM
-                    // 既存チェック
-                    const { data: existingDaily } = await supabaseClient
-                        .from('inspections')
-                        .select('id')
-                        .eq('site_id', currentSiteId) // site_idは必須
-                        .eq('machine_type', 'shovel_daily')
-                        .eq('machine_id', mid)
-                        .like('inspection_date', `${inspMonth}-%`)
-                        .maybeSingle();
+    // 日常点検の場合は月指定も復元
+    if (dailyMonthlyTypes.includes(i.machine_type)) {
+        const monthStr = i.inspection_date.slice(0, 7);
+        const monthInput = document.getElementById('inspection-month');
+        if (monthInput) monthInput.value = monthStr;
+    } else {
+        const dateInput = document.getElementById('inspection-date');
+        const hourInput = document.getElementById('operating-hours');
+        if (dateInput) dateInput.value = i.inspection_date;
+        if (hourInput) hourInput.value = i.operating_hours;
+    }
 
-                    if (!existingDaily) {
-                        // 新規作成
-                        const dailyPayload = { ...payload }; // コピー
-                        dailyPayload.machine_type = 'shovel_daily';
-                        dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
-                        // 不要なフィールドや上書きすべきフィールドの調整
-                        dailyPayload.operating_hours = 0; // 稼働時間はクリア等が望ましいが、コピーでも良いか？一旦そのまま
-                        dailyPayload.statuses = {}; // 日常点検のチェック状態は空で開始
+    // 画面構成を切り替え
+    updateMachineMasterList(i.machine_type); // ★ここに追加: 保存データ読み込み時にもリストを更新
+    selectMachine(i.machine_type);
 
-                        const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
-                        if (!dailyErr) {
-                            autoCreatedMsg = "\n(日常点検表も自動作成しました)";
-                        }
-                    }
-                }
+    // 日常点検の場合は、selectMachine内のrenderFormから呼ばれるloadMonthlyDataが
+    // 終わるのを待ってから（あるいは明示的に呼び出してから）値をセットする
+    if (dailyMonthlyTypes.includes(i.machine_type)) {
+        await loadMonthlyData();
+    }
 
-                alert("保存しました" + autoCreatedMsg);
-                if (typeof liff !== 'undefined' && liff.isInClient()) {
-                    liff.closeWindow();
-                } else {
-                    const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-                    window.location.href = redirectUrl;
+    if (i.statuses) {
+        Object.keys(i.statuses).forEach(key => {
+            if (key.startsWith('_')) return; // メタデータはスキップ
+            const isDaily = dailyMonthlyTypes.includes(i.machine_type);
+            const el = document.getElementById(`status-${key}`);
+            if (el) {
+                const code = i.statuses[key];
+                const options = isDaily ? dailyStatusOptions : statusOptions;
+                const opt = options.find(o => o.code === code);
+                if (opt) {
+                    el.className = (isDaily ? 'day-cell status-cell-' : 'current-status ') + code;
+                    el.innerText = opt.mark;
+                    el.setAttribute('data-status', code);
                 }
             }
-            btn.disabled = false;
-            btn.innerText = "保存";
+        });
+    }
+}
+
+function goDashBoard() {
+    const url = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+    window.location.href = url;
+}
+
+function getMachineIcon(type) {
+    // 1. 画像がある機種
+    const imgMap = {
+        'shovel': 'assets/icons/backhoe.png',
+        'shovel_daily': 'assets/icons/backhoe.png',
+        'tractor': 'assets/icons/trailer.png',
+        'crane': 'assets/icons/crane.png',
+        'crane_daily': 'assets/icons/crane.png'
+    };
+
+    if (imgMap[type]) {
+        return `<img src="${imgMap[type]}" class="machine-icon-img">`;
+    }
+
+    // 2. その他の日常点検用SVGアイコン
+    let svg = '';
+    let color = '#64748b'; // default gray
+
+    switch (type) {
+        case 'sandbag': // 大型土のう -> 茶色のBox
+            svg = '<path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>';
+            color = '#8d6e63';
+            break;
+        case 'power_tool': // 電動工具 -> オレンジの工具
+            svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
+            color = '#f97316';
+            break;
+        case 'generator': // 発電機 -> 黄色のカミナリ
+            svg = '<path d="M7 2v11h3v9l7-12h-4l4-8z"/>';
+            color = '#eab308';
+            break;
+        case 'pump': // ポンプ -> 青の水滴
+            svg = '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.88 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>';
+            color = '#3b82f6';
+            break;
+        case 'dist_board': // 分電盤 -> グレーの盤
+            svg = '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z M7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z"/>';
+            color = '#475569';
+            break;
+        case 'arc_welder': // 溶接機 -> 赤の火
+            svg = '<path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/>';
+            color = '#ef4444';
+            break;
+        case 'elec_equip': // 電気設備 -> 黄色の電球
+            svg = '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>';
+            color = '#f59e0b';
+            break;
+        case 'hanging_tools': // 玉掛け -> フック
+            svg = '<path d="M17 11c0-2.76-2.24-5-5-5s-5 2.24-5 5h2c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3v2c2.76 0 5-2.24 5-5zM11 16h2v6h-2z"/>';
+            color = '#64748b';
+            break;
+        case 'iron_plate': // 敷鉄板 -> 濃いグレー
+            svg = '<path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/>';
+            color = '#1f2937';
+            break;
+        case 'security_daily': // 保安 -> 赤の警告
+            svg = '<path d="M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>';
+            color = '#dc2626';
+            break;
+        case 'excavation_daily': // 掘削 -> 茶色の道具
+            svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
+            color = '#795548';
+            break;
+        default:
+            // デフォルト (四角)
+            return '<span style="font-size:24px; line-height:30px;">⬜</span>';
+    }
+
+    return `<svg viewBox="0 0 24 24" fill="${color}" style="vertical-align:middle;">${svg}</svg>`;
+}
+
+// DatalistのUX改善用関数
+function setupDatalistUX(ids) {
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        // オリジナルのプレースホルダーを保存
+        if (!el.dataset.defaultPlaceholder) {
+            el.dataset.defaultPlaceholder = el.placeholder || '';
         }
 
-        async function loadInspectionData(id) {
-            const { data: i, error } = await supabaseClient.from('inspections').select('*').eq('id', id).single();
-            if (error || !i) return;
-
-            currentInspectionId = i.id;
-            currentMachineId = i.machine_type;
-            currentSiteId = i.site_id; // site_idも確実にセット
-
-            // 先に値をセットしておく（自動ロード時にmid等が必要になるため）
-            const modelEl = document.getElementById('model-type');
-            const midEl = document.getElementById('machine-id');
-            // const inspectorEl = document.getElementById('inspector-name'); // Removed
-            const remarksEl = document.getElementById('remarks');
-            const repairsEl = document.getElementById('repairs');
-
-            if (modelEl) modelEl.value = i.model_type || '';
-            if (midEl) midEl.value = i.machine_id || '';
-            // if (inspectorEl) inspectorEl.value = i.inspector_name || '';
-
-            // Add Main/Sub Inspector
-            const inspectorMainEl = document.getElementById('inspector-main');
-            const inspectorSubEl = document.getElementById('inspector-sub');
-            if (inspectorMainEl) inspectorMainEl.value = (i.statuses && i.statuses._inspector_main) || '';
-            if (inspectorSubEl) inspectorSubEl.value = (i.statuses && i.statuses._inspector_sub) || '';
-
-            if (remarksEl) remarksEl.value = i.remarks || '';
-            if (repairsEl) repairsEl.value = i.repairs || '';
-
-            const companyMidEl = document.getElementById('company-machine-id');
-            // statusesの中に保存されている場合があるためそこから取得
-            if (companyMidEl) {
-                companyMidEl.value = i.company_machine_id || (i.statuses && i.statuses._company_machine_id) || '';
-            }
-
-            const representativeEl = document.getElementById('representative');
-            const safetyEl = document.getElementById('safety-manager');
-            const headerSiteNameEl = document.getElementById('header-site-name');
-
-            // if (siteNameEl) siteNameEl.value = i.site_name || ''; // Removed from input
-            if (headerSiteNameEl) headerSiteNameEl.innerText = i.site_name || ''; // Set header text
-            if (representativeEl) representativeEl.value = i.representative || '';
-            if (safetyEl) safetyEl.value = i.safety_manager || '';
-
-            // 日常点検の場合は月指定も復元
-            if (dailyMonthlyTypes.includes(i.machine_type)) {
-                const monthStr = i.inspection_date.slice(0, 7);
-                const monthInput = document.getElementById('inspection-month');
-                if (monthInput) monthInput.value = monthStr;
-            } else {
-                const dateInput = document.getElementById('inspection-date');
-                const hourInput = document.getElementById('operating-hours');
-                if (dateInput) dateInput.value = i.inspection_date;
-                if (hourInput) hourInput.value = i.operating_hours;
-            }
-
-            // 画面構成を切り替え
-            updateMachineMasterList(i.machine_type); // ★ここに追加: 保存データ読み込み時にもリストを更新
-            selectMachine(i.machine_type);
-
-            // 日常点検の場合は、selectMachine内のrenderFormから呼ばれるloadMonthlyDataが
-            // 終わるのを待ってから（あるいは明示的に呼び出してから）値をセットする
-            if (dailyMonthlyTypes.includes(i.machine_type)) {
-                await loadMonthlyData();
-            }
-
-            if (i.statuses) {
-                Object.keys(i.statuses).forEach(key => {
-                    if (key.startsWith('_')) return; // メタデータはスキップ
-                    const isDaily = dailyMonthlyTypes.includes(i.machine_type);
-                    const el = document.getElementById(`status-${key}`);
-                    if (el) {
-                        const code = i.statuses[key];
-                        const options = isDaily ? dailyStatusOptions : statusOptions;
-                        const opt = options.find(o => o.code === code);
-                        if (opt) {
-                            el.className = (isDaily ? 'day-cell status-cell-' : 'current-status ') + code;
-                            el.innerText = opt.mark;
-                            el.setAttribute('data-status', code);
-                        }
-                    }
-                });
-            }
-        }
-
-        function goDashBoard() {
-            const url = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-            window.location.href = url;
-        }
-
-        function getMachineIcon(type) {
-            // 1. 画像がある機種
-            const imgMap = {
-                'shovel': 'assets/icons/backhoe.png',
-                'shovel_daily': 'assets/icons/backhoe.png',
-                'tractor': 'assets/icons/trailer.png',
-                'crane': 'assets/icons/crane.png',
-                'crane_daily': 'assets/icons/crane.png'
-            };
-
-            if (imgMap[type]) {
-                return `<img src="${imgMap[type]}" class="machine-icon-img">`;
-            }
-
-            // 2. その他の日常点検用SVGアイコン
-            let svg = '';
-            let color = '#64748b'; // default gray
-
-            switch (type) {
-                case 'sandbag': // 大型土のう -> 茶色のBox
-                    svg = '<path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>';
-                    color = '#8d6e63';
-                    break;
-                case 'power_tool': // 電動工具 -> オレンジの工具
-                    svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
-                    color = '#f97316';
-                    break;
-                case 'generator': // 発電機 -> 黄色のカミナリ
-                    svg = '<path d="M7 2v11h3v9l7-12h-4l4-8z"/>';
-                    color = '#eab308';
-                    break;
-                case 'pump': // ポンプ -> 青の水滴
-                    svg = '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.88 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>';
-                    color = '#3b82f6';
-                    break;
-                case 'dist_board': // 分電盤 -> グレーの盤
-                    svg = '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z M7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z"/>';
-                    color = '#475569';
-                    break;
-                case 'arc_welder': // 溶接機 -> 赤の火
-                    svg = '<path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/>';
-                    color = '#ef4444';
-                    break;
-                case 'elec_equip': // 電気設備 -> 黄色の電球
-                    svg = '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>';
-                    color = '#f59e0b';
-                    break;
-                case 'hanging_tools': // 玉掛け -> フック
-                    svg = '<path d="M17 11c0-2.76-2.24-5-5-5s-5 2.24-5 5h2c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3v2c2.76 0 5-2.24 5-5zM11 16h2v6h-2z"/>';
-                    color = '#64748b';
-                    break;
-                case 'iron_plate': // 敷鉄板 -> 濃いグレー
-                    svg = '<path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/>';
-                    color = '#1f2937';
-                    break;
-                case 'security_daily': // 保安 -> 赤の警告
-                    svg = '<path d="M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>';
-                    color = '#dc2626';
-                    break;
-                case 'excavation_daily': // 掘削 -> 茶色の道具
-                    svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
-                    color = '#795548';
-                    break;
-                default:
-                    // デフォルト (四角)
-                    return '<span style="font-size:24px; line-height:30px;">⬜</span>';
-            }
-
-            return `<svg viewBox="0 0 24 24" fill="${color}" style="vertical-align:middle;">${svg}</svg>`;
-        }
-
-        // DatalistのUX改善用関数
-        function setupDatalistUX(ids) {
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-
-                // オリジナルのプレースホルダーを保存
-                if (!el.dataset.defaultPlaceholder) {
-                    el.dataset.defaultPlaceholder = el.placeholder || '';
-                }
-
-                el.addEventListener('focus', function () {
-                    // 値が入っている場合のみ処理
-                    if (this.value) {
-                        this.dataset.originalValue = this.value; // 値を退避
-                        this.placeholder = this.value;           // プレースホルダーに現在の値を表示（空に見えないように）
-                        this.value = '';                         // 値を空にしてリストを強制的に表示させる（多くのブラウザ用）
-                    }
-                });
-
-                el.addEventListener('blur', function () {
-                    // 何も入力せずに（空のまま）フォーカスが外れた場合、元の値を復元
-                    if (this.value === '' && this.dataset.originalValue) {
-                        this.value = this.dataset.originalValue;
-                    }
-                    // プレースホルダーを元に戻す
-                    this.placeholder = this.dataset.defaultPlaceholder;
-                });
-            });
-        }
-
-        // 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
-        document.addEventListener('DOMContentLoaded', async () => {
-            // --- UI系の初期化を最優先で行う ---
-            // 日付表示の更新
-            updateDateDisplay();
-            renderStaffList(); renderRepresentativeList();
-            // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
-
-
-            setupDatalistUX([
-                'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
-                'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
-                'company-machine-id' // 会社管理No.に対象を変更
-            ]);
-            setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
-            updateMachineMasterList('shovel'); // 初期リストセット
-
-            // 現場名の取得・表示 (ヘッダー用)
-            if (currentSiteId) {
-                const headerSiteNameEl = document.getElementById('header-site-name');
-                if (headerSiteNameEl) {
-                    // 初期表示はロード中...とかにする？あるいはDB取得する
-                    supabaseClient.from('sites').select('name').eq('id', currentSiteId).single()
-                        .then(({ data, error }) => {
-                            if (data && !error) {
-                                headerSiteNameEl.innerText = data.name;
-                            }
-                        });
-                }
-            }
-
-            // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
-            // LIFF初期化
-            if (typeof liff !== 'undefined') {
-                try {
-                    await liff.init({ liffId: LIFF_ID });
-                    if (liff.isLoggedIn()) {
-                        lineUserInfo = await liff.getProfile();
-                    } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
-                        liff.login();
-                    }
-                } catch (err) { console.error("LIFF err", err); }
-            }
-
-            if (document.getElementById('site-list-view')) {
-                initIndex();
-                // URLにsite_idがある場合は直接詳細を開く
-                if (currentSiteId) {
-                    setTimeout(() => {
-                        const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
-                        if (siteRow) {
-                            siteRow.click();
-                        } else {
-                            openSiteDetail(currentSiteId, "現場詳細");
-                        }
-                    }, 500);
-                }
-            } else if (document.getElementById('machine-modal')) {
-                initInspection();
+        el.addEventListener('focus', function () {
+            // 値が入っている場合のみ処理
+            if (this.value) {
+                this.dataset.originalValue = this.value; // 値を退避
+                this.placeholder = this.value;           // プレースホルダーに現在の値を表示（空に見えないように）
+                this.value = '';                         // 値を空にしてリストを強制的に表示させる（多くのブラウザ用）
             }
         });
 
-        // グローバル公開
-        window.selectMachine = selectMachine;
-        window.toggleStatus = toggleStatus;
-        window.openSiteDetail = openSiteDetail;
-        window.openMachineHistory = openMachineHistory;
-        window.openEditSite = (id) => window.openEditSite(id);
-        window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
-        window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
-        window.goDashBoard = goDashBoard;
+        el.addEventListener('blur', function () {
+            // 何も入力せずに（空のまま）フォーカスが外れた場合、元の値を復元
+            if (this.value === '' && this.dataset.originalValue) {
+                this.value = this.dataset.originalValue;
+            }
+            // プレースホルダーを元に戻す
+            this.placeholder = this.dataset.defaultPlaceholder;
+        });
+    });
+}
 
-        // Removed old setupMachineAutoFill
+// 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- UI系の初期化を最優先で行う ---
+    // 日付表示の更新
+    updateDateDisplay();
+    renderStaffList(); renderRepresentativeList();
+    // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
 
 
+    setupDatalistUX([
+        'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
+        'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
+        'company-machine-id' // 会社管理No.に対象を変更
+    ]);
+    setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
+    updateMachineMasterList('shovel'); // 初期リストセット
 
-        const representativeList = [
-            "杉本 鉄也",
-            "林 成司",
-            "佐藤 光一",
-            "辻 成人",
-            "白戸 嘉人",
-            "庄司 明",
-            "十河 弘樹",
-            "林 真人",
-            "金田 大作"
-        ];
-
-        const staffList = [
-            "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
-            "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
-            "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
-            "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
-            "堀 邦寿",
-            "郷 樹美"
-        ];
-
-        function renderRepresentativeList() {
-            const dataList = document.getElementById('representative-list');
-            if (!dataList) return;
-            dataList.innerHTML = '';
-            representativeList.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                dataList.appendChild(option);
-            });
+    // 現場名の取得・表示 (ヘッダー用)
+    if (currentSiteId) {
+        const headerSiteNameEl = document.getElementById('header-site-name');
+        if (headerSiteNameEl) {
+            // 初期表示はロード中...とかにする？あるいはDB取得する
+            supabaseClient.from('sites').select('name').eq('id', currentSiteId).single()
+                .then(({ data, error }) => {
+                    if (data && !error) {
+                        headerSiteNameEl.innerText = data.name;
+                    }
+                });
         }
+    }
 
-        function renderStaffList() {
-            const dataList = document.getElementById('staff-list');
-            if (!dataList) return;
-            dataList.innerHTML = '';
-            staffList.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                dataList.appendChild(option);
-            });
+    // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
+    // LIFF初期化
+    if (typeof liff !== 'undefined') {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                lineUserInfo = await liff.getProfile();
+            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
+                liff.login();
+            }
+        } catch (err) { console.error("LIFF err", err); }
+    }
+
+    if (document.getElementById('site-list-view')) {
+        initIndex();
+        // URLにsite_idがある場合は直接詳細を開く
+        if (currentSiteId) {
+            setTimeout(() => {
+                const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
+                if (siteRow) {
+                    siteRow.click();
+                } else {
+                    openSiteDetail(currentSiteId, "現場詳細");
+                }
+            }, 500);
         }
+    } else if (document.getElementById('machine-modal')) {
+        initInspection();
+    }
+});
 
-        window.renderRepresentativeList = renderRepresentativeList;
-        window.renderStaffList = renderStaffList;
+// グローバル公開
+window.selectMachine = selectMachine;
+window.toggleStatus = toggleStatus;
+window.openSiteDetail = openSiteDetail;
+window.openMachineHistory = openMachineHistory;
+window.openEditSite = (id) => window.openEditSite(id);
+window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
+window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
+window.goDashBoard = goDashBoard;
+
+// Removed old setupMachineAutoFill
+
+
+
+const representativeList = [
+    "杉本 鉄也",
+    "林 成司",
+    "佐藤 光一",
+    "辻 成人",
+    "白戸 嘉人",
+    "庄司 明",
+    "十河 弘樹",
+    "林 真人",
+    "金田 大作"
+];
+
+const staffList = [
+    "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
+    "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
+    "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
+    "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
+    "堀 邦寿",
+    "郷 樹美"
+];
+
+function renderRepresentativeList() {
+    const dataList = document.getElementById('representative-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    representativeList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+
+function renderStaffList() {
+    const dataList = document.getElementById('staff-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    staffList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+
+window.renderRepresentativeList = renderRepresentativeList;
+window.renderStaffList = renderStaffList;
 
 // Helper to lock fields
 function lockMachineFields() {
