@@ -668,14 +668,22 @@ async function renderMachineList(siteId) {
             }
 
 
+            // Common Params (Machine Info) from source record (Monthly or Base)
+            const cmidVal = (sourceRecord.statuses && sourceRecord.statuses._company_machine_id) || '';
+            const modelVal = sourceRecord.model_type || m.base.model_type || '';
+            const commonParams = `&mo=${encodeURIComponent(modelVal)}&cmid=${encodeURIComponent(cmidVal)}`;
+
             // --- アクションボタン ---
             // 月次点検ボタン
             let monthlyBtns = '';
             if (isVehicle) {
                 // 月次点検へ (編集 or 新規)
-                // 既存があればそのID、なければ新規
                 const mid = m.monthly ? m.monthly.id : '';
-                const action = mid ? `id=${mid}&mode=check` : `action=new&mt=${m.base.machine_type}&id=${m.base.machine_id}&mo=${encodeURIComponent(m.base.model_type)}&cmid=${encodeURIComponent((m.base.statuses && m.base.statuses._company_machine_id) || '')}`;
+                // 既存でもパラメータを付与して補完できるようにする
+                const action = mid
+                    ? `id=${mid}&mode=check${commonParams}`
+                    : `action=new&mt=${m.base.machine_type}&id=${m.base.machine_id}${commonParams}`;
+
                 const label = mid ? '月次点検' : '月次作成';
                 const style = mid ? 'background:#dcfce7; color:#166534; border-color:#86efac;' : '';
                 monthlyBtns = `<button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; ${style}" onclick="location.href='inspection.html?${action}&site_id=${siteId}'">${label}</button>`;
@@ -687,12 +695,13 @@ async function renderMachineList(siteId) {
             if (isVehicle) {
                 // ショベル等の日常点検 (タイプ + _daily)
                 const dailyType = m.base.machine_type + '_daily';
-                // 既存があればそのID
                 const did = m.daily ? m.daily.id : '';
+
                 // 新規作成時: main/sub をURLパラメータに含める
-                const baseAction = did
-                    ? `id=${did}&mode=check`
-                    : `action=new&mt=${dailyType}&id=${m.base.machine_id}&mo=${encodeURIComponent(m.base.model_type)}&cmid=${encodeURIComponent((m.base.statuses && m.base.statuses._company_machine_id) || '')}`;
+                // 既存時: commonParams を含める
+                let baseAction = did
+                    ? `id=${did}&mode=check${commonParams}`
+                    : `action=new&mt=${dailyType}&id=${m.base.machine_id}${commonParams}`;
 
                 const action = `${baseAction}&main=${encodeURIComponent(inspectorMain)}&sub=${encodeURIComponent(inspectorSub)}`;
 
@@ -1108,11 +1117,25 @@ async function initInspection() {
         // A. 既存レコードの編集・詳細表示
         await loadInspectionData(recordId);
 
-        // Fallback sync for existing records if empty
+        // Fallback sync for Inspectors
         const mainEl = document.getElementById('inspector-main');
         if (mainEl && !mainEl.value && mainInsp) mainEl.value = mainInsp;
         const subEl = document.getElementById('inspector-sub');
         if (subEl && !subEl.value && subInsp) subEl.value = subInsp;
+
+        // Fallback sync for Machine Data (Name, Model, CMID)
+        const modelEl = document.getElementById('model-type');
+        if (modelEl && !modelEl.value && model) modelEl.value = model;
+
+        const cmidEl = document.getElementById('company-machine-id');
+        if (cmidEl && !cmidEl.value && cmid) cmidEl.value = cmid;
+
+        const nameEl = document.getElementById('machine-name');
+        if (nameEl && !nameEl.value && cmid) {
+            const allMachines = [...(typeof shovelMachineList !== 'undefined' ? shovelMachineList : []), ...(typeof tractorMachineList !== 'undefined' ? tractorMachineList : [])];
+            const match = allMachines.find(m => m.company_id === cmid);
+            if (match) nameEl.value = match.name;
+        }
 
         // Lock Machine Fields for Existing Records
         lockMachineFields();
