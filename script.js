@@ -1200,19 +1200,7 @@ async function initInspection() {
             }
 
 
-            // イベントリスナー設定 (保存・リセット・機種変更)
-            const saveBtn = document.getElementById('save-btn');
-            if (saveBtn) saveBtn.onclick = () => saveInspection();
 
-            const changeMBtn = document.getElementById('change-machine-btn');
-            if (changeMBtn) changeMBtn.onclick = () => {
-                if (confirm("機種を変更しますか？ 入力内容がクリアされます。")) location.reload();
-            };
-
-            const resetBtn = document.getElementById('reset-btn');
-            if (resetBtn) resetBtn.onclick = () => {
-                if (confirm("入力をリセットしますか？")) renderForm(currentMachineId);
-            };
 
             const monthIn = document.getElementById('inspection-month');
             if (monthIn) {
@@ -1232,6 +1220,23 @@ async function initInspection() {
         const modal = document.getElementById('machine-modal');
         if (modal) modal.style.display = 'flex';
     }
+
+    // イベントリスナー設定 (保存・リセット・機種変更・印刷)
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn) saveBtn.onclick = () => saveInspection();
+
+    const changeMBtn = document.getElementById('change-machine-btn');
+    if (changeMBtn) changeMBtn.onclick = () => {
+        if (confirm("機種を変更しますか？ 入力内容がクリアされます。")) location.reload();
+    };
+
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.onclick = () => {
+        if (confirm("入力をリセットしますか？")) renderForm(currentMachineId);
+    };
+
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.onclick = () => window.print();
 
     // 共通後処理
     if (currentSiteId && typeof fetchSiteInfo === 'function') fetchSiteInfo(currentSiteId);
