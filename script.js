@@ -1450,15 +1450,21 @@ function renderMonthlyGrid(machineId) {
         // 曜日判定
         const date = new Date(year, month - 1, i);
         let classStr = "";
+        let styleStr = ""; // Style for Th
 
         // 月が替わっている場合（例: 2月30日）は曜日判定しない
         if (date.getMonth() === month - 1) {
             const dayOfWeek = date.getDay(); // 0:Sun, 6:Sat
-            if (dayOfWeek === 0) classStr = "sun";
-            else if (dayOfWeek === 6) classStr = "sat";
+            if (dayOfWeek === 0) {
+                classStr = "sun";
+                styleStr = "background-color: #fee2e2 !important; color: #b91c1c;";
+            } else if (dayOfWeek === 6) {
+                classStr = "sat";
+                styleStr = "background-color: #e0f2fe !important; color: #0369a1;";
+            }
         }
 
-        headHtml += `<th class="${classStr}">${i}</th>`;
+        headHtml += `<th class="${classStr}" style="${styleStr}">${i}</th>`;
     }
     head.innerHTML = headHtml;
 
@@ -1480,19 +1486,25 @@ function renderMonthlyGrid(machineId) {
                     // 曜日判定 (再度)
                     const date = new Date(year, month - 1, d);
                     let classStr = "";
+                    let bgStyle = "";
+
                     if (date.getMonth() === month - 1) {
                         const dayOfWeek = date.getDay();
-                        if (dayOfWeek === 0) classStr = "sun";
-                        else if (dayOfWeek === 6) classStr = "sat";
+                        if (dayOfWeek === 0) {
+                            classStr = "sun";
+                            bgStyle = "background-color: #fee2e2 !important;";
+                        } else if (dayOfWeek === 6) {
+                            classStr = "sat";
+                            bgStyle = "background-color: #e0f2fe !important;";
+                        }
                     }
 
                     // 当日の列をハイライト (薄い黄色など) -> 優先度: 当日 > 土日 (ただし土日背景は透過で重ねる想定)
                     // CSS側で .day-cell.sat, .day-cell.sun を定義する
-                    let style = "";
+                    let style = bgStyle;
                     if (isCurrentMonth && d === todayDate) {
-                        style = "border-left: 2px solid #fbbf24; border-right: 2px solid #fbbf24;";
-                        // 当日背景はCSSクラスと競合するため、ここではボーダーのみにするか、 !important で当日を優先するか
-                        // 今回は土日色を優先しつつ、当日枠を目立たせる方針
+                        // 当日枠線 (既存スタイルと結合)
+                        style += "border-left: 2px solid #fbbf24; border-right: 2px solid #fbbf24;";
                     }
 
                     // day-cellに加えて sat/sun クラスを追加
