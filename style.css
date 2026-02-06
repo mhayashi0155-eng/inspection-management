@@ -1036,15 +1036,15 @@ table.data-table td svg {
 }
 
 /* Weekend Coloring - High Priority for BG, Low for Text */
-#monthly-table th.sat,
-#monthly-table td.sat {
+#monthly-table thead th.sat,
+#monthly-table tbody tr td.sat {
     background-color: #e0f2fe !important;
     /* sky-100 */
     color: #0369a1;
 }
 
-#monthly-table th.sun,
-#monthly-table td.sun {
+#monthly-table thead th.sun,
+#monthly-table tbody tr td.sun {
     background-color: #fee2e2 !important;
     /* red-100 */
     color: #b91c1c;
