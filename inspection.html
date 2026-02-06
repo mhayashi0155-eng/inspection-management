@@ -21,25 +21,24 @@
             -webkit-print-color-adjust: exact;
         }
 
-        /* FORCE DESKTOP WIDTH (1280px) and SCALE DOWN */
+        /* FORCE A4 WIDTH MAXIMIZATION */
         .app-container {
-            width: 1280px !important;
-            min-width: 1280px !important;
-            max-width: 1280px !important;
-            margin: 0 auto !important;
-            padding: 10px !important;
-            zoom: 0.45 !important;
-            /* Scale to fit A4 */
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 5px !important;
+            zoom: 0.95 !important;
+            /* Maximized for A4 Landscape */
             transform: none !important;
             display: block !important;
         }
 
-        /* FORCE 3 COLUMNS NO MATTER WHAT */
+        /* Adjust grid for print to fill width */
         .inspection-grid {
             display: grid !important;
             grid-template-columns: 1fr 1fr 1fr !important;
-            /* Explicit 3 columns */
-            gap: 1rem !important;
+            gap: 0.5rem !important;
             width: 100% !important;
         }
 
