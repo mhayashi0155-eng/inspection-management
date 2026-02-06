@@ -1377,6 +1377,7 @@ function renderForm(machineId) {
 
     if (dailyMonthlyTypes.includes(machineId)) {
         // 日常始業点検（月間シート）の場合
+        document.body.classList.add('print-mode-daily'); // Add print class
         document.getElementById('inspection-form').style.display = 'none';
         document.getElementById('monthly-grid-view').style.display = 'block';
 
@@ -1392,6 +1393,7 @@ function renderForm(machineId) {
         loadMonthlyData(); // 月間データを読み込む
     } else {
         // 通常の月次点検の場合
+        document.body.classList.remove('print-mode-daily'); // Remove print class
         document.getElementById('inspection-form').style.display = 'grid';
         document.getElementById('monthly-grid-view').style.display = 'none';
 

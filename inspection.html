@@ -21,8 +21,15 @@
             -webkit-print-color-adjust: exact;
         }
 
-        /* FORCE A4 WIDTH MAXIMIZATION */
-        .app-container {
+        /* DAILY INSPECTION MODE (1 Page Limit) */
+        body.print-mode-daily,
+        body.print-mode-daily html {
+            height: 100%;
+            overflow: hidden !important;
+            /* Prevent 2nd page */
+        }
+
+        body.print-mode-daily .app-container {
             width: 100% !important;
             min-width: 100% !important;
             max-width: none !important;
@@ -32,6 +39,15 @@
             /* Maximized for A4 Landscape */
             transform: none !important;
             display: block !important;
+        }
+
+        /* MONTHLY INSPECTION MODE (Standard Flow) */
+        body:not(.print-mode-daily) .app-container {
+            width: 1280px !important;
+            /* Fixed width for consistency */
+            zoom: 0.65 !important;
+            /* Standard zoom to fit A4 width */
+            margin: 0 auto !important;
         }
 
         /* Adjust grid for print to fill width */
