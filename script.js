@@ -1379,7 +1379,12 @@ function renderForm(machineId) {
         // 日常始業点検（月間シート）の場合
         document.getElementById('inspection-form').style.display = 'none';
         document.getElementById('monthly-grid-view').style.display = 'block';
+
+        // 凡例切り替え
         document.getElementById('legend-section').style.display = 'none';
+        const dailyLegend = document.getElementById('daily-legend-section');
+        if (dailyLegend) dailyLegend.style.display = 'flex';
+
         document.getElementById('month-selector-group').style.display = 'block';
         document.getElementById('inspection-date-group').style.display = 'none';
         document.getElementById('operating-hours-group').style.display = 'none';
@@ -1389,7 +1394,12 @@ function renderForm(machineId) {
         // 通常の月次点検の場合
         document.getElementById('inspection-form').style.display = 'grid';
         document.getElementById('monthly-grid-view').style.display = 'none';
+
+        // 凡例切り替え
         document.getElementById('legend-section').style.display = 'flex';
+        const dailyLegend = document.getElementById('daily-legend-section');
+        if (dailyLegend) dailyLegend.style.display = 'none';
+
         document.getElementById('month-selector-group').style.display = 'none';
         document.getElementById('inspection-date-group').style.display = 'block';
         document.getElementById('operating-hours-group').style.display = 'block';

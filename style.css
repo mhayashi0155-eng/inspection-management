@@ -966,16 +966,22 @@ table.data-table td svg {
 #monthly-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
-    min-width: 1200px;
+    font-size: 0.75rem;
+    /* Reduced from 0.85rem */
+    min-width: auto;
+    /* Removed 1200px constraint */
 }
 
 #monthly-table th,
 #monthly-table td {
     border: 1px solid var(--border-color);
-    padding: 0.5rem;
+    padding: 4px 1px;
+    /* Drastically reduced padding */
     text-align: center;
-    min-width: 40px;
+    min-width: 24px;
+    /* Reduced from 40px */
+    height: 32px;
+    /* Fixed height for consistency */
 }
 
 #monthly-table th:first-child,
@@ -984,9 +990,15 @@ table.data-table td svg {
     left: 0;
     z-index: 10;
     background: #ffffff;
-    min-width: 250px;
+    min-width: 160px;
+    /* Reduced from 250px */
+    max-width: 160px;
+    /* Force width */
     text-align: left;
-    padding-left: 1rem;
+    padding-left: 0.5rem;
+    white-space: normal;
+    /* Allow text wrapping */
+    line-height: 1.2;
 }
 
 #monthly-table thead tr {
@@ -1004,32 +1016,37 @@ table.data-table td svg {
 }
 
 .status-cell-good {
-    color: #34d399;
+    color: #15803d !important;
     font-weight: bold;
 }
 
 .status-cell-adjust {
-    color: #fbbf24;
+    color: #b45309 !important;
     font-weight: bold;
 }
 
 .status-cell-repair {
-    color: #f87171;
+    color: #b91c1c !important;
     font-weight: bold;
 }
 
-/* Weekend Coloring */
+.status-cell-done {
+    color: #0369a1 !important;
+    font-weight: bold;
+}
+
+/* Weekend Coloring - High Priority for BG, Low for Text */
 #monthly-table th.sat,
 #monthly-table td.sat {
-    background-color: rgba(186, 230, 253, 0.3);
-    /* sky-200 with opacity */
+    background-color: #e0f2fe !important;
+    /* sky-100 */
     color: #0369a1;
 }
 
 #monthly-table th.sun,
 #monthly-table td.sun {
-    background-color: rgba(254, 202, 202, 0.3);
-    /* red-200 with opacity */
+    background-color: #fee2e2 !important;
+    /* red-100 */
     color: #b91c1c;
 }
 
