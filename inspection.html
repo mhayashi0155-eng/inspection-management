@@ -30,14 +30,15 @@
         }
 
         body.print-mode-daily .app-container {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: none !important;
+            width: 1280px !important;
+            min-width: 1280px !important;
+            max-width: 1280px !important;
             margin: 0 !important;
-            padding: 5px !important;
-            zoom: 0.95 !important;
-            /* Maximized for A4 Landscape */
-            transform: none !important;
+            padding: 0 !important;
+            zoom: normal !important;
+            /* Revert to Scale for consistency and quality */
+            transform: scale(0.85) !important;
+            transform-origin: top left !important;
             display: block !important;
         }
 
@@ -45,9 +46,11 @@
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width for consistency */
-            zoom: 0.65 !important;
-            /* Standard zoom to fit A4 width */
-            margin: 0 auto !important;
+            transform: scale(0.54) !important;
+            transform-origin: top left !important;
+            /* Use transform as zoom is not supported/effective */
+            margin: 0 !important;
+            /* Adjust margin if needed, usually 0 with transform-origin left is safest to start */
         }
 
         /* Adjust grid for print to fill width */
@@ -173,6 +176,8 @@
                 </div>
 
                 <h1 id="form-title">車両系建設機械 定期自主検査表(月例)</h1>
+
+                <div id="print-month-display"></div>
 
                 <div id="header-site-name"></div>
             </div>
