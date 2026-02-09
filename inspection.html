@@ -43,15 +43,8 @@
         }
 
         /* MONTHLY INSPECTION MODE (Standard Flow) */
-        body:not(.print-mode-daily) .app-container {
-            width: 1280px !important;
-            /* Fixed width for consistency */
-            transform: scale(0.54) !important;
-            transform-origin: top left !important;
-            /* Use transform as zoom is not supported/effective */
-            margin: 0 !important;
-            /* Adjust margin if needed, usually 0 with transform-origin left is safest to start */
-        }
+        /* MONTHLY INSPECTION MODE (Standard Flow) - Consolidated below */
+        /* Old rule removed to avoid conflict */
 
         /* Adjust grid for print to fill width */
         .inspection-grid {
@@ -61,14 +54,29 @@
             width: 100% !important;
         }
 
-        /* HIDE non-print elements */
+        /* HIDE non-print elements to save space */
         .main-nav,
         .filter-bar,
         .action-buttons,
         .ghost-btn,
         .sidebar-decoration,
-        .legend {
+        .legend,
+        .company-title,
+        #version-indicator {
             display: none !important;
+        }
+
+        /* MONTHLY INSPECTION MODE (Standard Flow) */
+        body:not(.print-mode-daily) .app-container {
+            width: 1280px !important;
+            /* Fixed width */
+            transform: scale(0.65) !important;
+            /* Increased safely due to hidden headers */
+            transform-origin: top center !important;
+            /* Center alignment */
+            margin: 0 auto !important;
+            left: 0 !important;
+            right: 0 !important;
         }
 
         /* Ensure specific elements are visible and styled */
@@ -305,8 +313,8 @@
 
     </div>
 
-    <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.09-PrintFix_Ver2
+    <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
+        v2026.02.09-PrintFix_Ver3_Centered
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
