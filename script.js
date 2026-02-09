@@ -337,6 +337,33 @@ function updateDocumentTitle() {
         // デフォルト
         document.title = "点検表";
     }
+
+    updatePrintMonth();
+}
+
+function updatePrintMonth() {
+    const monthVal = document.getElementById('inspection-month')?.value;
+    const dateVal = document.getElementById('inspection-date')?.value;
+    const displayEl = document.getElementById('print-month-display');
+    if (!displayEl) return;
+
+    let month = "";
+    if (monthVal) {
+        // YYYY-MM
+        const parts = monthVal.split('-');
+        if (parts.length === 2) month = parts[1];
+    } else if (dateVal) {
+        // YYYY-MM-DD
+        const parts = dateVal.split('-');
+        if (parts.length === 3) month = parts[1];
+    }
+
+    if (month) {
+        const m = parseInt(month, 10);
+        displayEl.innerText = `${m}月`;
+    } else {
+        displayEl.innerText = "";
+    }
 }
 
 // --- ラベル印刷用 (A5) ---
