@@ -1614,17 +1614,23 @@ async function loadMonthlyData() {
 
     console.log("DEBUG: loadMonthlyData result:", list, error);
 
-    // 全てのステータス表示をリセット (月次用のレ点、日常用のグリッド)
-    document.querySelectorAll('.current-status').forEach(el => {
-        el.className = 'current-status good';
-        el.innerText = 'レ';
-        el.setAttribute('data-status', 'good');
-    });
-    document.querySelectorAll('.day-cell').forEach(el => {
-        el.className = 'day-cell';
-        el.innerText = '';
-        el.setAttribute('data-status', 'none');
-    });
+    // ステータス表示のリセット
+    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+    if (isDaily) {
+        // 日常点検グリッドのみリセット
+        document.querySelectorAll('.day-cell').forEach(el => {
+            el.className = 'day-cell';
+            el.innerText = '';
+            el.setAttribute('data-status', 'none');
+        });
+    } else {
+        // 月次点検チェックリストのみリセット
+        document.querySelectorAll('.current-status').forEach(el => {
+            el.className = 'current-status good';
+            el.innerText = 'レ';
+            el.setAttribute('data-status', 'good');
+        });
+    }
 
     if (list && list.length > 0) {
         const latest = list[0];
