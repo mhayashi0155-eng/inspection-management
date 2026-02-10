@@ -1614,7 +1614,12 @@ async function loadMonthlyData() {
 
     console.log("DEBUG: loadMonthlyData result:", list, error);
 
-    // グリッドを一旦リセット
+    // 全てのステータス表示をリセット (月次用のレ点、日常用のグリッド)
+    document.querySelectorAll('.current-status').forEach(el => {
+        el.className = 'current-status good';
+        el.innerText = 'レ';
+        el.setAttribute('data-status', 'good');
+    });
     document.querySelectorAll('.day-cell').forEach(el => {
         el.className = 'day-cell';
         el.innerText = '';
@@ -1812,6 +1817,9 @@ async function saveInspection() {
         }
 
         alert("保存しました" + autoCreatedMsg);
+        // デバッグ用: もしメッセージが誤って出た場合はconsoleを確認してもらう
+        if (autoCreatedMsg) console.log("New daily was created because no existing one was found for:", dailyType, mid, inspMonth);
+
         if (typeof liff !== 'undefined' && liff.isInClient()) {
             liff.closeWindow();
         } else {
