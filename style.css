@@ -1211,13 +1211,23 @@ body.print-mode-book #inspection-form-page {
 }
 
 /* Page 2: Daily Grid */
-/* Page 2: Daily Grid */
-body.print-mode-book #monthly-grid-page {
-    /* Reset scaling to restore full size */
-    transform: none;
-    padding: 0;
-    margin: 0 auto;
-    width: 100%;
+/* Page 2: Daily Grid & Clones */
+body.print-mode-book #monthly-grid-page,
+body.print-mode-book [id^="monthly-grid-page"],
+body.print-mode-book [id^="bk-g-"] {
+    /* Reset scaling to restore full size, override .print-page 1280px */
+    transform: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+body.print-mode-book [id^="monthly-grid-page"] .monthly-grid-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 /* Show both forms in Book Mode */
