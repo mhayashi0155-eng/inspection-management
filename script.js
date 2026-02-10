@@ -1614,18 +1614,18 @@ async function loadMonthlyData() {
 
     console.log("DEBUG: loadMonthlyData result:", list, error);
 
-    // ステータス表示のリセット
+    // ステータス表示のリセット (テンプレート領域のみを対象にする)
     const isDaily = dailyMonthlyTypes.includes(currentMachineId);
     if (isDaily) {
-        // 日常点検グリッドのみリセット
-        document.querySelectorAll('.day-cell').forEach(el => {
+        // 日常点検グリッドのテンプレートのみリセット
+        document.querySelectorAll('#monthly-grid-page .day-cell').forEach(el => {
             el.className = 'day-cell';
             el.innerText = '';
             el.setAttribute('data-status', 'none');
         });
     } else {
-        // 月次点検チェックリストのみリセット
-        document.querySelectorAll('.current-status').forEach(el => {
+        // 月次点検チェックリストのテンプレートのみリセット
+        document.querySelectorAll('#inspection-form-page .current-status').forEach(el => {
             el.className = 'current-status good';
             el.innerText = 'レ';
             el.setAttribute('data-status', 'good');
@@ -1655,10 +1655,13 @@ async function loadMonthlyData() {
         if (latest.statuses) {
             const isDaily = dailyMonthlyTypes.includes(currentMachineId);
             const options = isDaily ? dailyStatusOptions : statusOptions;
+            const scopeId = isDaily ? 'monthly-grid-page' : 'inspection-form-page';
+            const scope = document.getElementById(scopeId);
 
             Object.keys(latest.statuses).forEach(uid => {
                 if (uid.startsWith('_')) return; // メタデータはスキップ
-                const el = document.getElementById(`status-${uid}`);
+                // スコープ内のみを検索してID重複による誤爆を防ぐ
+                const el = scope.querySelector(`#status-${uid}`);
                 if (el) {
                     const code = latest.statuses[uid];
                     const opt = options.find(o => o.code === code);
