@@ -1642,14 +1642,21 @@ async function loadMonthlyData() {
         }
 
         if (latest.statuses) {
+            const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+            const options = isDaily ? dailyStatusOptions : statusOptions;
+
             Object.keys(latest.statuses).forEach(uid => {
                 if (uid.startsWith('_')) return; // メタデータはスキップ
                 const el = document.getElementById(`status-${uid}`);
                 if (el) {
                     const code = latest.statuses[uid];
-                    const opt = dailyStatusOptions.find(o => o.code === code);
+                    const opt = options.find(o => o.code === code);
                     if (opt) {
-                        el.className = `day-cell status-cell-${code}`;
+                        if (isDaily) {
+                            el.className = `day-cell status-cell-${code}`;
+                        } else {
+                            el.className = `current-status ${code}`;
+                        }
                         el.innerText = opt.mark;
                         el.setAttribute('data-status', code);
                     }
@@ -1786,10 +1793,9 @@ async function saveInspection() {
 
             if (existingDaily) {
                 console.log("DEBUG: Daily record already exists, skipping auto-creation. ID:", existingDaily.id);
-                // alert(`DEBUG: 日常点検が既に見つかりました(ID: ${existingDaily.id})。自動作成をスキップします。`);
-            } else {
-                console.log("DEBUG: No existing daily found, creating one...");
-                // alert(`DEBUG: 日常点検が見つかりません。新規作成します。項目: ${dailyType}, 管理No: ${mid}, 現場: ${payload.site_id}, 月: ${inspMonth}`);
+            } else if (currentMachineId === baseType) {
+                // 月次点検の保存時かつ、日常点検がまだ存在しない場合のみ自動作成
+                console.log("DEBUG: No existing daily found and saving monthly, creating one...");
                 const dailyPayload = { ...payload };
                 dailyPayload.machine_type = dailyType;
                 dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
