@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.11-Data_View_Fix_Ver42 -->
+<!-- Version: v2026.02.11-Styling_Fix_Ver43 -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=PrintFix_Ver2">
-    <link rel="stylesheet" href="style.css?v=PrintFix_Ver2">
+    <link rel="stylesheet" href="style.css?v=Styling_Fix_Ver43">
+    <link rel="stylesheet" href="style.css?v=Styling_Fix_Ver43">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -60,15 +60,15 @@
         }
 
         /* FORCE WEEKDAY COLORS IN PRINT */
-        body.print-mode-daily #monthly-table th.sat,
-        body.print-mode-daily #monthly-table td.sat {
+        body.print-mode-daily .monthly-table th.sat,
+        body.print-mode-daily .monthly-table td.sat {
             background-color: #e0f2fe !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
 
-        body.print-mode-daily #monthly-table th.sun,
-        body.print-mode-daily #monthly-table td.sun {
+        body.print-mode-daily .monthly-table th.sun,
+        body.print-mode-daily .monthly-table td.sun {
             background-color: #fee2e2 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -145,8 +145,8 @@
             min-width: 0 !important;
         }
 
-        body:not(.print-mode-daily) #monthly-table th,
-        body:not(.print-mode-daily) #monthly-table td {
+        body:not(.print-mode-daily) .monthly-table th,
+        body:not(.print-mode-daily) .monthly-table td {
             padding: 0 !important;
             /* No padding in cells */
             height: 1.5rem !important;
@@ -368,7 +368,7 @@
         <section id="monthly-grid-page" class="print-page">
             <div id="monthly-grid-view" class="monthly-grid-container" style="display: none;">
                 <div class="grid-scroll-wrapper">
-                    <table id="monthly-table">
+                    <table id="monthly-table" class="monthly-table">
                         <thead>
                             <tr id="monthly-table-head">
                                 <!-- JSで生成 -->
@@ -420,10 +420,10 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.11-Data_View_Fix_Ver42
+        v2026.02.11-Styling_Fix_Ver43
     </div>
 
-    <script src="script.js?v=Data_View_Fix_Ver42"></script>
+    <script src="script.js?v=Styling_Fix_Ver43"></script>
 </body>
 
 </html>
