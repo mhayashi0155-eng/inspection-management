@@ -2122,13 +2122,18 @@ function populateMockData() {
 
             // 4. Clone and Append
 
-            // Ver27: Inject Section Header
+            // Ver28: Inject Section Header (Refined)
             const headerDiv = document.createElement('div');
             headerDiv.className = 'book-section-label';
+            // Format: [ 2026年1月度 | PC200-11 (デモ機) | 型式: PC200-11 | 管理No: D-001 ]
             headerDiv.innerHTML = `
-                <div class="book-month-label">${yearStr}年${parseInt(monthStr)}月度</div>
-                <div class="book-machine-label">PC200-11 (デモ機)</div>
-                <div class="book-type-label">定期自主検査表 / 日常点検簿</div>
+                <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
+                <span class="header-separator">|</span>
+                <span class="header-item header-machine">PC200-11 (デモ機)</span>
+                <span class="header-separator">|</span>
+                <span class="header-item header-model">型式: PC200-11</span>
+                <span class="header-separator">|</span>
+                <span class="header-item header-id">管理No: D-001</span>
             `;
             container.appendChild(headerDiv);
 
