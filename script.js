@@ -2068,60 +2068,122 @@ async function loadBookData(mainInspectionId) {
 }
 
 function populateMockData() {
-    console.log("Starting Mock Data Generation...");
+    console.log("Starting Multi-Month Mock Data Generation (Ver26)...");
 
-    // Set Header Info
-    document.getElementById('header-site-name').innerText = "デモ現場 (2026年1月)";
-    document.getElementById('machine-name').value = "PC200-11 (デモ機)";
-    document.getElementById('model-type').value = "PC200-11";
-    document.getElementById('company-machine-id').value = "D-001";
-    document.getElementById('machine-id').value = "999999";
-    document.getElementById('operating-hours').value = "1234.5";
-    document.getElementById('inspection-date').value = "2026-01-31";
-    document.getElementById('inspection-month').value = "2026-01";
-    document.getElementById('representative').value = "山内 太郎";
-    document.getElementById('inspector-main').value = "点検 次郎";
+    const months = ['2026-01', '2026-02', '2026-03'];
+    const container = document.getElementById('book-container');
+    if (!container) return;
 
-    // 1. Render Monthly Checklist (Page 1)
-    // This populates #inspection-form
-    renderForm('shovel');
+    // Clear container
+    container.innerHTML = '';
+    container.style.display = 'block';
 
-    // 2. Render Daily Grid (Page 2)
-    // This populates #monthly-table
-    renderMonthlyGrid('shovel_daily');
+    // Base elements to clone
+    const baseFormPage = document.getElementById('inspection-form-page');
+    const baseGridPage = document.getElementById('monthly-grid-page');
 
-    // 3. Force Visibility for Book Mode
-    // renderForm('shovel') hides monthly-grid-view by default, so we force show it.
-    document.getElementById('inspection-form').style.display = 'grid';
-    document.getElementById('monthly-grid-view').style.display = 'block';
+    // Hide originals
+    baseFormPage.style.display = 'none';
+    baseGridPage.style.display = 'none';
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
 
-    // 4. Populate Monthly Checklist Status (All Good)
-    setTimeout(() => {
-        document.querySelectorAll('.current-status').forEach(el => {
+    // Helper async function to process sequentially
+    const processMonth = async () => {
+        for (let i = 0; i < months.length; i++) {
+            const month = months[i];
+            console.log(`Generating data for ${month}...`);
+
+            // 1. Set Header Info for this month (on the hidden original form)
+            const yearStr = month.split('-')[0];
+            const monthStr = month.split('-')[1];
+            document.getElementById('header-site-name').innerText = `デモ現場 (${yearStr}年${parseInt(monthStr)}月)`;
+
+            document.getElementById('inspection-date').value = `${month}-01`;
+            document.getElementById('inspection-month').value = month;
+            document.getElementById('machine-name').value = "PC200-11 (デモ機)";
+            document.getElementById('model-type').value = "PC200-11";
+            document.getElementById('company-machine-id').value = "D-001";
+            document.getElementById('machine-id').value = "999999";
+            document.getElementById('representative').value = "山内 太郎";
+            document.getElementById('inspector-main').value = "点検 次郎";
+
+            // Randomize hours
+            const hours = 1234.5 + (i * 150) + Math.floor(Math.random() * 50);
+            document.getElementById('operating-hours').value = hours.toFixed(1);
+
+            // 2. Render Forms (on the hidden original elements)
+            renderForm('shovel');
+            renderMonthlyGrid('shovel_daily');
+
+            // 3. Randomize Checkboxes & Grid content
+            await new Promise(r => setTimeout(r, 10));
+            randomizeMockData(month);
+
+            // 4. Clone and Append
+            const cloneFormPage = baseFormPage.cloneNode(true);
+            cloneFormPage.id = `inspection-form-page-${month}`;
+            cloneFormPage.style.display = 'block';
+
+            // Re-enable visibility of internal grid (it was hidden on original)
+            const internalForm = cloneFormPage.querySelector('#inspection-form');
+            if (internalForm) internalForm.style.display = 'grid';
+
+            container.appendChild(cloneFormPage);
+
+            const cloneGridPage = baseGridPage.cloneNode(true);
+            cloneGridPage.id = `monthly-grid-page-${month}`;
+            cloneGridPage.style.display = 'block';
+
+            const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+            if (internalGrid) internalGrid.style.display = 'block';
+
+            container.appendChild(cloneGridPage);
+        }
+    };
+
+    processMonth();
+
+    // Force Book Mode styles
+    document.body.classList.add('print-mode-book');
+}
+
+function randomizeMockData(month) {
+    // 1. Monthly Checklist - Target ONLY the original Hidden Form
+    const form = document.getElementById('inspection-form');
+    if (form) {
+        form.querySelectorAll('.current-status').forEach(el => {
             el.className = 'current-status good';
             el.innerText = 'レ';
             el.setAttribute('data-status', 'good');
         });
-    }, 100);
+    }
 
-    // 5. Populate Daily Grid Status (Random pattern)
-    setTimeout(() => {
-        document.querySelectorAll('.day-cell').forEach(el => {
-            // Random status: mostly Good
-            if (Math.random() > 0.8) return; // 20% empty
+    // 2. Daily Grid - Target ONLY the original Hidden Grid
+    const gridBody = document.getElementById('monthly-table-body');
+    if (gridBody) {
+        gridBody.querySelectorAll('.day-cell').forEach(el => {
+            // Reset first
+            el.className = 'day-cell';
+            el.innerHTML = '';
+            el.removeAttribute('data-status');
+
+            // Random status
+            if (Math.random() > 0.85) return; // 15% empty
 
             const r = Math.random();
             let code = 'good';
             let mark = '○';
-            if (r > 0.95) { code = 'repair'; mark = '×'; }
-            else if (r > 0.9) { code = 'done'; mark = '●'; }
+            if (r > 0.98) { code = 'repair'; mark = '×'; }
+            else if (r > 0.95) { code = 'done'; mark = '●'; }
 
             el.className = `day-cell status-cell-${code}`;
             el.innerHTML = mark;
             el.setAttribute('data-status', code);
         });
-    }, 500); // Wait for grid render
+    }
 }
+
 
 // グローバル公開
 window.selectMachine = selectMachine;
