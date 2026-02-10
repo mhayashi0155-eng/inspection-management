@@ -34,6 +34,14 @@
             display: none !important;
         }
 
+        body.print-mode-daily .machine-info-grid {
+            gap: 0.4rem !important;
+            /* Increase gap slightly */
+            margin-bottom: 0.5rem !important;
+            grid-template-columns: repeat(6, 1fr) !important;
+            /* Force 6 columns to fit Date on row 1 */
+        }
+
         body.print-mode-daily .app-container {
             width: 1280px !important;
             min-width: 1280px !important;
@@ -323,7 +331,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver9_HideFooter
+        v2026.02.10-PrintFix_Ver10_RepRow2
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
