@@ -112,8 +112,8 @@
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.80) !important;
-            /* Increased to match Daily width approx. */
+            transform: scale(0.75) !important;
+            /* Slightly reduced to 0.75 to fit vertical */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
@@ -144,13 +144,15 @@
         }
 
         body:not(.print-mode-daily) .machine-info-grid {
-            margin-bottom: 0.1rem !important;
+            margin-bottom: 0 !important;
+            /* Zero margin */
             gap: 0.1rem !important;
             padding: 0.2rem !important;
         }
 
         body:not(.print-mode-daily) .inspection-grid {
-            margin-top: 0.1rem !important;
+            margin-top: 0 !important;
+            /* Zero margin */
             gap: 0.2rem !important;
         }
 
@@ -399,7 +401,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver19_MonthlyLandscapeWide
+        v2026.02.10-PrintFix_Ver20_MonthlyFinalFit
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
