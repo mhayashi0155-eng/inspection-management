@@ -1616,16 +1616,17 @@ async function loadMonthlyData() {
 
     // ステータス表示のリセット (テンプレート領域のみを対象にする)
     const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+    const scopeId = isDaily ? 'monthly-grid-page' : 'inspection-form-page';
+    const scope = document.getElementById(scopeId);
+
     if (isDaily) {
-        // 日常点検グリッドのテンプレートのみリセット
-        document.querySelectorAll('#monthly-grid-page .day-cell').forEach(el => {
+        scope.querySelectorAll('.day-cell').forEach(el => {
             el.className = 'day-cell';
             el.innerText = '';
             el.setAttribute('data-status', 'none');
         });
     } else {
-        // 月次点検チェックリストのテンプレートのみリセット
-        document.querySelectorAll('#inspection-form-page .current-status').forEach(el => {
+        scope.querySelectorAll('.current-status').forEach(el => {
             el.className = 'current-status good';
             el.innerText = 'レ';
             el.setAttribute('data-status', 'good');
@@ -1635,50 +1636,39 @@ async function loadMonthlyData() {
     if (list && list.length > 0) {
         const latest = list[0];
         currentInspectionId = latest.id;
-        document.getElementById('model-type').value = latest.model_type || '';
-        // document.getElementById('inspector-name').value = latest.inspector_name || ''; // Removed
-        document.getElementById('remarks').value = latest.remarks || '';
-        document.getElementById('repairs').value = latest.repairs || '';
 
-        // 点検者(正)・(副)の復元
-        const mainEl = document.getElementById('inspector-main');
-        const subEl = document.getElementById('inspector-sub');
-        if (mainEl) mainEl.value = (latest.statuses && latest.statuses._inspector_main) || '';
-        if (subEl) subEl.value = (latest.statuses && latest.statuses._inspector_sub) || '';
+        const setVal = (id, val) => {
+            const el = scope.querySelector(`#${id}`);
+            if (el) el.value = val || '';
+        };
 
-        // 会社管理Noを復元
-        if (latest.statuses && latest.statuses._company_machine_id) {
-            const cmidEl = document.getElementById('company-machine-id');
-            if (cmidEl) cmidEl.value = latest.statuses._company_machine_id;
-        }
+        setVal('model-type', latest.model_type);
+        setVal('remarks', latest.remarks);
+        setVal('repairs', latest.repairs);
+        setVal('inspector-main', latest.statuses?._inspector_main);
+        setVal('inspector-sub', latest.statuses?._inspector_sub);
+        setVal('company-machine-id', latest.statuses?._company_machine_id);
+        setVal('operating-hours', latest.operating_hours);
+        setVal('site-representative', latest.statuses?._site_representative);
 
         if (latest.statuses) {
-            const isDaily = dailyMonthlyTypes.includes(currentMachineId);
             const options = isDaily ? dailyStatusOptions : statusOptions;
-            const scopeId = isDaily ? 'monthly-grid-page' : 'inspection-form-page';
-            const scope = document.getElementById(scopeId);
-
             Object.keys(latest.statuses).forEach(uid => {
-                if (uid.startsWith('_')) return; // メタデータはスキップ
-                // スコープ内のみを検索してID重複による誤爆を防ぐ
+                if (uid.startsWith('_')) return;
                 const el = scope.querySelector(`#status-${uid}`);
                 if (el) {
                     const code = latest.statuses[uid];
                     const opt = options.find(o => o.code === code);
                     if (opt) {
-                        if (isDaily) {
-                            el.className = `day-cell status-cell-${code}`;
-                        } else {
-                            el.className = `current-status ${code}`;
-                        }
+                        el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
                         el.innerText = opt.mark;
                         el.setAttribute('data-status', code);
                     }
                 }
             });
         }
-        updateDocumentTitle(); // 読み込んだデータでタイトル更新
-        return latest; // 取得したデータを返す
+        updateDocumentTitle();
+        return latest;
     } else {
         currentInspectionId = null;
         return null;
