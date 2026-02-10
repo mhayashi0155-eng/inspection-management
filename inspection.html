@@ -59,6 +59,21 @@
             display: block !important;
         }
 
+        /* FORCE WEEKDAY COLORS IN PRINT */
+        body.print-mode-daily #monthly-table th.sat,
+        body.print-mode-daily #monthly-table td.sat {
+            background-color: #e0f2fe !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body.print-mode-daily #monthly-table th.sun,
+        body.print-mode-daily #monthly-table td.sun {
+            background-color: #fee2e2 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
         /* MONTHLY INSPECTION MODE (Standard Flow) */
         /* MONTHLY INSPECTION MODE (Standard Flow) - Consolidated below */
         /* Old rule removed to avoid conflict */
@@ -331,7 +346,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver11_Grid5
+        v2026.02.10-PrintFix_Ver12_ColorFix
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
