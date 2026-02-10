@@ -2031,11 +2031,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (mode === 'book') {
             document.body.classList.add('print-mode-book');
+            const machineId = urlParams.get('machine_id');
+            const machineType = urlParams.get('mt');
+
             if (isDemo) {
                 populateMockData();
-            } else {
-                const id = urlParams.get('id');
-                if (id) loadBookData(id);
+            } else if (machineId && currentSiteId) {
+                // Ver29: Real Data Book Mode
+                loadBookDataReal(currentSiteId, machineId, machineType);
             }
         } else {
             initInspection();
@@ -2045,26 +2048,117 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- Inspection Book & Mock Data ---
 
-async function loadBookData(mainInspectionId) {
-    // 1. Load Monthly Report (Main)
-    const inspection = await loadInspectionData(mainInspectionId);
-    if (!inspection) return;
+async function loadBookDataReal(siteId, machineId, machineType) {
+    if (!supabaseClient) return;
+    console.log("Loading Real Book Data...", siteId, machineId);
 
-    // 2. Load Daily Report (Sub)
-    // Assuming we have the main inspection loaded, we need to find the corresponding Daily report
-    // Daily report for 'shovel' is 'shovel_daily' for the same month/machine
-    const month = inspection.inspection_date.slice(0, 7);
-    const dailyType = inspection.machine_type + '_daily';
+    const container = document.getElementById('book-container');
+    if (!container) return; // Should be added in HTML if missing, but assuming it exists from Ver26
 
-    // Attempt to load daily data
-    currentMachineId = dailyType; // switch context momentarily to load daily grid
-    document.getElementById('inspection-month').value = month;
-    await loadMonthlyData();
+    // Hide default views
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
+    document.getElementById('inspection-form-page').style.display = 'none';
+    document.getElementById('monthly-grid-page').style.display = 'none';
 
-    // Reset context to allow both to be viewable?
-    // Actually, distinct sections are populated now.
-    document.getElementById('inspection-form').style.display = 'grid';
-    document.getElementById('monthly-grid-view').style.display = 'block';
+    container.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">データを読み込んでいます...</div>';
+    container.style.display = 'block';
+
+    // 1. Fetch ALL distinct months for this machine (Ascending)
+    // Supabase doesn't support 'distinct' easily on select directly with order in one go sometimes, 
+    // but let's try fetching all inspection_date and processing.
+    const { data: inspections, error } = await supabaseClient
+        .from('inspections')
+        .select('inspection_date, machine_type')
+        .eq('site_id', siteId)
+        .eq('machine_id', machineId)
+        .order('inspection_date', { ascending: true });
+
+    if (error || !inspections || inspections.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:50px;">表示するデータがありません。</div>';
+        return;
+    }
+
+    // Extract unique YYYY-MM
+    const months = [...new Set(inspections.map(i => i.inspection_date.slice(0, 7)))];
+    console.log("Months to render:", months);
+
+    container.innerHTML = ''; // Clear loading message
+
+    // Base elements to clone
+    const baseFormPage = document.getElementById('inspection-form-page');
+    const baseGridPage = document.getElementById('monthly-grid-page');
+
+    // Helper to process sequentially
+    for (const month of months) {
+        console.log(`Rendering ${month}...`);
+
+        // Load data for this month (Populates global inspectionData)
+        document.getElementById('inspection-month').value = month;
+        currentMachineId = machineId; // Ensure context
+
+        // We need to ensure loadMonthlyData fetches for THIS month and machine
+        // loadMonthlyData uses #inspection-month value and #machine-id (or global context)
+        // We might need to manually trigger the fetch or mock what loadMonthlyData does if it relies on UI events.
+        // Actually, loadMonthlyData() reads DOM elements. Let's rely on that.
+
+        await loadMonthlyData(); // This fetches and renders to the HIDDEN #inspection-form / #monthly-grid-view
+
+        // Wait for DOM update
+        await new Promise(r => setTimeout(r, 50));
+
+        // Get Machine Info for Header (from loaded data)
+        // inspectionData is global, populated by loadMonthlyData
+        // We need keys: 'shovel', 'shovel_daily', etc.
+        // machineType param might be 'shovel'. 
+        // Daily type is 'shovel_daily'.
+
+        const mainData = inspectionData[machineType];
+
+        if (!mainData) continue; // Skip if load failed
+
+        const yearStr = month.split('-')[0];
+        const monthStr = month.split('-')[1];
+        const mName = mainData.base ? (mainData.base.machine_name || '') : '';
+        const mModel = mainData.base ? (mainData.base.model_type || '') : '';
+        const mId = mainData.base ? (mainData.base.machine_id || '') : '';
+        const mCmid = mainData.base ? (mainData.base.statuses?._company_machine_id || '') : '';
+
+        // Inject Section Header (Ver28 Style)
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'book-section-label';
+        headerDiv.innerHTML = `
+            <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
+            <span class="header-separator">|</span>
+            <span class="header-item header-machine">${mName || '名称未設定'}</span>
+            <span class="header-separator">|</span>
+            <span class="header-item header-model">型式: ${mModel || '-'}</span>
+            <span class="header-separator">|</span>
+            <span class="header-item header-id">管理No: ${mId}</span>
+        `;
+        container.appendChild(headerDiv);
+
+        // Clone Form Page
+        const cloneFormPage = baseFormPage.cloneNode(true);
+        cloneFormPage.id = `inspection-form-page-${month}`;
+        cloneFormPage.style.display = 'block';
+
+        // Fix Internal Grid Display (it might be hidden in base)
+        const internalForm = cloneFormPage.querySelector('#inspection-form');
+        if (internalForm) internalForm.style.display = 'grid';
+
+        container.appendChild(cloneFormPage);
+
+        // Clone Grid Page
+        const cloneGridPage = baseGridPage.cloneNode(true);
+        cloneGridPage.id = `monthly-grid-page-${month}`;
+        cloneGridPage.style.display = 'block';
+
+        const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+        if (internalGrid) internalGrid.style.display = 'block';
+
+        container.appendChild(cloneGridPage);
+    }
 }
 
 function populateMockData() {
