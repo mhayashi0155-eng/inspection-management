@@ -9,17 +9,8 @@
     <link rel="stylesheet" href="style.css?v=PrintFix_Ver2">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
-        @page daily-page {
-            size: A4 landscape;
-            margin: 0;
-        }
-
-        @page monthly-page {
-            size: A4 portrait;
-            margin: 0;
-        }
-
         @page {
+            size: A4 landscape;
             margin: 0;
         }
 
@@ -30,10 +21,9 @@
             -webkit-print-color-adjust: exact;
         }
 
-        /* DAILY INSPECTION MODE (1 Page Limit) - Force Landscape */
+        /* DAILY INSPECTION MODE (1 Page Limit) */
         body.print-mode-daily,
         body.print-mode-daily html {
-            page: daily-page;
             height: 100%;
             overflow: hidden !important;
             /* Prevent 2nd page */
@@ -117,22 +107,18 @@
                 height: auto !important;
                 overflow: visible !important;
             }
-
-            body:not(.print-mode-daily) {
-                page: monthly-page;
-            }
         }
 
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.60) !important;
-            /* Adjusted for Portrait Width (approx. 794px / 1280px = ~0.62) */
+            transform: scale(0.55) !important;
+            /* Small scale to fit vertical content in Landscape */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
             margin-top: 10px !important;
-            /* Restore top margin for breathing room */
+            /* Slight top margin */
             left: 0 !important;
             right: 0 !important;
         }
@@ -396,7 +382,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver17_MonthlyPortrait
+        v2026.02.10-PrintFix_Ver18_UnifiedLandscape
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
