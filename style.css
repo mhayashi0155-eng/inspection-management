@@ -1211,11 +1211,13 @@ body.print-mode-book #inspection-form-page {
 }
 
 /* Page 2: Daily Grid */
+/* Page 2: Daily Grid */
 body.print-mode-book #monthly-grid-page {
-    transform: scale(0.85);
-    transform-origin: top left;
-    padding-top: 50px;
-    padding-left: 100px;
+    /* Reset scaling to restore full size */
+    transform: none;
+    padding: 0;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* Show both forms in Book Mode */
