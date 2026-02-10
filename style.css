@@ -1279,3 +1279,65 @@ table.data-table td svg {
 
 /* Print Specific Rules */
 /* Print Specific Rules for A5 Label */
+/* --- Inspection Book Mode (Ver25) --- */
+body.print-mode-book {
+    zoom: normal !important;
+    transform: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    background: white !important;
+}
+
+body.print-mode-book .app-container {
+    width: 1280px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+    display: block !important;
+}
+
+/* Wrapper for each page in book mode */
+body.print-mode-book .print-page {
+    display: block !important;
+    width: 1280px !important;
+    height: auto !important;
+    page-break-after: always !important;
+    position: relative;
+    transform-origin: top left;
+    overflow: hidden;
+}
+
+/* Page 1: Monthly Form */
+body.print-mode-book #inspection-form-page {
+    transform: scale(0.85);
+    transform-origin: top center;
+    margin-bottom: 0;
+}
+
+/* Page 2: Daily Grid */
+body.print-mode-book #monthly-grid-page {
+    transform: scale(0.85);
+    transform-origin: top left;
+    padding-top: 50px;
+    padding-left: 100px;
+}
+
+/* Show both forms in Book Mode */
+body.print-mode-book #inspection-form {
+    display: grid !important; /* Force GRID for columns */
+}
+
+body.print-mode-book #monthly-grid-view {
+    display: block !important;
+}
+
+/* Helper to hide other things in book mode */
+body.print-mode-book .main-nav,
+body.print-mode-book .filter-bar,
+body.print-mode-book .action-buttons,
+body.print-mode-book .company-title,
+body.print-mode-book #legend-section,
+body.print-mode-book #daily-legend-section {
+    display: none !important;
+}
+
