@@ -99,11 +99,21 @@
         }
 
         /* MONTHLY INSPECTION MODE (Standard Flow) */
+        /* Ensure body/html allow full height in print (except daily) */
+        @media print {
+
+            html,
+            body {
+                height: auto !important;
+                overflow: visible !important;
+            }
+        }
+
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.63) !important;
-            /* Adjusted to 0.63 */
+            transform: scale(0.58) !important;
+            /* Aggressively reduced to 0.58 */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
@@ -115,23 +125,26 @@
 
         /* COMPACT MODE FOR MONTHLY PRINT */
         body:not(.print-mode-daily) .inspection-item {
-            padding: 0.4rem 1rem !important;
-            /* Reduce padding */
+            padding: 0.2rem 0.5rem !important;
+            /* Aggressively reduce padding */
+            font-size: 0.9rem !important;
         }
 
         body:not(.print-mode-daily) .category-title {
-            padding: 0.4rem 1rem !important;
-            /* Reduce padding */
+            padding: 0.2rem 0.5rem !important;
+            /* Aggressively reduce padding */
+            font-size: 0.95rem !important;
         }
 
         body:not(.print-mode-daily) .machine-info-grid {
-            margin-bottom: 0.5rem !important;
-            gap: 0.5rem !important;
+            margin-bottom: 0.2rem !important;
+            gap: 0.2rem !important;
+            padding: 0.5rem !important;
         }
 
         body:not(.print-mode-daily) .inspection-grid {
-            margin-top: 0.5rem !important;
-            gap: 1rem !important;
+            margin-top: 0.2rem !important;
+            gap: 0.5rem !important;
         }
 
         /* Ensure specific elements are visible and styled */
@@ -369,7 +382,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver15_MonthlyCompact
+        v2026.02.10-PrintFix_Ver16_MonthlyOptimize
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
