@@ -2165,10 +2165,12 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         currentMachineId = baseType;
         currentSiteId = siteId;
 
+        renderForm(baseType); // 月ごとにフォームを確実に生成
         await loadMonthlyData(); // Populates DOM for Monthly part
 
         // --- 2. Load Daily Data (if applicable) ---
         if (dailyType) {
+            renderMonthlyGrid(dailyType); // 月ごとにグリッドを確実に生成
             currentMachineId = dailyType; // Switch context to Daily
             await loadMonthlyData(); // Populates DOM for Daily Grid
         }
