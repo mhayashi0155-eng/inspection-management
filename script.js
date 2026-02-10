@@ -42,6 +42,20 @@ const supabaseClient = (typeof window.supabase !== 'undefined') ? window.supabas
 // 機械マスターデータ
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
 
+// 補助関数: 点検タイプからベース機種名を取得 (例: shovel_daily -> shovel)
+function getBaseMachineType(type) {
+    if (!type) return null;
+    if (type.endsWith('_daily')) return type.replace('_daily', '');
+    return type;
+}
+
+// 補助関数: 車両系の日常点検タイプ名を取得
+function getDailyMachineType(baseType) {
+    if (['shovel', 'tractor', 'crane'].includes(baseType)) return baseType + '_daily';
+    return null;
+}
+
+
 
 // 機械マスターデータ (Shovel)
 const shovelMachineList = [
