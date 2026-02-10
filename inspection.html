@@ -102,13 +102,21 @@
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.65) !important;
-            /* Increased safely due to hidden headers */
+            transform: scale(0.60) !important;
+            /* Reduced from 0.65 to fit single page */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
+            margin-top: 10px !important;
+            /* Slight top margin */
             left: 0 !important;
             right: 0 !important;
+        }
+
+        /* Prevent page breaks in monthly grid */
+        body:not(.print-mode-daily) .inspection-grid,
+        body:not(.print-mode-daily) .machine-info-grid {
+            page-break-inside: avoid !important;
         }
 
         /* Ensure specific elements are visible and styled */
@@ -346,7 +354,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver13_DynamicDates
+        v2026.02.10-PrintFix_Ver14_MonthlyFix
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
