@@ -33,7 +33,7 @@ const dailyStatusOptions = [
 const dailyMonthlyTypes = [
     'shovel_daily', 'sandbag', 'power_tool', 'generator', 'dist_board',
     'pump', 'arc_welder', 'elec_equip', 'hanging_tools', 'iron_plate',
-    'security_daily', 'excavation_daily', 'crane_daily'
+    'security_daily', 'excavation_daily', 'crane_daily', 'tractor_daily'
 ];
 
 // Supabaseクライアントの初期化
@@ -278,6 +278,14 @@ const inspectionData = {
             [{ category: "エンジン・計器・駆動", items: ["エンジンのかかり具合、排気は良いか、異常音、異臭はないか", "計器(油圧・水温・油温・電流)は正常か", "ブレーキ、クラッチの効きはよいか（油圧式・巻上、旋回）（機械式・巻上、起伏、旋回、走行）", "ブームの起伏、伸縮装置の作動はよいか（油圧式）"] }],
             [{ category: "装置・油脂・走行", items: ["ブームとブームのジョイント部等主要箇所のボルト締めつけ部に異常はないか", "注油箇所の注油（グリース等）はよいか", "アウトリガーの張り出し、効きはよいか", "タイヤ（傷、エアー抜け）はよいか（ホイールクレーン）", "点火装置、方向指示器はよいか（ホイールクレーン）"] }],
             [{ category: "ワイヤ・フック・安全装置", items: ["ワイヤーロープ（主管・起伏）に損傷、乱巻き等はないか、またシーブからの外れはないか", "フックのワイヤ外れ止め、過巻防止装置はよいか", "角度計、荷重指示計、過負荷防止装置、起伏制限装置の作動はよいか、また警報装置はよいか"] }]
+        ]
+    },
+    tractor_daily: {
+        title: "車両系(トラクタ系) 始業点検表",
+        columns: [
+            [{ category: "エンジン・作動", items: ["エンジンのかかり具合、音、排気色はよいか", "エンジンの作動油（量、汚れ、漏れ）はよいか", "灯火装置、方向指示器、警報装置はよいか"] }],
+            [{ category: "駆動・制御", items: ["ブレーキ（主巻、補巻、旋回、走行）の作動はよいか", "クラッチ（主巻、補巻、ブーム巻、旋回、走行）の作動はよいか", "ロック装置は確実に作動するか"] }],
+            [{ category: "装置・安全", items: ["ブーム、ブレード、シリンダ等機構の状態はよいか", "安全装置およびリミットスイッチ等の作動はよいか", "ボルト・ナットの緩みはないか"] }]
         ]
     }
 };
@@ -623,7 +631,7 @@ async function renderMachineList(siteId) {
         .from('inspections')
         .select('*')
         .eq('site_id', siteId)
-        .eq('is_deleted', false)
+        .or('is_deleted.is.null,is_deleted.eq.false')
         .order('inspection_date', { ascending: false });
 
     listBodyVehicle.innerHTML = '';
@@ -978,7 +986,7 @@ async function openMachineHistory(siteId, machineId) {
         .select('*')
         .eq('site_id', siteId)
         .eq('machine_id', machineId)
-        .eq('is_deleted', false)
+        .or('is_deleted.is.null,is_deleted.eq.false')
         .order('inspection_date', { ascending: false });
 
     document.getElementById('history-loading').style.display = 'none';
@@ -1586,7 +1594,7 @@ async function loadMonthlyData() {
         .eq('site_id', currentSiteId)
         .eq('machine_type', currentMachineId)
         .eq('machine_id', mid)
-        .eq('is_deleted', false)
+        .or('is_deleted.is.null,is_deleted.eq.false')
         .like('inspection_date', `${month}-%`)
         .order('created_at', { ascending: false });
 
@@ -1735,34 +1743,48 @@ async function saveInspection() {
 
     if (error) { alert("保存失敗: " + error.message); }
     else {
-        // ショベル系(shovel)の月次点検保存時、同月の日常点検(shovel_daily)がなければ自動作成
+        // 車両系(shovel, tractor, crane)の月次点検保存時、同月の日常点検がなければ自動作成
         let autoCreatedMsg = "";
-        if (currentMachineId === 'shovel') {
+        const vehicleMapping = {
+            'shovel': 'shovel_daily',
+            'tractor': 'tractor_daily',
+            'crane': 'crane_daily'
+        };
+
+        if (vehicleMapping[currentMachineId]) {
+            const dailyType = vehicleMapping[currentMachineId];
             const inspMonth = inspectionDate.slice(0, 7); // YYYY-MM
-            // 既存チェック
+
+            // 既存チェック (payload.site_id を使用して確実に一致させる)
+            console.log(`DEBUG: Checking for existing daily. Type: ${dailyType}, Mid: ${mid}, Site: ${payload.site_id}, Month: ${inspMonth}`);
+
             const { data: existingDaily } = await supabaseClient
                 .from('inspections')
                 .select('id')
-                .eq('site_id', currentSiteId) // site_idは必須
-                .eq('machine_type', 'shovel_daily')
-                .eq('machine_id', mid)
+                .eq('site_id', payload.site_id)
+                .eq('machine_type', dailyType)
+                .eq('machine_id', String(mid)) // 強制文字列化
                 .like('inspection_date', `${inspMonth}-%`)
+                .or('is_deleted.is.null,is_deleted.eq.false')
                 .limit(1)
                 .maybeSingle();
 
             if (!existingDaily) {
                 // 新規作成
-                const dailyPayload = { ...payload }; // コピー
-                dailyPayload.machine_type = 'shovel_daily';
+                const dailyPayload = { ...payload };
+                dailyPayload.machine_type = dailyType;
                 dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
-                // 不要なフィールドや上書きすべきフィールドの調整
-                dailyPayload.operating_hours = 0; // 稼働時間はクリア等が望ましいが、コピーでも良いか？一旦そのまま
-                dailyPayload.statuses = {}; // 日常点検のチェック状態は空で開始
+                dailyPayload.operating_hours = 0;
+                dailyPayload.statuses = {};
 
                 const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
                 if (!dailyErr) {
                     autoCreatedMsg = "\n(日常点検表も自動作成しました)";
+                } else {
+                    console.error("DEBUG: Auto-creation failed:", dailyErr);
                 }
+            } else {
+                console.log("DEBUG: Daily record already exists, skipping auto-creation. ID:", existingDaily.id);
             }
         }
 
@@ -2077,6 +2099,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         .select('inspection_date, machine_type')
         .eq('site_id', siteId)
         .eq('machine_id', machineId)
+        .or('is_deleted.is.null,is_deleted.eq.false')
         .order('inspection_date', { ascending: true });
 
     if (error || !inspections || inspections.length === 0) {
@@ -2094,44 +2117,44 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     const baseFormPage = document.getElementById('inspection-form-page');
     const baseGridPage = document.getElementById('monthly-grid-page');
 
+    // Determine Daily Type (if applicable)
+    let dailyType = null;
+    if (['shovel', 'tractor', 'crane'].includes(machineType)) {
+        dailyType = machineType + '_daily';
+    }
+
     // Helper to process sequentially
     for (const month of months) {
         console.log(`Rendering ${month}...`);
 
-        // Load data for this month (Populates global inspectionData)
+        // --- 1. Load Monthly Data ---
         document.getElementById('inspection-month').value = month;
-        currentMachineId = machineId; // Ensure context
+        document.getElementById('machine-id').value = machineId;
+        currentMachineId = machineType; // CORRECT: Use Type, not ID
+        currentSiteId = siteId;
 
-        // We need to ensure loadMonthlyData fetches for THIS month and machine
-        // loadMonthlyData uses #inspection-month value and #machine-id (or global context)
-        // We might need to manually trigger the fetch or mock what loadMonthlyData does if it relies on UI events.
-        // Actually, loadMonthlyData() reads DOM elements. Let's rely on that.
+        await loadMonthlyData(); // Populates DOM for Monthly part
 
-        await loadMonthlyData(); // This fetches and renders to the HIDDEN #inspection-form / #monthly-grid-view
+        // --- 2. Load Daily Data (if applicable) ---
+        if (dailyType) {
+            currentMachineId = dailyType; // Switch context to Daily
+            await loadMonthlyData(); // Populates DOM for Daily Grid
+        }
 
         // Wait for DOM update
         await new Promise(r => setTimeout(r, 50));
 
-        // Get Machine Info for Header (from loaded data)
-        // inspectionData is global, populated by loadMonthlyData
-        // We need keys: 'shovel', 'shovel_daily', etc.
-        // machineType param might be 'shovel'. 
-        // Daily type is 'shovel_daily'.
-
-        const mainData = inspectionData[machineType];
-
-        if (!mainData) continue; // Skip if load failed
-
-        const yearStr = month.split('-')[0];
-        const monthStr = month.split('-')[1];
-        const mName = mainData.base ? (mainData.base.machine_name || '') : '';
-        const mModel = mainData.base ? (mainData.base.model_type || '') : '';
-        const mId = mainData.base ? (mainData.base.machine_id || '') : '';
-        const mCmid = mainData.base ? (mainData.base.statuses?._company_machine_id || '') : '';
+        // Get Machine Info from DOM (updated by loadMonthlyData)
+        const mName = document.getElementById('machine-name')?.value || '';
+        const mModel = document.getElementById('model-type')?.value || '';
+        const mCmid = document.getElementById('company-machine-id')?.value || '';
 
         // Inject Section Header (Ver28 Style)
         const headerDiv = document.createElement('div');
         headerDiv.className = 'book-section-label';
+        const yearStr = month.split('-')[0];
+        const monthStr = month.split('-')[1];
+
         headerDiv.innerHTML = `
             <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
             <span class="header-separator">|</span>
@@ -2139,7 +2162,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
             <span class="header-separator">|</span>
             <span class="header-item header-model">型式: ${mModel || '-'}</span>
             <span class="header-separator">|</span>
-            <span class="header-item header-id">管理No: ${mId}</span>
+            <span class="header-item header-id">管理No: ${machineId}</span>
         `;
         container.appendChild(headerDiv);
 
@@ -2148,7 +2171,6 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         cloneFormPage.id = `inspection-form-page-${month}`;
         cloneFormPage.style.display = 'block';
 
-        // Fix Internal Grid Display (it might be hidden in base)
         const internalForm = cloneFormPage.querySelector('#inspection-form');
         if (internalForm) internalForm.style.display = 'grid';
 
