@@ -2209,14 +2209,25 @@ async function loadBookDataReal(siteId, machineId, machineType) {
 
         // --- 2. Load Daily Data (if applicable) ---
         if (dailyType) {
-            renderMonthlyGrid(dailyType);
+            // 原本のDOMを日常点検用に完全初期化 (renderMonthlyGridだけでは不足する可能性への対処)
             currentMachineId = dailyType;
-            await loadMonthlyData();
+            renderForm(dailyType); // renderMonthlyGridも内部で呼ばれる
+
+            // データロード
+            const dailyData = await loadMonthlyData();
+
+            if (!dailyData) {
+                console.warn(`[BookMode] No daily data found for ${month}, type: ${dailyType}`);
+            } else {
+                console.log(`[BookMode] Loaded daily data for ${month}:`, dailyData.id);
+            }
 
             // クローン作成 (日常)
             const cloneGridPage = baseGridPage.cloneNode(true);
             cloneGridPage.id = `monthly-grid-page-${month}`;
             cloneGridPage.style.display = 'block';
+
+            // 明示的にグリッドビューを表示状態にする
             const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
             if (internalGrid) internalGrid.style.display = 'block';
 
@@ -2230,6 +2241,12 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     // Restore Global State
     currentMachineId = machineType;
     currentSiteId = siteId;
+
+    // Cleanup: Hide originals again (since renderForm unhides them)
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
+    document.getElementById('inspection-form-page').style.display = 'none';
+    document.getElementById('monthly-grid-page').style.display = 'none';
 }
 
 function populateMockData() {
