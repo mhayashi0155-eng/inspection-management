@@ -112,34 +112,51 @@
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.55) !important;
-            /* Small scale to fit vertical content in Landscape */
+            transform: scale(0.80) !important;
+            /* Increased to match Daily width approx. */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
-            margin-top: 10px !important;
-            /* Slight top margin */
+            margin-top: 5px !important;
+            /* Minimal top margin */
             left: 0 !important;
             right: 0 !important;
         }
 
-        /* COMPACT MODE FOR MONTHLY PRINT */
-        body:not(.print-mode-daily) .inspection-item {
-            padding: 0.2rem 0.5rem !important;
-            /* Aggressively reduce padding */
-            font-size: 0.9rem !important;
+        /* AGGRESSIVE VERTICAL COMPRESSION FOR MONTHLY PRINT */
+        body:not(.print-mode-daily) .inspection-item,
+        body:not(.print-mode-daily) .category-title {
+            padding: 0.1rem 0.2rem !important;
+            /* Minimal padding */
+            font-size: 0.8rem !important;
+            /* Smaller font */
+            line-height: 1.1 !important;
         }
 
-        body:not(.print-mode-daily) .category-title {
-            padding: 0.2rem 0.5rem !important;
-            /* Aggressively reduce padding */
-            font-size: 0.95rem !important;
+        body:not(.print-mode-daily) #monthly-table th,
+        body:not(.print-mode-daily) #monthly-table td {
+            padding: 0 !important;
+            /* No padding in cells */
+            height: 1.2rem !important;
+            /* Fixed small height */
+            line-height: 1.2rem !important;
+            font-size: 0.7rem !important;
         }
 
         body:not(.print-mode-daily) .machine-info-grid {
-            margin-bottom: 0.2rem !important;
+            margin-bottom: 0.1rem !important;
+            gap: 0.1rem !important;
+            padding: 0.2rem !important;
+        }
+
+        body:not(.print-mode-daily) .inspection-grid {
+            margin-top: 0.1rem !important;
             gap: 0.2rem !important;
-            padding: 0.5rem !important;
+        }
+
+        /* Hide legend in Monthly print to save vertical space */
+        body:not(.print-mode-daily) #daily-legend-section {
+            display: none !important;
         }
 
         body:not(.print-mode-daily) .inspection-grid {
@@ -382,7 +399,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver18_UnifiedLandscape
+        v2026.02.10-PrintFix_Ver19_MonthlyLandscapeWide
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
