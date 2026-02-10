@@ -1745,14 +1745,11 @@ async function saveInspection() {
     else {
         // 車両系(shovel, tractor, crane)の月次点検保存時、同月の日常点検がなければ自動作成
         let autoCreatedMsg = "";
-        const vehicleMapping = {
-            'shovel': 'shovel_daily',
-            'tractor': 'tractor_daily',
-            'crane': 'crane_daily'
-        };
+        const baseType = getBaseMachineType(currentMachineId);
+        const dailyType = getDailyMachineType(baseType);
 
-        if (vehicleMapping[currentMachineId]) {
-            const dailyType = vehicleMapping[currentMachineId];
+        if (dailyType) {
+
             const inspMonth = inspectionDate.slice(0, 7); // YYYY-MM
 
             // 既存チェック (payload.site_id を使用して確実に一致させる)
@@ -2123,11 +2120,12 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     const baseFormPage = document.getElementById('inspection-form-page');
     const baseGridPage = document.getElementById('monthly-grid-page');
 
-    // Determine Daily Type (if applicable)
-    let dailyType = null;
-    if (['shovel', 'tractor', 'crane'].includes(machineType)) {
-        dailyType = machineType + '_daily';
-    }
+    // Determine Base and Daily Types
+    const baseType = getBaseMachineType(machineType);
+    const dailyType = getDailyMachineType(baseType);
+
+    console.log(`DEBUG: Book Mode Context - Base: ${baseType}, Daily: ${dailyType}`);
+
 
     // Helper to process sequentially
     for (const month of months) {
@@ -2136,7 +2134,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         // --- 1. Load Monthly Data ---
         document.getElementById('inspection-month').value = month;
         document.getElementById('machine-id').value = machineId;
-        currentMachineId = machineType; // CORRECT: Use Type, not ID
+        currentMachineId = baseType;
         currentSiteId = siteId;
 
         await loadMonthlyData(); // Populates DOM for Monthly part
