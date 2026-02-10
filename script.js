@@ -1475,7 +1475,10 @@ function renderMonthlyGrid(machineId) {
     const year = parseInt(yearStr);
     const month = parseInt(monthStr);
 
-    for (let i = 1; i <= 31; i++) {
+    // Calculate days in month
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    for (let i = 1; i <= daysInMonth; i++) {
         // 曜日判定
         const date = new Date(year, month - 1, i);
         let classStr = "";
@@ -1508,7 +1511,7 @@ function renderMonthlyGrid(machineId) {
         col.forEach(group => {
             group.items.forEach(item => {
                 bodyHtml += `<tr><td>${item}</td>`;
-                for (let d = 1; d <= 31; d++) {
+                for (let d = 1; d <= daysInMonth; d++) {
                     const dayStr = d.toString().padStart(2, '0');
                     const uid = `day-${dayStr}-item-${itemIdx}`;
 
