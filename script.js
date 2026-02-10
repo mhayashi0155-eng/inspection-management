@@ -1758,7 +1758,7 @@ async function saveInspection() {
             // 既存チェック (payload.site_id を使用して確実に一致させる)
             console.log(`DEBUG: Checking for existing daily. Type: ${dailyType}, Mid: ${mid}, Site: ${payload.site_id}, Month: ${inspMonth}`);
 
-            const { data: existingDaily } = await supabaseClient
+            const { data: existingDaily, error: checkErr } = await supabaseClient
                 .from('inspections')
                 .select('id')
                 .eq('site_id', payload.site_id)
@@ -1769,8 +1769,16 @@ async function saveInspection() {
                 .limit(1)
                 .maybeSingle();
 
-            if (!existingDaily) {
-                // 新規作成
+            if (checkErr) {
+                alert("DEBUG CHECK ERROR: " + checkErr.message);
+            }
+
+            if (existingDaily) {
+                console.log("DEBUG: Daily record already exists, skipping auto-creation. ID:", existingDaily.id);
+                // alert(`DEBUG: 日常点検が既に見つかりました(ID: ${existingDaily.id})。自動作成をスキップします。`);
+            } else {
+                console.log("DEBUG: No existing daily found, creating one...");
+                // alert(`DEBUG: 日常点検が見つかりません。新規作成します。項目: ${dailyType}, 管理No: ${mid}, 現場: ${payload.site_id}, 月: ${inspMonth}`);
                 const dailyPayload = { ...payload };
                 dailyPayload.machine_type = dailyType;
                 dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
