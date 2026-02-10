@@ -29,6 +29,11 @@
             /* Prevent 2nd page */
         }
 
+        /* Save space in footer */
+        body.print-mode-daily footer.main-footer {
+            display: none !important;
+        }
+
         body.print-mode-daily .app-container {
             width: 1280px !important;
             min-width: 1280px !important;
@@ -318,7 +323,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver8_Margin200_100
+        v2026.02.10-PrintFix_Ver9_HideFooter
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
