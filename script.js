@@ -2082,24 +2082,32 @@ function populateMockData() {
     document.getElementById('representative').value = "山内 太郎";
     document.getElementById('inspector-main').value = "点検 次郎";
 
-    // 1. Populate Monthly Checklist (All Good)
-    document.querySelectorAll('.current-status').forEach(el => {
-        // Randomly set some to Good, some to nothing? No, let's make it look "Done"
-        el.className = 'current-status good';
-        el.innerText = 'レ';
-        el.setAttribute('data-status', 'good');
-    });
+    // 1. Render Monthly Checklist (Page 1)
+    // This populates #inspection-form
+    renderForm('shovel');
 
-    // 2. Populate Daily Grid (Random pattern)
-    renderMonthlyGrid('shovel'); // ensure table exists
-    // Force year/month for render
-    const head = document.getElementById('monthly-table-head');
-    // Re-render header with Jan dates if needed, but renderMonthlyGrid uses input value which we set above.
+    // 2. Render Daily Grid (Page 2)
+    // This populates #monthly-table
+    renderMonthlyGrid('shovel_daily');
 
+    // 3. Force Visibility for Book Mode
+    // renderForm('shovel') hides monthly-grid-view by default, so we force show it.
+    document.getElementById('inspection-form').style.display = 'grid';
+    document.getElementById('monthly-grid-view').style.display = 'block';
+
+    // 4. Populate Monthly Checklist Status (All Good)
+    setTimeout(() => {
+        document.querySelectorAll('.current-status').forEach(el => {
+            el.className = 'current-status good';
+            el.innerText = 'レ';
+            el.setAttribute('data-status', 'good');
+        });
+    }, 100);
+
+    // 5. Populate Daily Grid Status (Random pattern)
     setTimeout(() => {
         document.querySelectorAll('.day-cell').forEach(el => {
-            // Random status: mostly Good (sat/sun logic is CSS)
-            // Skip future dates? It's Jan 2026, so all past.
+            // Random status: mostly Good
             if (Math.random() > 0.8) return; // 20% empty
 
             const r = Math.random();
@@ -2109,16 +2117,10 @@ function populateMockData() {
             else if (r > 0.9) { code = 'done'; mark = '●'; }
 
             el.className = `day-cell status-cell-${code}`;
-            el.innerHTML = mark; // Use innerHTML to allow colored spans if needed
+            el.innerHTML = mark;
             el.setAttribute('data-status', code);
         });
     }, 500); // Wait for grid render
-
-    // Show both sections
-    document.getElementById('inspection-form').style.display = 'grid';
-    document.getElementById('monthly-grid-view').style.display = 'block';
-
-    // Add Book Mode class logic handled in init
 }
 
 // グローバル公開
