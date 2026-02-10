@@ -9,9 +9,18 @@
     <link rel="stylesheet" href="style.css?v=PrintFix_Ver2">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
+        @page daily-page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        @page monthly-page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         @page {
             margin: 0;
-            size: A4 landscape;
         }
 
         body {
@@ -21,9 +30,10 @@
             -webkit-print-color-adjust: exact;
         }
 
-        /* DAILY INSPECTION MODE (1 Page Limit) */
+        /* DAILY INSPECTION MODE (1 Page Limit) - Force Landscape */
         body.print-mode-daily,
         body.print-mode-daily html {
+            page: daily-page;
             height: 100%;
             overflow: hidden !important;
             /* Prevent 2nd page */
@@ -98,7 +108,7 @@
             display: none !important;
         }
 
-        /* MONTHLY INSPECTION MODE (Standard Flow) */
+        /* MONTHLY INSPECTION MODE (Standard Flow) - Force Portrait */
         /* Ensure body/html allow full height in print (except daily) */
         @media print {
 
@@ -107,18 +117,22 @@
                 height: auto !important;
                 overflow: visible !important;
             }
+
+            body:not(.print-mode-daily) {
+                page: monthly-page;
+            }
         }
 
         body:not(.print-mode-daily) .app-container {
             width: 1280px !important;
             /* Fixed width */
-            transform: scale(0.58) !important;
-            /* Aggressively reduced to 0.58 */
+            transform: scale(0.60) !important;
+            /* Adjusted for Portrait Width (approx. 794px / 1280px = ~0.62) */
             transform-origin: top center !important;
             /* Center alignment */
             margin: 0 auto !important;
-            margin-top: 0 !important;
-            /* Remove top margin */
+            margin-top: 10px !important;
+            /* Restore top margin for breathing room */
             left: 0 !important;
             right: 0 !important;
         }
@@ -382,7 +396,7 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.10-PrintFix_Ver16_MonthlyOptimize
+        v2026.02.10-PrintFix_Ver17_MonthlyPortrait
     </div>
 
     <script src="script.js?v=PrintFix_Ver2"></script>
