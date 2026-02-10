@@ -1791,8 +1791,6 @@ async function saveInspection() {
                 } else {
                     console.error("DEBUG: Auto-creation failed:", dailyErr);
                 }
-            } else {
-                console.log("DEBUG: Daily record already exists, skipping auto-creation. ID:", existingDaily.id);
             }
         }
 
