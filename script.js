@@ -2121,6 +2121,18 @@ function populateMockData() {
             randomizeMockData(month);
 
             // 4. Clone and Append
+
+            // Ver27: Inject Section Header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'book-section-label';
+            headerDiv.innerHTML = `
+                <div class="book-month-label">${yearStr}年${parseInt(monthStr)}月度</div>
+                <div class="book-machine-label">PC200-11 (デモ機)</div>
+                <div class="book-type-label">定期自主検査表 / 日常点検簿</div>
+            `;
+            container.appendChild(headerDiv);
+
+            // Clone Form Page
             const cloneFormPage = baseFormPage.cloneNode(true);
             cloneFormPage.id = `inspection-form-page-${month}`;
             cloneFormPage.style.display = 'block';

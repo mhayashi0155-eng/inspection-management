@@ -1341,3 +1341,54 @@ body.print-mode-book #daily-legend-section {
     display: none !important;
 }
 
+
+/* --- Book Section Headers (Ver27) --- */
+.book-section-label {
+    page-break-before: always;
+    margin: 40px auto 20px auto;
+    padding: 30px;
+    border: 3px double #ccc;
+    background-color: #f8fafc;
+    text-align: center;
+    width: 90%;
+    box-sizing: border-box;
+}
+
+/* First header: no page break before */
+#book-container > .book-section-label:first-child {
+    page-break-before: auto;
+    margin-top: 10px;
+}
+
+.book-month-label {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 0.5rem;
+}
+
+.book-machine-label {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.book-type-label {
+    font-size: 1.5rem;
+    color: #64748b;
+}
+
+/* Print Overrides for Headers */
+@media print {
+    .book-section-label {
+        border: 2px solid #000;
+        background: none !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
