@@ -808,8 +808,13 @@ async function renderMachineList(siteId) {
                 <td>
                     <div style="display:flex; flex-direction:column; gap:0.3rem; align-items:flex-end;">
                         <div style="display:flex; gap:0.3rem;">
-                            <!-- Ver29: Inspection Book -->
-                            <button class="primary-btn" style="padding:0.4rem 0.8rem; font-size:0.9rem;" onclick="location.href='inspection.html?mode=book&site_id=${siteId}&machine_id=${m.base.machine_id}&mt=${m.base.machine_type}'">📖 点検簿</button>
+                            <!-- Ver30: Restore Inspection Entry Buttons, Keep Book Button -->
+                            <div style="display:flex; gap:0.3rem;">
+                                ${monthlyBtns}
+                                ${dailyBtns}
+                            </div>
+                            <!-- Ver29: Inspection Book (Prominent) -->
+                            <button class="primary-btn" style="padding:0.4rem 0.8rem; font-size:0.9rem; background-color:#4f46e5; border-color:#4338ca;" onclick="window.open('inspection.html?mode=book&site_id=${siteId}&machine_id=${m.base.machine_id}&mt=${m.base.machine_type}', '_blank')">📖 点検簿</button>
                         </div>
                         <div style="display:flex; gap:0.3rem;">
                              <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; background: #fffbeb; border-color: #fbbf24; color: #d97706;" onclick='showQrCode("${siteId}", "${m.base.machine_type}", "${m.base.machine_id}", "${m.base.model_type}", "${(m.base.statuses && m.base.statuses._company_machine_id) || ''}", "${inspectorMain}", "${inspectorSub}")'>QR</button>
