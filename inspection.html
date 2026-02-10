@@ -365,33 +365,37 @@
         </header>
 
         <!-- 月間シート形式のコンテナ（日常点検用） -->
-        <div id="monthly-grid-view" class="monthly-grid-container" style="display: none;">
-            <div class="grid-scroll-wrapper">
-                <table id="monthly-table">
-                    <thead>
-                        <tr id="monthly-table-head">
+        <section id="monthly-grid-page" class="print-page">
+            <div id="monthly-grid-view" class="monthly-grid-container" style="display: none;">
+                <div class="grid-scroll-wrapper">
+                    <table id="monthly-table">
+                        <thead>
+                            <tr id="monthly-table-head">
+                                <!-- JSで生成 -->
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-table-body">
                             <!-- JSで生成 -->
-                        </tr>
-                    </thead>
-                    <tbody id="monthly-table-body">
-                        <!-- JSで生成 -->
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <main id="inspection-form" class="inspection-grid">
-            <!-- 3カラムの点検項目がここにJSで生成されます -->
-            <div class="column" id="col-1">
-                <!-- エンジン・本体など -->
-            </div>
-            <div class="column" id="col-2">
-                <!-- 走行・作業装置など -->
-            </div>
-            <div class="column" id="col-3">
-                <!-- 電気・安全装置・その他 -->
-            </div>
-        </main>
+        <section id="inspection-form-page" class="print-page">
+            <main id="inspection-form" class="inspection-grid">
+                <!-- 3カラムの点検項目がここにJSで生成されます -->
+                <div class="column" id="col-1">
+                    <!-- エンジン・本体など -->
+                </div>
+                <div class="column" id="col-2">
+                    <!-- 走行・作業装置など -->
+                </div>
+                <div class="column" id="col-3">
+                    <!-- 電気・安全装置・その他 -->
+                </div>
+            </main>
+        </section>
 
         <footer class="main-footer">
             <div class="footer-input">

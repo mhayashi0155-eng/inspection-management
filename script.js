@@ -2023,10 +2023,103 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }, 500);
         }
-    } else if (document.getElementById('machine-modal')) {
-        initInspection();
+    } else if (document.getElementById('inspection-form')) {
+        // Initialization for Inspection Page
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const isDemo = urlParams.get('demo') === 'true';
+
+        if (mode === 'book') {
+            document.body.classList.add('print-mode-book');
+            if (isDemo) {
+                populateMockData();
+            } else {
+                const id = urlParams.get('id');
+                if (id) loadBookData(id);
+            }
+        } else {
+            initInspection();
+        }
     }
 });
+
+// --- Inspection Book & Mock Data ---
+
+async function loadBookData(mainInspectionId) {
+    // 1. Load Monthly Report (Main)
+    const inspection = await loadInspectionData(mainInspectionId);
+    if (!inspection) return;
+
+    // 2. Load Daily Report (Sub)
+    // Assuming we have the main inspection loaded, we need to find the corresponding Daily report
+    // Daily report for 'shovel' is 'shovel_daily' for the same month/machine
+    const month = inspection.inspection_date.slice(0, 7);
+    const dailyType = inspection.machine_type + '_daily';
+
+    // Attempt to load daily data
+    currentMachineId = dailyType; // switch context momentarily to load daily grid
+    document.getElementById('inspection-month').value = month;
+    await loadMonthlyData();
+
+    // Reset context to allow both to be viewable?
+    // Actually, distinct sections are populated now.
+    document.getElementById('inspection-form').style.display = 'grid';
+    document.getElementById('monthly-grid-view').style.display = 'block';
+}
+
+function populateMockData() {
+    console.log("Starting Mock Data Generation...");
+
+    // Set Header Info
+    document.getElementById('header-site-name').innerText = "デモ現場 (2026年1月)";
+    document.getElementById('machine-name').value = "PC200-11 (デモ機)";
+    document.getElementById('model-type').value = "PC200-11";
+    document.getElementById('company-machine-id').value = "D-001";
+    document.getElementById('machine-id').value = "999999";
+    document.getElementById('operating-hours').value = "1234.5";
+    document.getElementById('inspection-date').value = "2026-01-31";
+    document.getElementById('inspection-month').value = "2026-01";
+    document.getElementById('representative').value = "山内 太郎";
+    document.getElementById('inspector-main').value = "点検 次郎";
+
+    // 1. Populate Monthly Checklist (All Good)
+    document.querySelectorAll('.current-status').forEach(el => {
+        // Randomly set some to Good, some to nothing? No, let's make it look "Done"
+        el.className = 'current-status good';
+        el.innerText = 'レ';
+        el.setAttribute('data-status', 'good');
+    });
+
+    // 2. Populate Daily Grid (Random pattern)
+    renderMonthlyGrid('shovel'); // ensure table exists
+    // Force year/month for render
+    const head = document.getElementById('monthly-table-head');
+    // Re-render header with Jan dates if needed, but renderMonthlyGrid uses input value which we set above.
+
+    setTimeout(() => {
+        document.querySelectorAll('.day-cell').forEach(el => {
+            // Random status: mostly Good (sat/sun logic is CSS)
+            // Skip future dates? It's Jan 2026, so all past.
+            if (Math.random() > 0.8) return; // 20% empty
+
+            const r = Math.random();
+            let code = 'good';
+            let mark = '○';
+            if (r > 0.95) { code = 'repair'; mark = '×'; }
+            else if (r > 0.9) { code = 'done'; mark = '●'; }
+
+            el.className = `day-cell status-cell-${code}`;
+            el.innerHTML = mark; // Use innerHTML to allow colored spans if needed
+            el.setAttribute('data-status', code);
+        });
+    }, 500); // Wait for grid render
+
+    // Show both sections
+    document.getElementById('inspection-form').style.display = 'grid';
+    document.getElementById('monthly-grid-view').style.display = 'block';
+
+    // Add Book Mode class logic handled in init
+}
 
 // グローバル公開
 window.selectMachine = selectMachine;
