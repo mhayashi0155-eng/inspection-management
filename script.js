@@ -1590,18 +1590,29 @@ function toggleDailyStatus(uid) {
 }
 
 
-async function loadMonthlyData() {
-    updateDocumentTitle(); // データ読み込み開始時にも更新（入力値ベース）
+async function loadMonthlyData(targetScope = null, idSuffix = '') {
+    // If targetScope is provided, we use it. Otherwise we fallback to standard document.getElementById
+
+    // updateDocumentTitle is only relevant for the main view
+    if (!targetScope) updateDocumentTitle();
+
+    // Retrieve global params from the standard inputs (even in book mode, these are set)
     const month = document.getElementById('inspection-month').value; // YYYY-MM
     const mid = document.getElementById('machine-id').value;
-    console.log(`DEBUG: loadMonthlyData called. Month:${month}, Mid:${mid}, Site:${currentSiteId}, Type:${currentMachineId}`);
+
+    // Debug log
+    if (targetScope) {
+        console.log(`DEBUG: loadMonthlyData (scoped) called. Month:${month}, Mid:${mid}, ScopeID:${targetScope.id}`);
+    } else {
+        console.log(`DEBUG: loadMonthlyData (global) called. Month:${month}, Mid:${mid}`);
+    }
 
     if (!month || !mid || !currentSiteId || !currentMachineId) {
         console.warn("DEBUG: loadMonthlyData aborted due to missing params");
         return;
     }
 
-    // 月間シート形式で、同一月のレコードを探す
+    // List fetch (standard)
     const { data: list, error } = await supabaseClient
         .from('inspections')
         .select('*')
@@ -1612,23 +1623,25 @@ async function loadMonthlyData() {
         .like('inspection_date', `${month}-%`)
         .order('created_at', { ascending: false });
 
-    console.log("DEBUG: loadMonthlyData result:", list, error);
-
-    // ステータス表示のリセット
+    // Status reset logic
     const isDaily = dailyMonthlyTypes.includes(currentMachineId);
-    if (isDaily) {
-        const gridScope = document.getElementById('monthly-grid-page');
-        if (gridScope) {
-            gridScope.querySelectorAll('.day-cell').forEach(el => {
+
+    // Reset Target Determination
+    // If targetScope is given, look inside it. Otherwise look for global IDs
+    let scope = targetScope;
+    if (!scope) {
+        scope = document.getElementById(isDaily ? 'monthly-grid-page' : 'inspection-form-page');
+    }
+
+    if (scope) {
+        if (isDaily) {
+            scope.querySelectorAll('.day-cell').forEach(el => {
                 el.className = 'day-cell';
                 el.innerText = '';
                 el.setAttribute('data-status', 'none');
             });
-        }
-    } else {
-        const formScope = document.getElementById('inspection-form-page');
-        if (formScope) {
-            formScope.querySelectorAll('.current-status').forEach(el => {
+        } else {
+            scope.querySelectorAll('.current-status').forEach(el => {
                 el.className = 'current-status good';
                 el.innerText = 'レ';
                 el.setAttribute('data-status', 'good');
@@ -1638,13 +1651,30 @@ async function loadMonthlyData() {
 
     if (list && list.length > 0) {
         const latest = list[0];
-        currentInspectionId = latest.id;
+        if (!targetScope) currentInspectionId = latest.id; // Only update global ID if not scoped
 
-        // --- 1. グローバルヘッダー情報の復旧 (原本を書き換え) ---
+        // --- Helper to set values (Scoped or Global) ---
         const setG = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.value = val || '';
+            // If scoped, we need to find the element. 
+            // In book mode, IDs are prefixed: bk-f-{month}-{id} or bk-g-{month}-{id}
+            // We can use the idSuffix if provided, OR querySelector with suffix match
+            let el = null;
+            if (targetScope) {
+                // Try suffix match for robustness
+                el = targetScope.querySelector(`[id$="${id}"]`);
+            } else {
+                el = document.getElementById(id);
+            }
+
+            if (el) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                    el.value = val || '';
+                } else {
+                    el.innerText = val || '';
+                }
+            }
         };
+
         setG('model-type', latest.model_type);
         setG('remarks', latest.remarks);
         setG('repairs', latest.repairs);
@@ -1654,14 +1684,22 @@ async function loadMonthlyData() {
         setG('operating-hours', latest.operating_hours);
         setG('site-representative', latest.statuses?._site_representative);
 
-        // --- 2. 点検ステータスの復旧 (クローン用に原本を埋める) ---
-        const scopeId = isDaily ? 'monthly-grid-page' : 'inspection-form-page';
-        const scope = document.getElementById(scopeId);
+        // --- Status Update ---
         if (latest.statuses && scope) {
             const options = isDaily ? dailyStatusOptions : statusOptions;
             Object.keys(latest.statuses).forEach(uid => {
                 if (uid.startsWith('_')) return;
-                const el = scope.querySelector(`#status-${uid}`);
+
+                // Find element logic
+                let el = null;
+                if (targetScope) {
+                    // Suffix match for book mode (IDs are like ...-status-{uid})
+                    el = scope.querySelector(`[id$="status-${uid}"]`);
+                } else {
+                    // Exact match for normal mode
+                    el = scope.querySelector(`#status-${uid}`);
+                }
+
                 if (el) {
                     const code = latest.statuses[uid];
                     const opt = options.find(o => o.code === code);
@@ -1673,10 +1711,10 @@ async function loadMonthlyData() {
                 }
             });
         }
-        updateDocumentTitle();
+        if (!targetScope) updateDocumentTitle();
         return latest;
     } else {
-        currentInspectionId = null;
+        if (!targetScope) currentInspectionId = null;
         return null;
     }
 }
@@ -2169,16 +2207,45 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         document.getElementById('machine-id').value = machineId;
         currentSiteId = siteId;
 
-        // まず月次の原本を埋める
+        // Render Base Form (Original) -> Creates the structure but we won't fill it
         currentMachineId = baseType;
         renderForm(baseType);
-        await loadMonthlyData();
 
-        // 原本から情報を取得 (loadMonthlyDataで原本のヘッダーが埋まっている)
-        const mName = document.getElementById('machine-name')?.value || '';
-        const mModel = document.getElementById('model-type')?.value || '';
+        // --- CLONE FIRST (Empty) ---
+        const cloneFormPage = baseFormPage.cloneNode(true);
+        cloneFormPage.id = `inspection-form-page-${month}`;
+        cloneFormPage.style.display = 'block';
+        const internalForm = cloneFormPage.querySelector('#inspection-form');
+        if (internalForm) internalForm.style.display = 'grid';
 
-        // セクションヘッダー挿入
+        // Rename IDs
+        cloneFormPage.querySelectorAll('[id]').forEach(el => {
+            if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
+        });
+        container.appendChild(cloneFormPage);
+
+        // --- LOAD DATA INTO CLONE ---
+        // Pass the clone as targetScope
+        const monthlyData = await loadMonthlyData(cloneFormPage, `bk-f-${month}-`);
+
+        // --- Generate Header from Data ---
+        // We use the returned data (monthlyData) instead of reading DOM
+        // Note: machine_name might not be in the record if not joined, but model is.
+        // However, the original code read from #machine-name. loadMonthlyData sets #model-type etc.
+        // Wait, loadMonthlyData sets values on the clone now. We can read from the clone!
+
+        const getVal = (suffix) => {
+            const el = cloneFormPage.querySelector(`[id$="${suffix}"]`);
+            return el ? el.value : '';
+        };
+        const mModel = getVal('model-type');
+        // machine-name is usually read-only and coming from master data. 
+        // We should trigger the machine selection change logic? No, too complex.
+        // Let's assume the user selected the machine before opening the book.
+        // If so, the global #machine-name has the correct value!
+        const globalMName = document.getElementById('machine-name').value;
+
+        // Section Header
         const headerDiv = document.createElement('div');
         headerDiv.className = 'book-section-label';
         const yearStr = month.split('-')[0];
@@ -2186,78 +2253,39 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         headerDiv.innerHTML = `
             <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
             <span class="header-separator">|</span>
-            <span class="header-item header-machine">${mName || '名称未設定'}</span>
+            <span class="header-item header-machine">${globalMName || '名称未設定'}</span>
             <span class="header-separator">|</span>
             <span class="header-item header-model">型式: ${mModel || '-'}</span>
             <span class="header-separator">|</span>
             <span class="header-item header-id">管理No: ${machineId}</span>
         `;
-        container.appendChild(headerDiv);
+        // Insert header before the form page
+        container.insertBefore(headerDiv, cloneFormPage);
 
-        // クローン作成 (月次)
-        const cloneFormPage = baseFormPage.cloneNode(true);
-        cloneFormPage.id = `inspection-form-page-${month}`;
-        cloneFormPage.style.display = 'block';
-        const internalForm = cloneFormPage.querySelector('#inspection-form');
-        if (internalForm) internalForm.style.display = 'grid';
-
-        // クローン内のIDをプレフィックス化して原本のgetElementByIDを保護
-        cloneFormPage.querySelectorAll('[id]').forEach(el => {
-            if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
-        });
-        container.appendChild(cloneFormPage);
 
         // --- 2. Load Daily Data (if applicable) ---
         if (dailyType) {
-            // 原本のDOMを日常点検用に完全初期化 (renderMonthlyGridだけでは不足する可能性への対処)
             currentMachineId = dailyType;
-            renderForm(dailyType); // renderMonthlyGridも内部で呼ばれる
+            renderForm(dailyType); // Re-renders original execution grid (empty)
 
-            // データロード
-            const dailyData = await loadMonthlyData();
-
-            // Wait for DOM updates to settle (micro-task/rendering)
-            await new Promise(resolve => setTimeout(resolve, 50));
-
-            if (!dailyData) {
-                console.warn(`[BookMode] No daily data found for ${month}, type: ${dailyType}`);
-            } else {
-                console.log(`[BookMode] Loaded daily data for ${month}:`, dailyData.id);
-                // Debug: check if original grid has data
-                const originalGrid = document.getElementById('monthly-grid-page');
-                const filledCells = originalGrid.querySelectorAll('.day-cell:not([data-status="none"])');
-                console.log(`[BookMode] Original Grid Filled Cells: ${filledCells.length}`);
-            }
-
-            // クローン作成 (日常)
+            // Clone Grid
             const cloneGridPage = baseGridPage.cloneNode(true);
             cloneGridPage.id = `monthly-grid-page-${month}`;
             cloneGridPage.style.display = 'block';
-
-            // 明示的にグリッドビューを表示状態にする
             const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
             if (internalGrid) internalGrid.style.display = 'block';
 
+            // Rename IDs
             cloneGridPage.querySelectorAll('[id]').forEach(el => {
                 if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
             });
             container.appendChild(cloneGridPage);
 
-            // FORCE SYNC: Manually copy values/checked state for inputs in the cloned grid
-            // Because attribute cloning sometimes misses dynamic property state
-            const originalInputs = baseGridPage.querySelectorAll('input, select, textarea');
-            const clonedInputs = cloneGridPage.querySelectorAll('input, select, textarea');
+            // Load Data into Clone
+            await loadMonthlyData(cloneGridPage, `bk-g-${month}-`);
 
-            // Loop doesn't match 1:1 if we changed IDs, but order should be preserved if structure is identical
-            // However, grid cells are usually divs with text, not inputs. 
-            // If they are divs, innerHTML cloning should work. 
-            // Let's assume the issue is related to the table content itself.
-
-            // Debug: Check if table body has children
-            const tbody = cloneGridPage.querySelector('.monthly-table tbody');
-            if (tbody && tbody.children.length === 0) {
-                console.error(`[BookMode] Cloned table body is empty for ${month}`);
-            }
+            // Wait for DOM updates to settle
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
     }
 
