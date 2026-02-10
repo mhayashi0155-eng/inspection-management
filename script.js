@@ -2161,33 +2161,22 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         // --- 1. Load Monthly Data ---
         document.getElementById('inspection-month').value = month;
         document.getElementById('machine-id').value = machineId;
-        currentMachineId = baseType;
         currentSiteId = siteId;
 
-        renderForm(baseType); // 月ごとにフォームを確実に生成
-        await loadMonthlyData(); // Populates DOM for Monthly part
+        // まず月次の原本を埋める
+        currentMachineId = baseType;
+        renderForm(baseType);
+        await loadMonthlyData();
 
-        // --- 2. Load Daily Data (if applicable) ---
-        if (dailyType) {
-            renderMonthlyGrid(dailyType); // 月ごとにグリッドを確実に生成
-            currentMachineId = dailyType; // Switch context to Daily
-            await loadMonthlyData(); // Populates DOM for Daily Grid
-        }
-
-        // Wait for DOM update
-        await new Promise(r => setTimeout(r, 50));
-
-        // Get Machine Info from DOM (updated by loadMonthlyData)
+        // 原本から情報を取得 (loadMonthlyDataで原本のヘッダーが埋まっている)
         const mName = document.getElementById('machine-name')?.value || '';
         const mModel = document.getElementById('model-type')?.value || '';
-        const mCmid = document.getElementById('company-machine-id')?.value || '';
 
-        // Inject Section Header (Ver28 Style)
+        // セクションヘッダー挿入
         const headerDiv = document.createElement('div');
         headerDiv.className = 'book-section-label';
         const yearStr = month.split('-')[0];
         const monthStr = month.split('-')[1];
-
         headerDiv.innerHTML = `
             <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
             <span class="header-separator">|</span>
@@ -2199,96 +2188,103 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         `;
         container.appendChild(headerDiv);
 
-        // Clone Form Page
+        // クローン作成 (月次)
         const cloneFormPage = baseFormPage.cloneNode(true);
         cloneFormPage.id = `inspection-form-page-${month}`;
         cloneFormPage.style.display = 'block';
-
         const internalForm = cloneFormPage.querySelector('#inspection-form');
         if (internalForm) internalForm.style.display = 'grid';
-        // IDプレフィックス付与
+
+        // クローン内のIDをプレフィックス化して原本のgetElementByIDを保護
         cloneFormPage.querySelectorAll('[id]').forEach(el => {
             if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
         });
-
         container.appendChild(cloneFormPage);
 
-        // Clone Grid Page
-        const cloneGridPage = baseGridPage.cloneNode(true);
-        cloneGridPage.id = `monthly-grid-page-${month}`;
-        cloneGridPage.style.display = 'block';
+        // --- 2. Load Daily Data (if applicable) ---
+        if (dailyType) {
+            renderMonthlyGrid(dailyType);
+            currentMachineId = dailyType;
+            await loadMonthlyData();
 
-        const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
-        if (internalGrid) internalGrid.style.display = 'block';
-        // IDプレフィックス付与
-        cloneGridPage.querySelectorAll('[id]').forEach(el => {
-            if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
-        });
+            // クローン作成 (日常)
+            const cloneGridPage = baseGridPage.cloneNode(true);
+            cloneGridPage.id = `monthly-grid-page-${month}`;
+            cloneGridPage.style.display = 'block';
+            const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+            if (internalGrid) internalGrid.style.display = 'block';
 
-        container.appendChild(cloneGridPage);
+            cloneGridPage.querySelectorAll('[id]').forEach(el => {
+                if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
+            });
+            container.appendChild(cloneGridPage);
+        }
     }
-}
 
-function populateMockData() {
-    console.log("Starting Multi-Month Mock Data Generation (Ver26)...");
+    // Restore Global State
+    currentMachineId = machineType;
+    currentSiteId = siteId;
 
-    const months = ['2026-01', '2026-02', '2026-03'];
-    const container = document.getElementById('book-container');
-    if (!container) return;
+    function populateMockData() {
+        console.log("Starting Multi-Month Mock Data Generation (Ver26)...");
 
-    // Clear container
-    container.innerHTML = '';
-    container.style.display = 'block';
+        const months = ['2026-01', '2026-02', '2026-03'];
+        const container = document.getElementById('book-container');
+        if (!container) return;
 
-    // Base elements to clone
-    const baseFormPage = document.getElementById('inspection-form-page');
-    const baseGridPage = document.getElementById('monthly-grid-page');
+        // Clear container
+        container.innerHTML = '';
+        container.style.display = 'block';
 
-    // Hide originals
-    baseFormPage.style.display = 'none';
-    baseGridPage.style.display = 'none';
-    document.getElementById('inspection-form').style.display = 'none';
-    document.getElementById('monthly-grid-view').style.display = 'none';
+        // Base elements to clone
+        const baseFormPage = document.getElementById('inspection-form-page');
+        const baseGridPage = document.getElementById('monthly-grid-page');
 
-    // Helper async function to process sequentially
-    const processMonth = async () => {
-        for (let i = 0; i < months.length; i++) {
-            const month = months[i];
-            console.log(`Generating data for ${month}...`);
+        // Hide originals
+        baseFormPage.style.display = 'none';
+        baseGridPage.style.display = 'none';
+        document.getElementById('inspection-form').style.display = 'none';
+        document.getElementById('monthly-grid-view').style.display = 'none';
 
-            // 1. Set Header Info for this month (on the hidden original form)
-            const yearStr = month.split('-')[0];
-            const monthStr = month.split('-')[1];
-            document.getElementById('header-site-name').innerText = `デモ現場 (${yearStr}年${parseInt(monthStr)}月)`;
+        // Helper async function to process sequentially
+        const processMonth = async () => {
+            for (let i = 0; i < months.length; i++) {
+                const month = months[i];
+                console.log(`Generating data for ${month}...`);
 
-            document.getElementById('inspection-date').value = `${month}-01`;
-            document.getElementById('inspection-month').value = month;
-            document.getElementById('machine-name').value = "PC200-11 (デモ機)";
-            document.getElementById('model-type').value = "PC200-11";
-            document.getElementById('company-machine-id').value = "D-001";
-            document.getElementById('machine-id').value = "999999";
-            document.getElementById('representative').value = "山内 太郎";
-            document.getElementById('inspector-main').value = "点検 次郎";
+                // 1. Set Header Info for this month (on the hidden original form)
+                const yearStr = month.split('-')[0];
+                const monthStr = month.split('-')[1];
+                document.getElementById('header-site-name').innerText = `デモ現場 (${yearStr}年${parseInt(monthStr)}月)`;
 
-            // Randomize hours
-            const hours = 1234.5 + (i * 150) + Math.floor(Math.random() * 50);
-            document.getElementById('operating-hours').value = hours.toFixed(1);
+                document.getElementById('inspection-date').value = `${month}-01`;
+                document.getElementById('inspection-month').value = month;
+                document.getElementById('machine-name').value = "PC200-11 (デモ機)";
+                document.getElementById('model-type').value = "PC200-11";
+                document.getElementById('company-machine-id').value = "D-001";
+                document.getElementById('machine-id').value = "999999";
+                document.getElementById('representative').value = "山内 太郎";
+                document.getElementById('inspector-main').value = "点検 次郎";
 
-            // 2. Render Forms (on the hidden original elements)
-            renderForm('shovel');
-            renderMonthlyGrid('shovel_daily');
+                // Randomize hours
+                const hours = 1234.5 + (i * 150) + Math.floor(Math.random() * 50);
+                document.getElementById('operating-hours').value = hours.toFixed(1);
 
-            // 3. Randomize Checkboxes & Grid content
-            await new Promise(r => setTimeout(r, 10));
-            randomizeMockData(month);
+                // 2. Render Forms (on the hidden original elements)
+                renderForm('shovel');
+                renderMonthlyGrid('shovel_daily');
 
-            // 4. Clone and Append
+                // 3. Randomize Checkboxes & Grid content
+                await new Promise(r => setTimeout(r, 10));
+                randomizeMockData(month);
 
-            // Ver28: Inject Section Header (Refined)
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'book-section-label';
-            // Format: [ 2026年1月度 | PC200-11 (デモ機) | 型式: PC200-11 | 管理No: D-001 ]
-            headerDiv.innerHTML = `
+                // 4. Clone and Append
+
+                // Ver28: Inject Section Header (Refined)
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'book-section-label';
+                // Format: [ 2026年1月度 | PC200-11 (デモ機) | 型式: PC200-11 | 管理No: D-001 ]
+                headerDiv.innerHTML = `
                 <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
                 <span class="header-separator">|</span>
                 <span class="header-item header-machine">PC200-11 (デモ機)</span>
@@ -2297,234 +2293,234 @@ function populateMockData() {
                 <span class="header-separator">|</span>
                 <span class="header-item header-id">管理No: D-001</span>
             `;
-            container.appendChild(headerDiv);
+                container.appendChild(headerDiv);
 
-            // Clone Form Page
-            const cloneFormPage = baseFormPage.cloneNode(true);
-            cloneFormPage.id = `inspection-form-page-${month}`;
-            cloneFormPage.style.display = 'block';
+                // Clone Form Page
+                const cloneFormPage = baseFormPage.cloneNode(true);
+                cloneFormPage.id = `inspection-form-page-${month}`;
+                cloneFormPage.style.display = 'block';
 
-            // Re-enable visibility of internal grid (it was hidden on original)
-            const internalForm = cloneFormPage.querySelector('#inspection-form');
-            if (internalForm) internalForm.style.display = 'grid';
+                // Re-enable visibility of internal grid (it was hidden on original)
+                const internalForm = cloneFormPage.querySelector('#inspection-form');
+                if (internalForm) internalForm.style.display = 'grid';
 
-            container.appendChild(cloneFormPage);
+                container.appendChild(cloneFormPage);
 
-            const cloneGridPage = baseGridPage.cloneNode(true);
-            cloneGridPage.id = `monthly-grid-page-${month}`;
-            cloneGridPage.style.display = 'block';
+                const cloneGridPage = baseGridPage.cloneNode(true);
+                cloneGridPage.id = `monthly-grid-page-${month}`;
+                cloneGridPage.style.display = 'block';
 
-            const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
-            if (internalGrid) internalGrid.style.display = 'block';
+                const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+                if (internalGrid) internalGrid.style.display = 'block';
 
-            container.appendChild(cloneGridPage);
+                container.appendChild(cloneGridPage);
+            }
+        };
+
+        processMonth();
+
+        // Force Book Mode styles
+        document.body.classList.add('print-mode-book');
+    }
+
+    function randomizeMockData(month) {
+        // 1. Monthly Checklist - Target ONLY the original Hidden Form
+        const form = document.getElementById('inspection-form');
+        if (form) {
+            form.querySelectorAll('.current-status').forEach(el => {
+                el.className = 'current-status good';
+                el.innerText = 'レ';
+                el.setAttribute('data-status', 'good');
+            });
         }
-    };
 
-    processMonth();
+        // 2. Daily Grid - Target ONLY the original Hidden Grid
+        const gridBody = document.getElementById('monthly-table-body');
+        if (gridBody) {
+            gridBody.querySelectorAll('.day-cell').forEach(el => {
+                // Reset first
+                el.className = 'day-cell';
+                el.innerHTML = '';
+                el.removeAttribute('data-status');
 
-    // Force Book Mode styles
-    document.body.classList.add('print-mode-book');
-}
+                // Random status
+                if (Math.random() > 0.85) return; // 15% empty
 
-function randomizeMockData(month) {
-    // 1. Monthly Checklist - Target ONLY the original Hidden Form
-    const form = document.getElementById('inspection-form');
-    if (form) {
-        form.querySelectorAll('.current-status').forEach(el => {
-            el.className = 'current-status good';
-            el.innerText = 'レ';
-            el.setAttribute('data-status', 'good');
+                const r = Math.random();
+                let code = 'good';
+                let mark = '○';
+                if (r > 0.98) { code = 'repair'; mark = '×'; }
+                else if (r > 0.95) { code = 'done'; mark = '●'; }
+
+                el.className = `day-cell status-cell-${code}`;
+                el.innerHTML = mark;
+                el.setAttribute('data-status', code);
+            });
+        }
+    }
+
+
+    // グローバル公開
+    window.selectMachine = selectMachine;
+    window.toggleStatus = toggleStatus;
+    window.openSiteDetail = openSiteDetail;
+    window.openMachineHistory = openMachineHistory;
+    window.openEditSite = (id) => window.openEditSite(id);
+    window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
+    window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
+    window.goDashBoard = goDashBoard;
+    window.printLabel = printLabel;
+
+    // Removed old setupMachineAutoFill
+
+
+
+    const representativeList = [
+        "杉本 鉄也",
+        "林 成司",
+        "佐藤 光一",
+        "辻 成人",
+        "白戸 嘉人",
+        "庄司 明",
+        "十河 弘樹",
+        "林 真人",
+        "金田 大作"
+    ];
+
+    const staffList = [
+        "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
+        "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
+        "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
+        "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
+        "堀 邦寿",
+        "郷 樹美"
+    ];
+
+
+    async function fetchDynamicStaffList() {
+        if (!supabaseClient) return;
+
+        // Fetch from Sites (Representatives, etc)
+        const { data: sites } = await supabaseClient
+            .from('sites')
+            .select('representative, site_inspector, safety_manager')
+            .order('last_updated', { ascending: false })
+            .limit(50);
+
+        // Fetch from Inspections (Inspectors)
+        const { data: inspections } = await supabaseClient
+            .from('inspections')
+            .select('statuses')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        const newStaff = new Set();
+        const newRep = new Set();
+
+        if (sites) {
+            sites.forEach(s => {
+                if (s.representative && s.representative.trim()) newRep.add(s.representative.trim());
+                if (s.site_inspector && s.site_inspector.trim()) newStaff.add(s.site_inspector.trim());
+                if (s.safety_manager && s.safety_manager.trim()) newStaff.add(s.safety_manager.trim());
+            });
+        }
+
+        if (inspections) {
+            inspections.forEach(i => {
+                if (i.statuses) {
+                    if (i.statuses._inspector_main && i.statuses._inspector_main.trim()) newStaff.add(i.statuses._inspector_main.trim());
+                    if (i.statuses._inspector_sub && i.statuses._inspector_sub.trim()) newStaff.add(i.statuses._inspector_sub.trim());
+                }
+            });
+        }
+
+        // Merge into arrays
+        let updated = false;
+        newRep.forEach(name => {
+            if (!representativeList.includes(name)) {
+                representativeList.push(name);
+                updated = true;
+            }
+        });
+
+        newStaff.forEach(name => {
+            if (!staffList.includes(name)) {
+                staffList.push(name);
+                updated = true;
+            }
+        });
+
+        if (updated) {
+            renderRepresentativeList();
+            renderStaffList();
+        }
+    }
+
+    function renderRepresentativeList() {
+        const dataList = document.getElementById('representative-list');
+        if (!dataList) return;
+        dataList.innerHTML = '';
+        representativeList.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            dataList.appendChild(option);
         });
     }
 
-    // 2. Daily Grid - Target ONLY the original Hidden Grid
-    const gridBody = document.getElementById('monthly-table-body');
-    if (gridBody) {
-        gridBody.querySelectorAll('.day-cell').forEach(el => {
-            // Reset first
-            el.className = 'day-cell';
-            el.innerHTML = '';
-            el.removeAttribute('data-status');
-
-            // Random status
-            if (Math.random() > 0.85) return; // 15% empty
-
-            const r = Math.random();
-            let code = 'good';
-            let mark = '○';
-            if (r > 0.98) { code = 'repair'; mark = '×'; }
-            else if (r > 0.95) { code = 'done'; mark = '●'; }
-
-            el.className = `day-cell status-cell-${code}`;
-            el.innerHTML = mark;
-            el.setAttribute('data-status', code);
-        });
-    }
-}
-
-
-// グローバル公開
-window.selectMachine = selectMachine;
-window.toggleStatus = toggleStatus;
-window.openSiteDetail = openSiteDetail;
-window.openMachineHistory = openMachineHistory;
-window.openEditSite = (id) => window.openEditSite(id);
-window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
-window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
-window.goDashBoard = goDashBoard;
-window.printLabel = printLabel;
-
-// Removed old setupMachineAutoFill
-
-
-
-const representativeList = [
-    "杉本 鉄也",
-    "林 成司",
-    "佐藤 光一",
-    "辻 成人",
-    "白戸 嘉人",
-    "庄司 明",
-    "十河 弘樹",
-    "林 真人",
-    "金田 大作"
-];
-
-const staffList = [
-    "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
-    "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
-    "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
-    "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
-    "堀 邦寿",
-    "郷 樹美"
-];
-
-
-async function fetchDynamicStaffList() {
-    if (!supabaseClient) return;
-
-    // Fetch from Sites (Representatives, etc)
-    const { data: sites } = await supabaseClient
-        .from('sites')
-        .select('representative, site_inspector, safety_manager')
-        .order('last_updated', { ascending: false })
-        .limit(50);
-
-    // Fetch from Inspections (Inspectors)
-    const { data: inspections } = await supabaseClient
-        .from('inspections')
-        .select('statuses')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-    const newStaff = new Set();
-    const newRep = new Set();
-
-    if (sites) {
-        sites.forEach(s => {
-            if (s.representative && s.representative.trim()) newRep.add(s.representative.trim());
-            if (s.site_inspector && s.site_inspector.trim()) newStaff.add(s.site_inspector.trim());
-            if (s.safety_manager && s.safety_manager.trim()) newStaff.add(s.safety_manager.trim());
+    function renderStaffList() {
+        const dataList = document.getElementById('staff-list');
+        if (!dataList) return;
+        dataList.innerHTML = '';
+        staffList.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            dataList.appendChild(option);
         });
     }
 
-    if (inspections) {
-        inspections.forEach(i => {
-            if (i.statuses) {
-                if (i.statuses._inspector_main && i.statuses._inspector_main.trim()) newStaff.add(i.statuses._inspector_main.trim());
-                if (i.statuses._inspector_sub && i.statuses._inspector_sub.trim()) newStaff.add(i.statuses._inspector_sub.trim());
+    window.renderRepresentativeList = renderRepresentativeList;
+    window.renderStaffList = renderStaffList;
+
+    async function syncInspectorFromParent(mType, mId, siteId) {
+        if (!mType || !mType.endsWith('_daily')) return;
+        const parentType = mType.replace('_daily', '');
+        const monthEl = document.getElementById('inspection-month');
+        const month = monthEl ? monthEl.value : null;
+        if (!month || !siteId || !mId) return;
+
+        const { data: parent } = await supabaseClient
+            .from('inspections')
+            .select('statuses')
+            .eq('site_id', siteId)
+            .eq('machine_type', parentType)
+            .eq('machine_id', mId)
+            .like('inspection_date', `${month}-%`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (parent && parent.statuses) {
+            const pMain = parent.statuses._inspector_main;
+            const pSub = parent.statuses._inspector_sub;
+
+            const mainEl = document.getElementById('inspector-main');
+            const subEl = document.getElementById('inspector-sub');
+
+            if (pMain && mainEl) mainEl.value = pMain;
+            if (pSub && subEl) subEl.value = pSub;
+        }
+    }
+
+    // Helper to lock fields
+    function lockMachineFields() {
+        const fields = ['machine-name', 'model-type', 'company-machine-id', 'machine-id'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.readOnly = true;
+                el.style.backgroundColor = '#f1f5f9';
+                el.style.color = '#64748b';
+                el.style.borderColor = '#e2e8f0';
             }
         });
     }
-
-    // Merge into arrays
-    let updated = false;
-    newRep.forEach(name => {
-        if (!representativeList.includes(name)) {
-            representativeList.push(name);
-            updated = true;
-        }
-    });
-
-    newStaff.forEach(name => {
-        if (!staffList.includes(name)) {
-            staffList.push(name);
-            updated = true;
-        }
-    });
-
-    if (updated) {
-        renderRepresentativeList();
-        renderStaffList();
-    }
-}
-
-function renderRepresentativeList() {
-    const dataList = document.getElementById('representative-list');
-    if (!dataList) return;
-    dataList.innerHTML = '';
-    representativeList.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        dataList.appendChild(option);
-    });
-}
-
-function renderStaffList() {
-    const dataList = document.getElementById('staff-list');
-    if (!dataList) return;
-    dataList.innerHTML = '';
-    staffList.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        dataList.appendChild(option);
-    });
-}
-
-window.renderRepresentativeList = renderRepresentativeList;
-window.renderStaffList = renderStaffList;
-
-async function syncInspectorFromParent(mType, mId, siteId) {
-    if (!mType || !mType.endsWith('_daily')) return;
-    const parentType = mType.replace('_daily', '');
-    const monthEl = document.getElementById('inspection-month');
-    const month = monthEl ? monthEl.value : null;
-    if (!month || !siteId || !mId) return;
-
-    const { data: parent } = await supabaseClient
-        .from('inspections')
-        .select('statuses')
-        .eq('site_id', siteId)
-        .eq('machine_type', parentType)
-        .eq('machine_id', mId)
-        .like('inspection_date', `${month}-%`)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (parent && parent.statuses) {
-        const pMain = parent.statuses._inspector_main;
-        const pSub = parent.statuses._inspector_sub;
-
-        const mainEl = document.getElementById('inspector-main');
-        const subEl = document.getElementById('inspector-sub');
-
-        if (pMain && mainEl) mainEl.value = pMain;
-        if (pSub && subEl) subEl.value = pSub;
-    }
-}
-
-// Helper to lock fields
-function lockMachineFields() {
-    const fields = ['machine-name', 'model-type', 'company-machine-id', 'machine-id'];
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.readOnly = true;
-            el.style.backgroundColor = '#f1f5f9';
-            el.style.color = '#64748b';
-            el.style.borderColor = '#e2e8f0';
-        }
-    });
-}
