@@ -2206,6 +2206,10 @@ async function loadBookDataReal(siteId, machineId, machineType) {
 
         const internalForm = cloneFormPage.querySelector('#inspection-form');
         if (internalForm) internalForm.style.display = 'grid';
+        // IDプレフィックス付与
+        cloneFormPage.querySelectorAll('[id]').forEach(el => {
+            if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
+        });
 
         container.appendChild(cloneFormPage);
 
@@ -2216,6 +2220,10 @@ async function loadBookDataReal(siteId, machineId, machineType) {
 
         const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
         if (internalGrid) internalGrid.style.display = 'block';
+        // IDプレフィックス付与
+        cloneGridPage.querySelectorAll('[id]').forEach(el => {
+            if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
+        });
 
         container.appendChild(cloneGridPage);
     }
