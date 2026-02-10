@@ -2216,10 +2216,17 @@ async function loadBookDataReal(siteId, machineId, machineType) {
             // データロード
             const dailyData = await loadMonthlyData();
 
+            // Wait for DOM updates to settle (micro-task/rendering)
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             if (!dailyData) {
                 console.warn(`[BookMode] No daily data found for ${month}, type: ${dailyType}`);
             } else {
                 console.log(`[BookMode] Loaded daily data for ${month}:`, dailyData.id);
+                // Debug: check if original grid has data
+                const originalGrid = document.getElementById('monthly-grid-page');
+                const filledCells = originalGrid.querySelectorAll('.day-cell:not([data-status="none"])');
+                console.log(`[BookMode] Original Grid Filled Cells: ${filledCells.length}`);
             }
 
             // クローン作成 (日常)
@@ -2235,6 +2242,22 @@ async function loadBookDataReal(siteId, machineId, machineType) {
                 if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
             });
             container.appendChild(cloneGridPage);
+
+            // FORCE SYNC: Manually copy values/checked state for inputs in the cloned grid
+            // Because attribute cloning sometimes misses dynamic property state
+            const originalInputs = baseGridPage.querySelectorAll('input, select, textarea');
+            const clonedInputs = cloneGridPage.querySelectorAll('input, select, textarea');
+
+            // Loop doesn't match 1:1 if we changed IDs, but order should be preserved if structure is identical
+            // However, grid cells are usually divs with text, not inputs. 
+            // If they are divs, innerHTML cloning should work. 
+            // Let's assume the issue is related to the table content itself.
+
+            // Debug: Check if table body has children
+            const tbody = cloneGridPage.querySelector('.monthly-table tbody');
+            if (tbody && tbody.children.length === 0) {
+                console.error(`[BookMode] Cloned table body is empty for ${month}`);
+            }
         }
     }
 

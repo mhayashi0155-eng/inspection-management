@@ -1234,7 +1234,10 @@ body.print-mode-book .filter-bar,
 body.print-mode-book .action-buttons,
 body.print-mode-book .company-title,
 body.print-mode-book #legend-section,
-body.print-mode-book #daily-legend-section {
+body.print-mode-book #daily-legend-section,
+body.print-mode-book #print-month-display,
+body.print-mode-book #header-site-name,
+body.print-mode-book .header-top {
     display: none !important;
 }
 
