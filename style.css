@@ -1032,8 +1032,8 @@ table.data-table td svg {
     /* Removed 1200px constraint */
 }
 
-#monthly-table th,
-#monthly-table td {
+.monthly-table th,
+.monthly-table td {
     border: 1px solid var(--border-color);
     padding: 4px 1px;
     /* Drastically reduced padding */
@@ -1044,8 +1044,8 @@ table.data-table td svg {
     /* Fixed height for consistency */
 }
 
-#monthly-table th:first-child,
-#monthly-table td:first-child {
+.monthly-table th:first-child,
+.monthly-table td:first-child {
     position: sticky;
     left: 0;
     z-index: 10;
@@ -1061,17 +1061,17 @@ table.data-table td svg {
     line-height: 1.2;
 }
 
-#monthly-table thead tr {
+.monthly-table thead tr {
     background: #f8fafc;
 }
 
-#monthly-table .day-cell {
+.monthly-table .day-cell {
     cursor: pointer;
     transition: 0.2s;
     user-select: none;
 }
 
-#monthly-table .day-cell:hover {
+.monthly-table .day-cell:hover {
     background: var(--card-hover);
 }
 
@@ -1096,15 +1096,15 @@ table.data-table td svg {
 }
 
 /* Weekend Coloring - High Priority for BG, Low for Text */
-#monthly-table thead th.sat,
-#monthly-table tbody tr td.sat {
+.monthly-table thead th.sat,
+.monthly-table tbody tr td.sat {
     background-color: #e0f2fe !important;
     /* sky-100 */
     color: #0369a1;
 }
 
-#monthly-table thead th.sun,
-#monthly-table tbody tr td.sun {
+.monthly-table thead th.sun,
+.monthly-table tbody tr td.sun {
     background-color: #fee2e2 !important;
     /* red-100 */
     color: #b91c1c;
