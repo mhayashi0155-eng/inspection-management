@@ -56,13 +56,6 @@ body {
     /* Ensure content is above decorations */
 }
 
-/* Ver50: Force full width on screen for Daily Inspection mode */
-body.print-mode-daily .app-container {
-    max-width: none !important;
-    width: 98% !important;
-    padding: 1rem !important;
-}
-
 .date-display {
     text-align: right;
     font-family: 'Inter', sans-serif;
@@ -1212,33 +1205,17 @@ body.print-mode-book .print-page {
 
 /* Page 1: Monthly Form */
 body.print-mode-book #inspection-form-page {
-    /* Ver50: Revert to full width 100% */
-    transform: none !important;
-    width: 100% !important;
-    max-width: none !important;
-    transform-origin: top left !important;
+    transform: scale(0.85);
+    transform-origin: top center;
     margin-bottom: 0;
-    padding: 0 !important;
 }
 
-/* Page 2: Daily Grid & Clones */
-body.print-mode-book #monthly-grid-page,
-body.print-mode-book [id^="monthly-grid-page"],
-body.print-mode-book [id^="bk-g-"] {
-    /* Ver50: Revert to full width 100% */
-    transform: none !important;
-    padding: 0 !important;
-    margin: 0 auto !important;
-    width: 100% !important;
-    max-width: none !important;
-    transform-origin: top left !important;
-}
-
-body.print-mode-book [id^="monthly-grid-page"] .monthly-grid-container {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    border: none !important;
+/* Page 2: Daily Grid */
+body.print-mode-book #monthly-grid-page {
+    transform: scale(0.85);
+    transform-origin: top left;
+    padding-top: 50px;
+    padding-left: 100px;
 }
 
 /* Show both forms in Book Mode */
