@@ -1009,6 +1009,110 @@ table.data-table td svg {
     }
 }
 
+/* --- Monthly Grid Sheet Styles --- */
+.monthly-grid-container {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.grid-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#monthly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    /* Reduced from 0.85rem */
+    min-width: auto;
+    /* Removed 1200px constraint */
+}
+
+#monthly-table th,
+#monthly-table td {
+    border: 1px solid var(--border-color);
+    padding: 4px 1px;
+    /* Drastically reduced padding */
+    text-align: center;
+    min-width: 24px;
+    /* Reduced from 40px */
+    height: 32px;
+    /* Fixed height for consistency */
+}
+
+#monthly-table th:first-child,
+#monthly-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: #ffffff;
+    min-width: 160px;
+    /* Reduced from 250px */
+    max-width: 160px;
+    /* Force width */
+    text-align: left;
+    padding-left: 0.5rem;
+    white-space: normal;
+    /* Allow text wrapping */
+    line-height: 1.2;
+}
+
+#monthly-table thead tr {
+    background: #f8fafc;
+}
+
+#monthly-table .day-cell {
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+#monthly-table .day-cell:hover {
+    background: var(--card-hover);
+}
+
+.status-cell-good {
+    color: #15803d !important;
+    font-weight: bold;
+}
+
+.status-cell-adjust {
+    color: #b45309 !important;
+    font-weight: bold;
+}
+
+.status-cell-repair {
+    color: #b91c1c !important;
+    font-weight: bold;
+}
+
+.status-cell-done {
+    color: #0369a1 !important;
+    font-weight: bold;
+}
+
+/* Weekend Coloring - High Priority for BG, Low for Text */
+#monthly-table thead th.sat,
+#monthly-table tbody tr td.sat {
+    background-color: #e0f2fe !important;
+    /* sky-100 */
+    color: #0369a1;
+}
+
+#monthly-table thead th.sun,
+#monthly-table tbody tr td.sun {
+    background-color: #fee2e2 !important;
+    /* red-100 */
+    color: #b91c1c;
+}
+
+/* Print Styles */
+/* Old Print Block Removed - Consolidated Below */
+
 /* Sidebar Decorations */
 .app-container {
     position: relative;
@@ -1220,8 +1324,7 @@ body.print-mode-book #monthly-grid-page {
 
 /* Show both forms in Book Mode */
 body.print-mode-book #inspection-form {
-    display: grid !important;
-    /* Force GRID for columns */
+    display: grid !important; /* Force GRID for columns */
 }
 
 body.print-mode-book #monthly-grid-view {
@@ -1234,10 +1337,7 @@ body.print-mode-book .filter-bar,
 body.print-mode-book .action-buttons,
 body.print-mode-book .company-title,
 body.print-mode-book #legend-section,
-body.print-mode-book #daily-legend-section,
-body.print-mode-book #print-month-display,
-body.print-mode-book #header-site-name,
-body.print-mode-book .header-top {
+body.print-mode-book #daily-legend-section {
     display: none !important;
 }
 
@@ -1255,7 +1355,7 @@ body.print-mode-book .header-top {
 }
 
 /* First header: no page break before */
-#book-container>.book-section-label:first-child {
+#book-container > .book-section-label:first-child {
     page-break-before: auto;
     margin-top: 10px;
 }
@@ -1301,19 +1401,19 @@ body.print-mode-book .header-top {
     align-items: center;
     justify-content: center;
     gap: 10px;
-
+    
     page-break-before: always;
     margin: 20px auto !important;
     padding: 10px 15px !important;
     width: 95% !important;
-
+    
     background-color: #f8fafc !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 4px;
     box-sizing: border-box;
 }
 
-#book-container>.book-section-label:first-child {
+#book-container > .book-section-label:first-child {
     page-break-before: auto;
     margin-top: 10px !important;
     /* Ensure consistency with others */
@@ -1327,7 +1427,7 @@ body.print-mode-book .header-top {
 }
 
 .book-section-label .header-month {
-    font-size: 1.3rem;
+    font-size: 1.3rem; 
     font-weight: 800;
     color: #1e293b;
 }
@@ -1345,3 +1445,4 @@ body.print-mode-book .header-top {
         page-break-inside: avoid;
     }
 }
+
