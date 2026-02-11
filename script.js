@@ -1679,6 +1679,14 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
             const latest = list[0];
             if (!targetScope) currentInspectionId = latest.id;
 
+            // Ver68: Merge Statuses from ALL records (Oldest -> Newest) to capture all data
+            const combinedStatuses = {};
+            [...list].reverse().forEach(record => {
+                if (record.statuses) {
+                    Object.assign(combinedStatuses, record.statuses);
+                }
+            });
+
             const setG = (id, val) => {
                 let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
                 if (el) {
@@ -1696,22 +1704,15 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
             setG('operating-hours', latest.operating_hours);
             setG('site-representative', latest.statuses?._site_representative);
 
-            if (latest.statuses && scope) {
+            if (scope) {
                 const options = isDaily ? dailyStatusOptions : statusOptions;
-                Object.keys(latest.statuses).forEach(uid => {
+                // Use combinedStatuses instead of latest.statuses
+                Object.keys(combinedStatuses).forEach(uid => {
                     if (uid.startsWith('_')) return;
                     let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
 
-                    // Debug finding elements in Book Mode
-                    if (targetScope && !el) {
-                        console.warn(`DEBUG: BookMode - Element not found for uid: ${uid}, looking in scope:`, scope);
-                    }
-                    if (targetScope && el) {
-                        // console.log(`DEBUG: BookMode - Found! Setting ${uid} to`, latest.statuses[uid]);
-                    }
-
                     if (el) {
-                        const code = latest.statuses[uid];
+                        const code = combinedStatuses[uid];
                         const opt = options.find(o => o.code === code);
                         if (opt) {
                             el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
