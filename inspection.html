@@ -240,6 +240,10 @@
             font-size: 0.9rem !important;
             line-height: 1.4 !important;
             padding: 4px !important;
+            position: static !important;
+            /* Disable sticky to prevent alignment issues in Book Mode */
+            background: transparent !important;
+            /* Remove white background if sticky is off */
         }
 
         body.print-mode-book .monthly-table th,
@@ -247,14 +251,14 @@
             font-size: 1.0rem !important;
             /* Slightly larger for visibility */
             height: 2.2rem !important;
-            line-height: 2.2rem !important;
-            /* Match height for perfect vertical centering */
             vertical-align: middle !important;
             text-align: center !important;
-            padding: 0 !important;
-            /* Remove padding to rely on line-height */
-            border: 1px solid #64748b !important;
-            /* Distinct border color */
+            padding: 2px !important;
+            /* Restore padding */
+            line-height: normal !important;
+            /* Allow natural vertical centering */
+            border: 1px solid #cbd5e1 !important;
+            /* Use original border color */
         }
     </style>
     <!-- Google Fonts for a premium look -->
@@ -469,10 +473,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.11-Ver76_BorderFix
+        v2026.02.11-Ver77_StickyOff
     </div>
 
-    <script src="script.js?v=Ver76_BorderFix"></script>
+    <script src="script.js?v=Ver77_StickyOff"></script>
 </body>
 
 </html>
