@@ -158,7 +158,7 @@ function updateMachineMasterList(machineType) {
             machineMasterList.appendChild(opt);
         });
     } else {
-        console.error("DEBUG: machine-master-list element NOT found!");
+        // console.warn("DEBUG: machine-master-list element NOT found (Skipping)"); // Benign on index.html
     }
 
     if (machineNameList) {
