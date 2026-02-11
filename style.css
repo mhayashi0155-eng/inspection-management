@@ -1315,9 +1315,10 @@ body.print-mode-book #inspection-form-page {
 }
 
 /* Page 2: Daily Grid */
+/* Page 2: Daily Grid */
 body.print-mode-book #monthly-grid-page {
-    transform: none !important;
-    /* Remove double scaling */
+    transform: scale(0.9) !important;
+    /* User requested 10% reduction */
     transform-origin: top left;
     padding-top: 10px;
     padding-left: 10px;
