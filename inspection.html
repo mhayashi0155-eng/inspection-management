@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.11-Restore_Settings_Ver49 -->
+<!-- Version: v2026.02.11-Full_Width_Ver50 -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Restore_Settings_Ver49">
-    <link rel="stylesheet" href="style.css?v=Restore_Settings_Ver49">
+    <link rel="stylesheet" href="style.css?v=Full_Width_Ver50">
+    <link rel="stylesheet" href="style.css?v=Full_Width_Ver50">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -43,17 +43,18 @@
         }
 
         body.print-mode-daily .app-container {
-            width: 1280px !important;
-            min-width: 1280px !important;
-            max-width: 1280px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: none !important;
             margin: 0 !important;
             padding: 0 !important;
             padding-top: 50px !important;
             /* Adjusted top margin */
             padding-left: 50px !important;
             /* Adjusted left margin */
-            zoom: normal !important;
-            transform: scale(0.85) !important;
+            /* Ver50: Match screen full width, let browser decide scale */
+            zoom: 0.98 !important;
+            transform: none !important;
             transform-origin: top left !important;
             display: block !important;
         }
@@ -419,10 +420,10 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.11-Restore_Settings_Ver49
+        v2026.02.11-Full_Width_Ver50
     </div>
 
-    <script src="script.js?v=Restore_Settings_Ver49"></script>
+    <script src="script.js?v=Full_Width_Ver50"></script>
 </body>
 
 </html>

@@ -56,6 +56,13 @@ body {
     /* Ensure content is above decorations */
 }
 
+/* Ver50: Force full width on screen for Daily Inspection mode */
+body.print-mode-daily .app-container {
+    max-width: none !important;
+    width: 98% !important;
+    padding: 1rem !important;
+}
+
 .date-display {
     text-align: right;
     font-family: 'Inter', sans-serif;
@@ -1205,10 +1212,10 @@ body.print-mode-book .print-page {
 
 /* Page 1: Monthly Form */
 body.print-mode-book #inspection-form-page {
-    /* Ver49: Restore 1280px/0.85 scaling */
-    transform: scale(0.85) !important;
-    width: 1280px !important;
-    max-width: 1280px !important;
+    /* Ver50: Revert to full width 100% */
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
     transform-origin: top left !important;
     margin-bottom: 0;
     padding: 0 !important;
@@ -1218,12 +1225,12 @@ body.print-mode-book #inspection-form-page {
 body.print-mode-book #monthly-grid-page,
 body.print-mode-book [id^="monthly-grid-page"],
 body.print-mode-book [id^="bk-g-"] {
-    /* Ver49: Restore 1280px/0.85 scaling */
-    transform: scale(0.85) !important;
+    /* Ver50: Revert to full width 100% */
+    transform: none !important;
     padding: 0 !important;
     margin: 0 auto !important;
-    width: 1280px !important;
-    max-width: 1280px !important;
+    width: 100% !important;
+    max-width: none !important;
     transform-origin: top left !important;
 }
 
