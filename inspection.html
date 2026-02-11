@@ -169,11 +169,11 @@
         }
 
         /* Hide legend in Monthly print to save vertical space */
-        body:not(.print-mode-daily) #daily-legend-section {
+        body:not(.print-mode-daily):not(.print-mode-book) #daily-legend-section {
             display: none !important;
         }
 
-        body:not(.print-mode-daily) .inspection-grid {
+        body:not(.print-mode-daily):not(.print-mode-book) .inspection-grid {
             margin-top: 0.2rem !important;
             gap: 0.5rem !important;
         }
