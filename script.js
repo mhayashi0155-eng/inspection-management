@@ -1635,13 +1635,23 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
         }
 
         // --- Fetch Data ---
+        // Calculate date range for the month
+        const [y, m] = month.split('-').map(Number);
+        const startDate = `${month}-01`;
+        // Next month calculation
+        const nextMonthDate = new Date(y, m, 1); // JS Month is 0-indexed, so 'm' is already next month
+        const nm = nextMonthDate.getMonth() + 1;
+        const ny = nextMonthDate.getFullYear();
+        const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
         let query = supabaseClient
             .from('inspections')
             .select('*')
             .eq('machine_type', currentMachineId)
             .eq('machine_id', mid)
             .or('is_deleted.is.null,is_deleted.eq.false')
-            .like('inspection_date', `${month}-%`)
+            .gte('inspection_date', startDate)
+            .lt('inspection_date', nextMonthStr)
             .order('created_at', { ascending: false });
 
         if (currentSiteId) {
@@ -1827,14 +1837,22 @@ async function saveInspection() {
         const dailyType = getDailyMachineType(baseType);
 
         if (dailyType && currentMachineId === baseType) {
-            const inspMonth = inspectionDate.slice(0, 7);
+            // Calculate range for auto-create check
+            const [y, m] = inspMonth.split('-').map(Number);
+            const startDate = `${inspMonth}-01`;
+            const nextMonthDate = new Date(y, m, 1);
+            const nm = nextMonthDate.getMonth() + 1;
+            const ny = nextMonthDate.getFullYear();
+            const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
             const { data: existingDaily } = await supabaseClient
                 .from('inspections')
                 .select('id')
                 .eq('site_id', payload.site_id)
                 .eq('machine_type', dailyType)
                 .eq('machine_id', String(mid))
-                .like('inspection_date', `${inspMonth}-%`)
+                .gte('inspection_date', startDate)
+                .lt('inspection_date', nextMonthStr)
                 .or('is_deleted.is.null,is_deleted.eq.false')
                 .limit(1)
                 .maybeSingle();
