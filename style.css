@@ -1308,8 +1308,10 @@ body.print-mode-book .print-page {
 }
 
 /* Page 1: Monthly Form */
+/* Page 1: Monthly Form */
 body.print-mode-book #inspection-form-page {
-    transform: scale(0.85);
+    transform: none !important;
+    /* Unified scaling on app-container */
     transform-origin: top center;
     margin-bottom: 0;
 }
@@ -1317,8 +1319,8 @@ body.print-mode-book #inspection-form-page {
 /* Page 2: Daily Grid */
 /* Page 2: Daily Grid */
 body.print-mode-book #monthly-grid-page {
-    transform: scale(0.9) !important;
-    /* User requested 10% reduction */
+    transform: none !important;
+    /* Unified scaling on app-container */
     transform-origin: top left;
     padding-top: 10px;
     padding-left: 10px;
