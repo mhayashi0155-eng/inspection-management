@@ -2246,10 +2246,25 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     }
 
     // Extract unique YYYY-MM
-    const months = [...new Set(inspections.map(i => i.inspection_date.slice(0, 7)))];
-    console.log("Months to render:", months);
+    // Normalize logic: Ensure we only get valid YYYY-MM strings
+    const rawMonths = inspections.map(i => {
+        if (!i.inspection_date) return null;
+        return i.inspection_date.substring(0, 7);
+    }).filter(m => m && m.match(/^\d{4}-\d{2}$/)); // Filter out invalid formats
 
-    container.innerHTML = ''; // Clear loading message
+    // strict deduplication
+    const months = [...new Set(rawMonths)].sort();
+
+    console.log("Months to render (Deduped):", months);
+
+    // DEBUG: Display loaded months to user for verification
+    const debugMsg = document.createElement('div');
+    debugMsg.style.textAlign = 'center';
+    debugMsg.style.padding = '10px';
+    debugMsg.style.color = '#666';
+    debugMsg.style.fontSize = '0.8rem';
+    debugMsg.innerText = `読み込み対象月: ${months.join(', ')}`;
+    container.appendChild(debugMsg);
 
     // Base elements to clone
     const baseFormPage = document.getElementById('inspection-form-page');
