@@ -1596,7 +1596,7 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
     const month = document.getElementById('inspection-month').value;
     const mid = document.getElementById('machine-id').value;
 
-    if (!month || !mid || !currentSiteId || !currentMachineId) return;
+    if (!month || !mid || !currentMachineId) return; // Removed currentSiteId check
 
     // --- Clear Statuses Logic (Ver53) ---
     const isDaily = dailyMonthlyTypes.includes(currentMachineId);
@@ -1634,15 +1634,23 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
     }
 
     // --- Fetch Data ---
-    const { data: list, error } = await supabaseClient
+    let query = supabaseClient
         .from('inspections')
         .select('*')
-        .eq('site_id', currentSiteId)
         .eq('machine_type', currentMachineId)
         .eq('machine_id', mid)
         .or('is_deleted.is.null,is_deleted.eq.false')
         .like('inspection_date', `${month}-%`)
         .order('created_at', { ascending: false });
+
+    // Handle site_id (explicit match or is null)
+    if (currentSiteId) {
+        query = query.eq('site_id', currentSiteId);
+    } else {
+        query = query.is('site_id', null);
+    }
+
+    const { data: list, error } = await query;
 
     if (list && list.length > 0) {
         const latest = list[0];
@@ -1756,19 +1764,26 @@ async function saveInspection() {
     };
 
     // Upsert Check
-    const checkQuery = await supabaseClient
+    let checkQuery = supabaseClient
         .from('inspections')
         .select('id')
-        .eq('site_id', payload.site_id)
         .eq('machine_type', payload.machine_type)
         .eq('machine_id', payload.machine_id)
         .eq('inspection_date', payload.inspection_date)
         .or('is_deleted.is.null,is_deleted.eq.false')
         .limit(1);
 
+    if (payload.site_id) {
+        checkQuery = checkQuery.eq('site_id', payload.site_id);
+    } else {
+        checkQuery = checkQuery.is('site_id', null);
+    }
+
+    const checkResult = await checkQuery;
+
     let targetId = null;
-    if (checkQuery.data && checkQuery.data.length > 0) {
-        targetId = checkQuery.data[0].id;
+    if (checkResult.data && checkResult.data.length > 0) {
+        targetId = checkResult.data[0].id;
     }
 
     let result;
