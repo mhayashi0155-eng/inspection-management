@@ -1701,6 +1701,15 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
                 Object.keys(latest.statuses).forEach(uid => {
                     if (uid.startsWith('_')) return;
                     let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
+
+                    // Debug finding elements in Book Mode
+                    if (targetScope && !el) {
+                        console.warn(`DEBUG: BookMode - Element not found for uid: ${uid}, looking in scope:`, scope);
+                    }
+                    if (targetScope && el) {
+                        // console.log(`DEBUG: BookMode - Found! Setting ${uid} to`, latest.statuses[uid]);
+                    }
+
                     if (el) {
                         const code = latest.statuses[uid];
                         const opt = options.find(o => o.code === code);
