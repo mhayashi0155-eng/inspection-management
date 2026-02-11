@@ -212,6 +212,16 @@
             z-index: 100000;
         }
 
+        /* BOOK MODE CONTAINER RESET */
+        body.print-mode-book .app-container {
+            width: 100% !important;
+            max-width: none !important;
+            transform: none !important;
+            /* Remove 0.85 scale */
+            margin: 0 !important;
+            padding: 10px !important;
+        }
+
         /* BOOK MODE AUTO-RESIZE OVERRIDES (Placed here to ensure priority over internal compressed styles) */
         /* REMOVED @media print wrapper to ensure it applies to screen view as well */
         body.print-mode-book .monthly-table th:first-child,
@@ -444,10 +454,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.11-Ver73_MediaFix
+        v2026.02.11-Ver74_ScaleFix
     </div>
 
-    <script src="script.js?v=Ver73_MediaFix"></script>
+    <script src="script.js?v=Ver74_ScaleFix"></script>
 </body>
 
 </html>

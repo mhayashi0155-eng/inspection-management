@@ -1316,10 +1316,11 @@ body.print-mode-book #inspection-form-page {
 
 /* Page 2: Daily Grid */
 body.print-mode-book #monthly-grid-page {
-    transform: scale(0.85);
+    transform: none !important;
+    /* Remove double scaling */
     transform-origin: top left;
-    padding-top: 50px;
-    padding-left: 100px;
+    padding-top: 10px;
+    padding-left: 10px;
 }
 
 /* Show both forms in Book Mode */
@@ -1333,21 +1334,21 @@ body.print-mode-book #monthly-grid-view {
     width: 100% !important;
 }
 
-body.print-mode-book #monthly-table {
+body.print-mode-book .monthly-table {
     table-layout: fixed !important;
     width: 100% !important;
 }
 
-body.print-mode-book #monthly-table th,
-body.print-mode-book #monthly-table td {
+body.print-mode-book .monthly-table th,
+body.print-mode-book .monthly-table td {
     width: auto !important;
     /* Let table-layout handle it */
     min-width: 20px !important;
 }
 
 /* Ensure the first column (items) has enough width */
-body.print-mode-book #monthly-table th:first-child,
-body.print-mode-book #monthly-table td:first-child {
+body.print-mode-book .monthly-table th:first-child,
+body.print-mode-book .monthly-table td:first-child {
     width: 200px !important;
     min-width: 200px !important;
     max-width: 200px !important;
