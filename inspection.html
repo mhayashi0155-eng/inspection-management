@@ -213,25 +213,23 @@
         }
 
         /* BOOK MODE AUTO-RESIZE OVERRIDES (Placed here to ensure priority over internal compressed styles) */
-        @media print {
+        /* REMOVED @media print wrapper to ensure it applies to screen view as well */
+        body.print-mode-book .monthly-table th:first-child,
+        body.print-mode-book .monthly-table td:first-child {
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            font-size: 0.9rem !important;
+            line-height: 1.4 !important;
+            padding: 4px !important;
+        }
 
-            body.print-mode-book .monthly-table th:first-child,
-            body.print-mode-book .monthly-table td:first-child {
-                width: 200px !important;
-                min-width: 200px !important;
-                max-width: 200px !important;
-                font-size: 0.9rem !important;
-                line-height: 1.4 !important;
-                padding: 4px !important;
-            }
-
-            body.print-mode-book .monthly-table th,
-            body.print-mode-book .monthly-table td {
-                font-size: 0.95rem !important;
-                height: 2.0rem !important;
-                line-height: 2.0rem !important;
-                padding: 0 !important;
-            }
+        body.print-mode-book .monthly-table th,
+        body.print-mode-book .monthly-table td {
+            font-size: 0.95rem !important;
+            height: 2.0rem !important;
+            line-height: 2.0rem !important;
+            padding: 0 !important;
         }
     </style>
     <!-- Google Fonts for a premium look -->
@@ -446,10 +444,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.11-Ver72_DirectStyle
+        v2026.02.11-Ver73_MediaFix
     </div>
 
-    <script src="script.js?v=Ver72_DirectStyle"></script>
+    <script src="script.js?v=Ver73_MediaFix"></script>
 </body>
 
 </html>
