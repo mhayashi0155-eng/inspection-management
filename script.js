@@ -1755,16 +1755,10 @@ async function saveInspection() {
 
     try {
         const statuses = {};
-        const selector = isDaily ? '.day-cell' : '.current-status';
-        document.querySelectorAll(selector).forEach(el => {
-            const id = el.id.replace('status-', '');
-            const stat = el.getAttribute('data-status');
-            if (isDaily) {
-                if (stat !== 'none') statuses[id] = stat;
-            } else {
-                statuses[id] = stat;
-            }
-        });
+        // Debug: Log Scraping
+        console.log(`DEBUG: saveInspection - isDaily:${isDaily}, Selector:${selector}`);
+        console.log(`DEBUG: Found elements: ${document.querySelectorAll(selector).length}`);
+        console.log(`DEBUG: Captured Statuses:`, statuses);
 
         const inspectionDate = isDaily
             ? document.getElementById('inspection-month').value + "-01"
@@ -1791,14 +1785,35 @@ async function saveInspection() {
             safety_manager: document.getElementById('safety-manager')?.value || ''
         };
 
+        console.log("DEBUG: Save Payload:", payload);
+
         // Upsert Check
         let checkQuery = supabaseClient
             .from('inspections')
             .select('id')
             .eq('machine_type', payload.machine_type)
-            .eq('machine_id', payload.machine_id)
-            .eq('inspection_date', payload.inspection_date)
+            .eq('machine_id', payload.machine_id);
+
+        // Ver60: Use Range Query for Daily to match loadMonthlyData logic
+        if (isDaily) {
+            // Calculate range
+            const [y, m] = document.getElementById('inspection-month').value.split('-').map(Number);
+            const startDate = `${document.getElementById('inspection-month').value}-01`;
+            const nextMonthDate = new Date(y, m, 1);
+            const nm = nextMonthDate.getMonth() + 1;
+            const ny = nextMonthDate.getFullYear();
+            const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
+            checkQuery = checkQuery
+                .gte('inspection_date', startDate)
+                .lt('inspection_date', nextMonthStr);
+        } else {
+            checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
+        }
+
+        checkQuery = checkQuery
             .or('is_deleted.is.null,is_deleted.eq.false')
+            .order('created_at', { ascending: false }) // Get latest if multiple
             .limit(1);
 
         if (payload.site_id) {
@@ -1808,6 +1823,8 @@ async function saveInspection() {
         }
 
         const checkResult = await checkQuery;
+        console.log("DEBUG: Check Result:", checkResult);
+
         if (checkResult.error) throw new Error("CheckQuery Error: " + checkResult.error.message);
 
         let targetId = null;
