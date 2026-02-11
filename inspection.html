@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.11-Full_Restore_Ver47 -->
+<!-- Version: v2026.02.11-Full_Restore_Ver48 -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Full_Restore_Ver47">
-    <link rel="stylesheet" href="style.css?v=Full_Restore_Ver47">
+    <link rel="stylesheet" href="style.css?v=Full_Restore_Ver48">
+    <link rel="stylesheet" href="style.css?v=Full_Restore_Ver48">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -43,18 +43,17 @@
         }
 
         body.print-mode-daily .app-container {
-            width: 1280px !important;
-            min-width: 1280px !important;
-            max-width: 1280px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: none !important;
             margin: 0 !important;
             padding: 0 !important;
-            padding-top: 100px !important;
-            /* Add top margin */
-            padding-left: 200px !important;
-            /* Add left margin */
-            zoom: normal !important;
-            /* Revert to Scale for consistency and quality */
-            transform: scale(0.85) !important;
+            /* Remove manual padding, let the browser handle margins via @page or user settings if needed, 
+               or keep minimal padding if layout requires it. 
+               Resetting to standard block behavior. */
+            zoom: 0.98 !important;
+            /* Slight adjust to fit A4 if needed, or normal */
+            transform: none !important;
             transform-origin: top left !important;
             display: block !important;
         }
@@ -420,10 +419,10 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.11-Full_Restore_Ver47
+        v2026.02.11-Full_Restore_Ver48
     </div>
 
-    <script src="script.js?v=Full_Restore_Ver47"></script>
+    <script src="script.js?v=Full_Restore_Ver48"></script>
 </body>
 
 </html>
