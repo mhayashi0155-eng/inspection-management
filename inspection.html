@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver52_True_Demo">
-    <link rel="stylesheet" href="style.css?v=Ver52_True_Demo">
+    <link rel="stylesheet" href="style.css?v=Ver53_DataOverhaul">
+    <link rel="stylesheet" href="style.css?v=Ver53_DataOverhaul">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -411,6 +411,8 @@
             </div>
 
             <div class="action-buttons">
+                <!-- Ver53 Data Reset -->
+                <button onclick="resetAllData()" class="ghost-btn" style="color:red; font-size:0.7rem;">全データ消去</button>
                 <button id="reset-btn" class="danger-btn">リセット</button>
                 <button id="save-btn" class="primary-btn">保存</button>
                 <button id="print-btn" class="success-btn">PDF発行 / 印刷</button>
@@ -420,10 +422,10 @@
     </div>
 
     <div id="version-indicator" style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.8rem;">
-        v2026.02.11-Ver52_True_Demo
+        v2026.02.11-Ver53_DataOverhaul
     </div>
 
-    <script src="script.js?v=Ver52_True_Demo"></script>
+    <script src="script.js?v=Ver53_DataOverhaul"></script>
 </body>
 
 </html>

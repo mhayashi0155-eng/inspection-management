@@ -1591,28 +1591,49 @@ function toggleDailyStatus(uid) {
 
 
 async function loadMonthlyData(targetScope = null, idSuffix = '') {
-    // If targetScope is provided, we use it. Otherwise we fallback to standard document.getElementById
-
-    // updateDocumentTitle is only relevant for the main view
     if (!targetScope) updateDocumentTitle();
 
-    // Retrieve global params from the standard inputs (even in book mode, these are set)
-    const month = document.getElementById('inspection-month').value; // YYYY-MM
+    const month = document.getElementById('inspection-month').value;
     const mid = document.getElementById('machine-id').value;
 
-    // Debug log
-    if (targetScope) {
-        console.log(`DEBUG: loadMonthlyData (scoped) called. Month:${month}, Mid:${mid}, ScopeID:${targetScope.id}`);
-    } else {
-        console.log(`DEBUG: loadMonthlyData (global) called. Month:${month}, Mid:${mid}`);
+    if (!month || !mid || !currentSiteId || !currentMachineId) return;
+
+    // --- Clear Statuses Logic (Ver53) ---
+    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+    let scope = targetScope;
+    if (!scope) {
+        scope = document.getElementById(isDaily ? 'monthly-grid-page' : 'inspection-form-page');
     }
 
-    if (!month || !mid || !currentSiteId || !currentMachineId) {
-        console.warn("DEBUG: loadMonthlyData aborted due to missing params");
-        return;
+    if (scope) {
+        if (isDaily) {
+            // Clear daily cells but preserve layout/day-numbers
+            scope.querySelectorAll('.day-cell').forEach(el => {
+                const keep = ['day-cell', 'sat', 'sun'];
+                el.classList.forEach(c => {
+                    if (!keep.includes(c)) el.classList.remove(c);
+                });
+                el.innerText = '';
+                el.setAttribute('data-status', 'none');
+            });
+        } else {
+            // Clear monthly checkboxes
+            scope.querySelectorAll('.current-status').forEach(el => {
+                el.className = 'current-status good';
+                el.innerText = 'レ';
+                el.setAttribute('data-status', 'good');
+            });
+            // Clear text inputs if global
+            if (!targetScope) {
+                const rem = document.getElementById('remarks');
+                const rep = document.getElementById('repairs');
+                if (rem) rem.value = '';
+                if (rep) rep.value = '';
+            }
+        }
     }
 
-    // List fetch (standard)
+    // --- Fetch Data ---
     const { data: list, error } = await supabaseClient
         .from('inspections')
         .select('*')
@@ -1623,55 +1644,15 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
         .like('inspection_date', `${month}-%`)
         .order('created_at', { ascending: false });
 
-    // Status reset logic
-    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
-
-    // Reset Target Determination
-    // If targetScope is given, look inside it. Otherwise look for global IDs
-    let scope = targetScope;
-    if (!scope) {
-        scope = document.getElementById(isDaily ? 'monthly-grid-page' : 'inspection-form-page');
-    }
-
-    if (scope) {
-        if (isDaily) {
-            scope.querySelectorAll('.day-cell').forEach(el => {
-                el.className = 'day-cell';
-                el.innerText = '';
-                el.setAttribute('data-status', 'none');
-            });
-        } else {
-            scope.querySelectorAll('.current-status').forEach(el => {
-                el.className = 'current-status good';
-                el.innerText = 'レ';
-                el.setAttribute('data-status', 'good');
-            });
-        }
-    }
-
     if (list && list.length > 0) {
         const latest = list[0];
-        if (!targetScope) currentInspectionId = latest.id; // Only update global ID if not scoped
+        if (!targetScope) currentInspectionId = latest.id;
 
-        // --- Helper to set values (Scoped or Global) ---
         const setG = (id, val) => {
-            // If scoped, we need to find the element. 
-            // In book mode, IDs are prefixed: bk-f-{month}-{id} or bk-g-{month}-{id}
-            // We can use the idSuffix if provided, OR querySelector with suffix match
-            let el = null;
-            if (targetScope) {
-                // Try suffix match for robustness
-                el = targetScope.querySelector(`[id$="${id}"]`);
-            } else {
-                el = document.getElementById(id);
-            }
-
+            let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
             if (el) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
-                    el.value = val || '';
-                } else {
-                    el.innerText = val || '';
-                }
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = val || '';
+                else el.innerText = val || '';
             }
         };
 
@@ -1684,22 +1665,11 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
         setG('operating-hours', latest.operating_hours);
         setG('site-representative', latest.statuses?._site_representative);
 
-        // --- Status Update ---
         if (latest.statuses && scope) {
             const options = isDaily ? dailyStatusOptions : statusOptions;
             Object.keys(latest.statuses).forEach(uid => {
                 if (uid.startsWith('_')) return;
-
-                // Find element logic
-                let el = null;
-                if (targetScope) {
-                    // Suffix match for book mode (IDs are like ...-status-{uid})
-                    el = scope.querySelector(`[id$="status-${uid}"]`);
-                } else {
-                    // Exact match for normal mode
-                    el = scope.querySelector(`#status-${uid}`);
-                }
-
+                let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
                 if (el) {
                     const code = latest.statuses[uid];
                     const opt = options.find(o => o.code === code);
@@ -1764,9 +1734,7 @@ async function saveInspection() {
         ? document.getElementById('inspection-month').value + "-01"
         : document.getElementById('inspection-date').value;
 
-    // 会社管理No.をstatusesに追加して保存（カラム不足回避のため）
     statuses['_company_machine_id'] = companyMid;
-    // 点検者(正)・(副)もstatusesに追加
     statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
     statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
 
@@ -1777,7 +1745,7 @@ async function saveInspection() {
         machine_id: mid,
         inspection_date: inspectionDate,
         operating_hours: hours ? parseFloat(hours) : 0,
-        inspector_name: "", // Removed from UI but keeping DB column for compatibility
+        inspector_name: "",
         remarks: document.getElementById('remarks').value,
         repairs: document.getElementById('repairs').value,
         statuses: statuses,
@@ -1785,93 +1753,92 @@ async function saveInspection() {
         site_name: document.getElementById('site-name')?.value || '',
         representative: document.getElementById('representative')?.value || '',
         safety_manager: document.getElementById('safety-manager')?.value || ''
-        // company_machine_id: ... カラムがないので削除
     };
 
-    // 日常点検の場合、既存レコードのID再確認 (二重登録防止)
-    if (isDaily && !currentInspectionId) {
-        const { data: existing } = await supabaseClient
+    // Upsert Check
+    const checkQuery = await supabaseClient
+        .from('inspections')
+        .select('id')
+        .eq('site_id', payload.site_id)
+        .eq('machine_type', payload.machine_type)
+        .eq('machine_id', payload.machine_id)
+        .eq('inspection_date', payload.inspection_date)
+        .or('is_deleted.is.null,is_deleted.eq.false')
+        .limit(1);
+
+    let targetId = null;
+    if (checkQuery.data && checkQuery.data.length > 0) {
+        targetId = checkQuery.data[0].id;
+    }
+
+    let result;
+    if (targetId) {
+        result = await supabaseClient.from('inspections').update(payload).eq('id', targetId).select();
+    } else {
+        result = await supabaseClient.from('inspections').insert([payload]).select();
+    }
+
+    if (result.error) {
+        btn.disabled = false;
+        btn.innerText = "保存";
+        alert("保存に失敗しました: " + result.error.message);
+        return;
+    }
+
+    // Success Handling
+    const newId = result.data[0].id;
+    currentInspectionId = newId;
+    const url = new URL(window.location);
+    url.searchParams.set('id', newId);
+    url.searchParams.delete('action');
+    window.history.replaceState({}, '', url);
+
+    if (isDaily) loadMonthlyData();
+
+    // Auto-create Daily if needed
+    let autoCreatedMsg = "";
+    const baseType = getBaseMachineType(currentMachineId);
+    const dailyType = getDailyMachineType(baseType);
+
+    if (dailyType && currentMachineId === baseType) {
+        // 月次点検保存時
+        const inspMonth = inspectionDate.slice(0, 7);
+        const { data: existingDaily } = await supabaseClient
             .from('inspections')
             .select('id')
             .eq('site_id', payload.site_id)
-            .eq('machine_type', payload.machine_type)
-            .eq('machine_id', payload.machine_id)
-            .eq('inspection_date', payload.inspection_date)
+            .eq('machine_type', dailyType)
+            .eq('machine_id', String(mid))
+            .like('inspection_date', `${inspMonth}-%`)
+            .or('is_deleted.is.null,is_deleted.eq.false')
             .limit(1)
             .maybeSingle();
 
-        if (existing) {
-            console.log("DEBUG: Found existing daily record, switching to update mode:", existing.id);
-            currentInspectionId = existing.id;
+        if (!existingDaily) {
+            const dailyPayload = { ...payload };
+            dailyPayload.machine_type = dailyType;
+            dailyPayload.inspection_date = `${inspMonth}-01`;
+            dailyPayload.operating_hours = 0;
+            dailyPayload.statuses = {};
+            // remarks/repairs? -> maybe sync or clear. Clear for safety.
+            dailyPayload.remarks = '';
+            dailyPayload.repairs = '';
+
+            const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
+            if (!dailyErr) autoCreatedMsg = "\n(日常点検表も自動作成しました)";
         }
     }
 
-    const { error } = currentInspectionId
-        ? await supabaseClient.from('inspections').update(payload).eq('id', currentInspectionId)
-        : await supabaseClient.from('inspections').insert([payload]);
-
-    if (error) { alert("保存失敗: " + error.message); }
-    else {
-        // 車両系(shovel, tractor, crane)の月次点検保存時、同月の日常点検がなければ自動作成
-        let autoCreatedMsg = "";
-        const baseType = getBaseMachineType(currentMachineId);
-        const dailyType = getDailyMachineType(baseType);
-
-        if (dailyType) {
-
-            const inspMonth = inspectionDate.slice(0, 7); // YYYY-MM
-
-            // 既存チェック (payload.site_id を使用して確実に一致させる)
-            console.log(`DEBUG: Checking for existing daily. Type: ${dailyType}, Mid: ${mid}, Site: ${payload.site_id}, Month: ${inspMonth}`);
-
-            const { data: existingDaily, error: checkErr } = await supabaseClient
-                .from('inspections')
-                .select('id')
-                .eq('site_id', payload.site_id)
-                .eq('machine_type', dailyType)
-                .eq('machine_id', String(mid)) // 強制文字列化
-                .like('inspection_date', `${inspMonth}-%`)
-                .or('is_deleted.is.null,is_deleted.eq.false')
-                .limit(1)
-                .maybeSingle();
-
-            if (checkErr) {
-                alert("DEBUG CHECK ERROR: " + checkErr.message);
-            }
-
-            if (existingDaily) {
-                console.log("DEBUG: Daily record already exists, skipping auto-creation. ID:", existingDaily.id);
-            } else if (currentMachineId === baseType) {
-                // 月次点検の保存時かつ、日常点検がまだ存在しない場合のみ自動作成
-                console.log("DEBUG: No existing daily found and saving monthly, creating one...");
-                const dailyPayload = { ...payload };
-                dailyPayload.machine_type = dailyType;
-                dailyPayload.inspection_date = `${inspMonth}-01`; // 月初1日固定
-                dailyPayload.operating_hours = 0;
-                dailyPayload.statuses = {};
-
-                const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
-                if (!dailyErr) {
-                    autoCreatedMsg = "\n(日常点検表も自動作成しました)";
-                } else {
-                    console.error("DEBUG: Auto-creation failed:", dailyErr);
-                }
-            }
-        }
-
-        alert("保存しました" + autoCreatedMsg);
-        // デバッグ用: もしメッセージが誤って出た場合はconsoleを確認してもらう
-        if (autoCreatedMsg) console.log("New daily was created because no existing one was found for:", dailyType, mid, inspMonth);
-
-        if (typeof liff !== 'undefined' && liff.isInClient()) {
-            liff.closeWindow();
-        } else {
-            const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-            window.location.href = redirectUrl;
-        }
-    }
     btn.disabled = false;
     btn.innerText = "保存";
+    alert("保存しました" + autoCreatedMsg);
+
+    if (typeof liff !== 'undefined' && liff.isInClient()) {
+        liff.closeWindow();
+    } else {
+        const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+        window.location.href = redirectUrl;
+    }
 }
 
 async function loadInspectionData(id) {
