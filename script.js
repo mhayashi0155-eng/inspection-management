@@ -2585,13 +2585,22 @@ async function syncInspectorFromParent(mType, mId, siteId) {
     const month = monthEl ? monthEl.value : null;
     if (!month || !siteId || !mId) return;
 
+    // Calculate date range
+    const [y, m] = month.split('-').map(Number);
+    const startDate = `${month}-01`;
+    const nextMonthDate = new Date(y, m, 1);
+    const nm = nextMonthDate.getMonth() + 1;
+    const ny = nextMonthDate.getFullYear();
+    const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
     const { data: parent } = await supabaseClient
         .from('inspections')
         .select('statuses')
         .eq('site_id', siteId)
         .eq('machine_type', parentType)
         .eq('machine_id', mId)
-        .like('inspection_date', `${month}-%`)
+        .gte('inspection_date', startDate)
+        .lt('inspection_date', nextMonthStr)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
