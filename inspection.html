@@ -135,7 +135,7 @@
         }
 
         /* Shrink the "checkboxes" (status divs) */
-        body:not(.print-mode-daily) .current-status {
+        body:not(.print-mode-daily):not(.print-mode-book) .current-status {
             width: 1.1rem !important;
             height: 1.1rem !important;
             font-size: 0.8rem !important;
@@ -145,8 +145,8 @@
             min-width: 0 !important;
         }
 
-        body:not(.print-mode-daily) .monthly-table th,
-        body:not(.print-mode-daily) .monthly-table td {
+        body:not(.print-mode-daily):not(.print-mode-book) .monthly-table th,
+        body:not(.print-mode-daily):not(.print-mode-book) .monthly-table td {
             padding: 0 !important;
             /* No padding in cells */
             height: 1.5rem !important;
