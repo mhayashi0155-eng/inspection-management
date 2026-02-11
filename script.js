@@ -1,6 +1,6 @@
 ﻿// --- 設定情報 ---
 const SUPABASE_URL = 'https://vaxlifsrimttefjevpbx.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GZ3Up6r_pcrcOXq3oFiEsA_nKo-tO0A';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheGxpZnNyaW10dGVmamV2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MzYyMTgsImV4cCI6MjA4NDAxMjIxOH0.AnffwtWCoprPdwgqKeThGBUclWUaJbh5ZemzM-CwK4Q';
 const LIFF_ID = '2008902635-5DQbjvmz';
 
 // --- グローバル変数 ---
