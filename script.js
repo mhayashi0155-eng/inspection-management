@@ -1594,106 +1594,120 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
     if (!targetScope) updateDocumentTitle();
 
     const month = document.getElementById('inspection-month').value;
-    const mid = document.getElementById('machine-id').value;
+    let mid = document.getElementById('machine-id').value;
+    if (mid) mid = mid.trim();
 
-    if (!month || !mid || !currentMachineId) return; // Removed currentSiteId check
+    console.log(`DEBUG: loadMonthlyData -> month:${month}, mid:${mid}, curMach:${currentMachineId}, curSite:${currentSiteId}`);
+
+    if (!month || !mid || !currentMachineId) return;
 
     // --- Clear Statuses Logic (Ver53) ---
-    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
-    let scope = targetScope;
-    if (!scope) {
-        scope = document.getElementById(isDaily ? 'monthly-grid-page' : 'inspection-form-page');
-    }
+    try {
+        const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+        let scope = targetScope;
+        if (!scope) {
+            scope = document.getElementById(isDaily ? 'monthly-grid-page' : 'inspection-form-page');
+        }
 
-    if (scope) {
-        if (isDaily) {
-            // Clear daily cells but preserve layout/day-numbers
-            scope.querySelectorAll('.day-cell').forEach(el => {
-                const keep = ['day-cell', 'sat', 'sun'];
-                el.classList.forEach(c => {
-                    if (!keep.includes(c)) el.classList.remove(c);
+        if (scope) {
+            if (isDaily) {
+                scope.querySelectorAll('.day-cell').forEach(el => {
+                    const keep = ['day-cell', 'sat', 'sun'];
+                    el.classList.forEach(c => {
+                        if (!keep.includes(c)) el.classList.remove(c);
+                    });
+                    el.innerText = '';
+                    el.setAttribute('data-status', 'none');
                 });
-                el.innerText = '';
-                el.setAttribute('data-status', 'none');
-            });
-        } else {
-            // Clear monthly checkboxes
-            scope.querySelectorAll('.current-status').forEach(el => {
-                el.className = 'current-status good';
-                el.innerText = 'レ';
-                el.setAttribute('data-status', 'good');
-            });
-            // Clear text inputs if global
-            if (!targetScope) {
-                const rem = document.getElementById('remarks');
-                const rep = document.getElementById('repairs');
-                if (rem) rem.value = '';
-                if (rep) rep.value = '';
-            }
-        }
-    }
-
-    // --- Fetch Data ---
-    let query = supabaseClient
-        .from('inspections')
-        .select('*')
-        .eq('machine_type', currentMachineId)
-        .eq('machine_id', mid)
-        .or('is_deleted.is.null,is_deleted.eq.false')
-        .like('inspection_date', `${month}-%`)
-        .order('created_at', { ascending: false });
-
-    // Handle site_id (explicit match or is null)
-    if (currentSiteId) {
-        query = query.eq('site_id', currentSiteId);
-    } else {
-        query = query.is('site_id', null);
-    }
-
-    const { data: list, error } = await query;
-
-    if (list && list.length > 0) {
-        const latest = list[0];
-        if (!targetScope) currentInspectionId = latest.id;
-
-        const setG = (id, val) => {
-            let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
-            if (el) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = val || '';
-                else el.innerText = val || '';
-            }
-        };
-
-        setG('model-type', latest.model_type);
-        setG('remarks', latest.remarks);
-        setG('repairs', latest.repairs);
-        setG('inspector-main', latest.statuses?._inspector_main);
-        setG('inspector-sub', latest.statuses?._inspector_sub);
-        setG('company-machine-id', latest.statuses?._company_machine_id);
-        setG('operating-hours', latest.operating_hours);
-        setG('site-representative', latest.statuses?._site_representative);
-
-        if (latest.statuses && scope) {
-            const options = isDaily ? dailyStatusOptions : statusOptions;
-            Object.keys(latest.statuses).forEach(uid => {
-                if (uid.startsWith('_')) return;
-                let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
-                if (el) {
-                    const code = latest.statuses[uid];
-                    const opt = options.find(o => o.code === code);
-                    if (opt) {
-                        el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
-                        el.innerText = opt.mark;
-                        el.setAttribute('data-status', code);
-                    }
+            } else {
+                scope.querySelectorAll('.current-status').forEach(el => {
+                    el.className = 'current-status good';
+                    el.innerText = 'レ';
+                    el.setAttribute('data-status', 'good');
+                });
+                if (!targetScope) {
+                    const rem = document.getElementById('remarks');
+                    const rep = document.getElementById('repairs');
+                    if (rem) rem.value = '';
+                    if (rep) rep.value = '';
                 }
-            });
+            }
         }
-        if (!targetScope) updateDocumentTitle();
-        return latest;
-    } else {
-        if (!targetScope) currentInspectionId = null;
-        return null;
+
+        // --- Fetch Data ---
+        let query = supabaseClient
+            .from('inspections')
+            .select('*')
+            .eq('machine_type', currentMachineId)
+            .eq('machine_id', mid)
+            .or('is_deleted.is.null,is_deleted.eq.false')
+            .like('inspection_date', `${month}-%`)
+            .order('created_at', { ascending: false });
+
+        if (currentSiteId) {
+            const sid = currentSiteId.trim();
+            query = query.eq('site_id', sid);
+        } else {
+            query = query.is('site_id', null);
+        }
+
+        console.log("DEBUG: Executing Supabase Query...");
+        const { data: list, error } = await query;
+
+        if (error) {
+            console.error("DEBUG: loadMonthlyData Supabase Error:", error);
+            // alert("読み込みエラー: " + error.message);
+            return;
+        }
+
+        console.log("DEBUG: Load result:", list);
+
+        if (list && list.length > 0) {
+            const latest = list[0];
+            if (!targetScope) currentInspectionId = latest.id;
+
+            const setG = (id, val) => {
+                let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
+                if (el) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = val || '';
+                    else el.innerText = val || '';
+                }
+            };
+
+            setG('model-type', latest.model_type);
+            setG('remarks', latest.remarks);
+            setG('repairs', latest.repairs);
+            setG('inspector-main', latest.statuses?._inspector_main);
+            setG('inspector-sub', latest.statuses?._inspector_sub);
+            setG('company-machine-id', latest.statuses?._company_machine_id);
+            setG('operating-hours', latest.operating_hours);
+            setG('site-representative', latest.statuses?._site_representative);
+
+            if (latest.statuses && scope) {
+                const options = isDaily ? dailyStatusOptions : statusOptions;
+                Object.keys(latest.statuses).forEach(uid => {
+                    if (uid.startsWith('_')) return;
+                    let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
+                    if (el) {
+                        const code = latest.statuses[uid];
+                        const opt = options.find(o => o.code === code);
+                        if (opt) {
+                            el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
+                            el.innerText = opt.mark;
+                            el.setAttribute('data-status', code);
+                        }
+                    }
+                });
+            }
+            if (!targetScope) updateDocumentTitle();
+            return latest;
+        } else {
+            if (!targetScope) currentInspectionId = null;
+            return null;
+        }
+    } catch (e) {
+        console.error("DEBUG: loadMonthlyData Exception:", e);
+        // alert("読み込み例外: " + e.message);
     }
 }
 
