@@ -1726,127 +1726,135 @@ async function saveInspection() {
     btn.disabled = true;
     btn.innerText = "保存中...";
 
-    const statuses = {};
-    const selector = isDaily ? '.day-cell' : '.current-status';
-    document.querySelectorAll(selector).forEach(el => {
-        const id = el.id.replace('status-', '');
-        const stat = el.getAttribute('data-status');
-        if (isDaily) {
-            if (stat !== 'none') statuses[id] = stat;
-        } else {
-            statuses[id] = stat;
-        }
-    });
+    try {
+        const statuses = {};
+        const selector = isDaily ? '.day-cell' : '.current-status';
+        document.querySelectorAll(selector).forEach(el => {
+            const id = el.id.replace('status-', '');
+            const stat = el.getAttribute('data-status');
+            if (isDaily) {
+                if (stat !== 'none') statuses[id] = stat;
+            } else {
+                statuses[id] = stat;
+            }
+        });
 
-    const inspectionDate = isDaily
-        ? document.getElementById('inspection-month').value + "-01"
-        : document.getElementById('inspection-date').value;
+        const inspectionDate = isDaily
+            ? document.getElementById('inspection-month').value + "-01"
+            : document.getElementById('inspection-date').value;
 
-    statuses['_company_machine_id'] = companyMid;
-    statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
-    statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
+        statuses['_company_machine_id'] = companyMid;
+        statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
+        statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
 
-    const payload = {
-        site_id: currentSiteId || null,
-        machine_type: currentMachineId,
-        model_type: model,
-        machine_id: mid,
-        inspection_date: inspectionDate,
-        operating_hours: hours ? parseFloat(hours) : 0,
-        inspector_name: "",
-        remarks: document.getElementById('remarks').value,
-        repairs: document.getElementById('repairs').value,
-        statuses: statuses,
-        line_user_id: lineUserInfo?.userId || null,
-        site_name: document.getElementById('site-name')?.value || '',
-        representative: document.getElementById('representative')?.value || '',
-        safety_manager: document.getElementById('safety-manager')?.value || ''
-    };
+        const payload = {
+            site_id: currentSiteId || null,
+            machine_type: currentMachineId,
+            model_type: model,
+            machine_id: mid,
+            inspection_date: inspectionDate,
+            operating_hours: hours ? parseFloat(hours) : 0,
+            inspector_name: "",
+            remarks: document.getElementById('remarks').value,
+            repairs: document.getElementById('repairs').value,
+            statuses: statuses,
+            line_user_id: lineUserInfo?.userId || null,
+            site_name: document.getElementById('site-name')?.value || '',
+            representative: document.getElementById('representative')?.value || '',
+            safety_manager: document.getElementById('safety-manager')?.value || ''
+        };
 
-    // Upsert Check
-    let checkQuery = supabaseClient
-        .from('inspections')
-        .select('id')
-        .eq('machine_type', payload.machine_type)
-        .eq('machine_id', payload.machine_id)
-        .eq('inspection_date', payload.inspection_date)
-        .or('is_deleted.is.null,is_deleted.eq.false')
-        .limit(1);
-
-    if (payload.site_id) {
-        checkQuery = checkQuery.eq('site_id', payload.site_id);
-    } else {
-        checkQuery = checkQuery.is('site_id', null);
-    }
-
-    const checkResult = await checkQuery;
-
-    let targetId = null;
-    if (checkResult.data && checkResult.data.length > 0) {
-        targetId = checkResult.data[0].id;
-    }
-
-    let result;
-    if (targetId) {
-        result = await supabaseClient.from('inspections').update(payload).eq('id', targetId).select();
-    } else {
-        result = await supabaseClient.from('inspections').insert([payload]).select();
-    }
-
-    if (result.error) {
-        btn.disabled = false;
-        btn.innerText = "保存";
-        alert("保存に失敗しました: " + result.error.message);
-        return;
-    }
-
-    // Success Handling
-    const newId = result.data[0].id;
-    currentInspectionId = newId;
-    const url = new URL(window.location);
-    url.searchParams.set('id', newId);
-    url.searchParams.delete('action');
-    window.history.replaceState({}, '', url);
-
-    if (isDaily) loadMonthlyData();
-
-    // Auto-create Daily if needed
-    let autoCreatedMsg = "";
-    const baseType = getBaseMachineType(currentMachineId);
-    const dailyType = getDailyMachineType(baseType);
-
-    if (dailyType && currentMachineId === baseType) {
-        // 月次点検保存時
-        const inspMonth = inspectionDate.slice(0, 7);
-        const { data: existingDaily } = await supabaseClient
+        // Upsert Check
+        let checkQuery = supabaseClient
             .from('inspections')
             .select('id')
-            .eq('site_id', payload.site_id)
-            .eq('machine_type', dailyType)
-            .eq('machine_id', String(mid))
-            .like('inspection_date', `${inspMonth}-%`)
+            .eq('machine_type', payload.machine_type)
+            .eq('machine_id', payload.machine_id)
+            .eq('inspection_date', payload.inspection_date)
             .or('is_deleted.is.null,is_deleted.eq.false')
-            .limit(1)
-            .maybeSingle();
+            .limit(1);
 
-        if (!existingDaily) {
-            const dailyPayload = { ...payload };
-            dailyPayload.machine_type = dailyType;
-            dailyPayload.inspection_date = `${inspMonth}-01`;
-            dailyPayload.operating_hours = 0;
-            dailyPayload.statuses = {};
-            // remarks/repairs? -> maybe sync or clear. Clear for safety.
-            dailyPayload.remarks = '';
-            dailyPayload.repairs = '';
-
-            const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
-            if (!dailyErr) autoCreatedMsg = "\n(日常点検表も自動作成しました)";
+        if (payload.site_id) {
+            checkQuery = checkQuery.eq('site_id', payload.site_id);
+        } else {
+            checkQuery = checkQuery.is('site_id', null);
         }
-    }
 
-    btn.disabled = false;
-    btn.innerText = "保存";
-    alert("保存しました" + autoCreatedMsg);
+        const checkResult = await checkQuery;
+        if (checkResult.error) throw new Error("CheckQuery Error: " + checkResult.error.message);
+
+        let targetId = null;
+        if (checkResult.data && checkResult.data.length > 0) {
+            targetId = checkResult.data[0].id;
+        }
+
+        let result;
+        if (targetId) {
+            result = await supabaseClient.from('inspections').update(payload).eq('id', targetId).select();
+        } else {
+            result = await supabaseClient.from('inspections').insert([payload]).select();
+        }
+
+        if (result.error) throw new Error("Save Error: " + result.error.message);
+
+        // Success Handling
+        const newId = result.data[0].id;
+        currentInspectionId = newId;
+        const url = new URL(window.location);
+        url.searchParams.set('id', newId);
+        url.searchParams.delete('action');
+        window.history.replaceState({}, '', url);
+
+        if (isDaily) await loadMonthlyData();
+
+        // Auto-create Daily if needed
+        let autoCreatedMsg = "";
+        const baseType = getBaseMachineType(currentMachineId);
+        const dailyType = getDailyMachineType(baseType);
+
+        if (dailyType && currentMachineId === baseType) {
+            const inspMonth = inspectionDate.slice(0, 7);
+            const { data: existingDaily } = await supabaseClient
+                .from('inspections')
+                .select('id')
+                .eq('site_id', payload.site_id)
+                .eq('machine_type', dailyType)
+                .eq('machine_id', String(mid))
+                .like('inspection_date', `${inspMonth}-%`)
+                .or('is_deleted.is.null,is_deleted.eq.false')
+                .limit(1)
+                .maybeSingle();
+
+            if (!existingDaily) {
+                const dailyPayload = { ...payload };
+                dailyPayload.machine_type = dailyType;
+                dailyPayload.inspection_date = `${inspMonth}-01`;
+                dailyPayload.operating_hours = 0;
+                dailyPayload.statuses = {};
+                dailyPayload.remarks = '';
+                dailyPayload.repairs = '';
+
+                const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
+                if (!dailyErr) autoCreatedMsg = "\n(日常点検表も自動作成しました)";
+            }
+        }
+
+        alert("保存しました" + autoCreatedMsg);
+
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+            liff.closeWindow();
+        } else {
+            const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+            // window.location.href = redirectUrl; // Stay checking
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("予期せぬエラー: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "保存";
+    }
 
     if (typeof liff !== 'undefined' && liff.isInClient()) {
         liff.closeWindow();
