@@ -1676,607 +1676,606 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
             console.log("DEBUG: Latest Statuses:", list[0]?.statuses);
             console.log("DEBUG: Status Keys:", list[0]?.statuses ? Object.keys(list[0].statuses) : "No statuses");
 
-            if (list && list.length > 0) {
-                const latest = list[0];
-                if (!targetScope) currentInspectionId = latest.id;
+            const latest = list[0];
+            if (!targetScope) currentInspectionId = latest.id;
 
-                const setG = (id, val) => {
-                    let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
-                    if (el) {
-                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = val || '';
-                        else el.innerText = val || '';
-                    }
-                };
-
-                setG('model-type', latest.model_type);
-                setG('remarks', latest.remarks);
-                setG('repairs', latest.repairs);
-                setG('inspector-main', latest.statuses?._inspector_main);
-                setG('inspector-sub', latest.statuses?._inspector_sub);
-                setG('company-machine-id', latest.statuses?._company_machine_id);
-                setG('operating-hours', latest.operating_hours);
-                setG('site-representative', latest.statuses?._site_representative);
-
-                if (latest.statuses && scope) {
-                    const options = isDaily ? dailyStatusOptions : statusOptions;
-                    Object.keys(latest.statuses).forEach(uid => {
-                        if (uid.startsWith('_')) return;
-                        let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
-                        if (el) {
-                            const code = latest.statuses[uid];
-                            const opt = options.find(o => o.code === code);
-                            if (opt) {
-                                el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
-                                el.innerText = opt.mark;
-                                el.setAttribute('data-status', code);
-                            }
-                        }
-                    });
+            const setG = (id, val) => {
+                let el = targetScope ? targetScope.querySelector(`[id$="${id}"]`) : document.getElementById(id);
+                if (el) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') el.value = val || '';
+                    else el.innerText = val || '';
                 }
-                if (!targetScope) updateDocumentTitle();
-                return latest;
-            } else {
-                if (!targetScope) currentInspectionId = null;
-                return null;
-            }
-        } catch (e) {
-            console.error("DEBUG: loadMonthlyData Exception:", e);
-            // alert("読み込み例外: " + e.message);
-        }
-    }
-
-function toggleStatus(uid) {
-        const el = document.getElementById(`status-${uid}`);
-        if (!el) return;
-        const curr = el.getAttribute('data-status');
-        const idx = statusOptions.findIndex(o => o.code === curr);
-        const next = statusOptions[(idx + 1) % statusOptions.length];
-        el.className = `current-status ${next.code}`;
-        el.innerText = next.mark;
-        el.setAttribute('data-status', next.code);
-    }
-
-    async function saveInspection() {
-        const btn = document.getElementById('save-btn');
-        const model = document.getElementById('model-type').value;
-        const mid = document.getElementById('machine-id').value;
-        const companyMid = document.getElementById('company-machine-id').value;
-        const isDaily = dailyMonthlyTypes.includes(currentMachineId);
-
-        const hoursEl = document.getElementById('operating-hours');
-        const hours = hoursEl.value;
-
-        if (!model || !mid || !companyMid || (!isDaily && !hours)) {
-            alert("必須項目(*印)を入力してください");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = "保存中...";
-
-        try {
-            const statuses = {};
-            const selector = isDaily ? '.day-cell' : '.current-status';
-            document.querySelectorAll(selector).forEach(el => {
-                const id = el.id.replace('status-', '');
-                const stat = el.getAttribute('data-status');
-                if (isDaily) {
-                    if (stat !== 'none') statuses[id] = stat;
-                } else {
-                    statuses[id] = stat;
-                }
-            });
-
-            const inspectionDate = isDaily
-                ? document.getElementById('inspection-month').value + "-01"
-                : document.getElementById('inspection-date').value;
-
-            statuses['_company_machine_id'] = companyMid;
-            statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
-            statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
-
-            const payload = {
-                site_id: currentSiteId || null,
-                machine_type: currentMachineId,
-                model_type: model,
-                machine_id: mid,
-                inspection_date: inspectionDate,
-                operating_hours: hours ? parseFloat(hours) : 0,
-                inspector_name: "",
-                remarks: document.getElementById('remarks').value,
-                repairs: document.getElementById('repairs').value,
-                statuses: statuses,
-                line_user_id: lineUserInfo?.userId || null,
-                site_name: document.getElementById('site-name')?.value || '',
-                representative: document.getElementById('representative')?.value || '',
-                safety_manager: document.getElementById('safety-manager')?.value || ''
             };
 
-            // Upsert Check
-            let checkQuery = supabaseClient
+            setG('model-type', latest.model_type);
+            setG('remarks', latest.remarks);
+            setG('repairs', latest.repairs);
+            setG('inspector-main', latest.statuses?._inspector_main);
+            setG('inspector-sub', latest.statuses?._inspector_sub);
+            setG('company-machine-id', latest.statuses?._company_machine_id);
+            setG('operating-hours', latest.operating_hours);
+            setG('site-representative', latest.statuses?._site_representative);
+
+            if (latest.statuses && scope) {
+                const options = isDaily ? dailyStatusOptions : statusOptions;
+                Object.keys(latest.statuses).forEach(uid => {
+                    if (uid.startsWith('_')) return;
+                    let el = targetScope ? scope.querySelector(`[id$="status-${uid}"]`) : scope.querySelector(`#status-${uid}`);
+                    if (el) {
+                        const code = latest.statuses[uid];
+                        const opt = options.find(o => o.code === code);
+                        if (opt) {
+                            el.className = isDaily ? `day-cell status-cell-${code}` : `current-status ${code}`;
+                            el.innerText = opt.mark;
+                            el.setAttribute('data-status', code);
+                        }
+                    }
+                });
+            }
+            if (!targetScope) updateDocumentTitle();
+            return latest;
+        } else {
+            if (!targetScope) currentInspectionId = null;
+            return null;
+        }
+    } catch (e) {
+        console.error("DEBUG: loadMonthlyData Exception:", e);
+        // alert("読み込み例外: " + e.message);
+    }
+}
+
+function toggleStatus(uid) {
+    const el = document.getElementById(`status-${uid}`);
+    if (!el) return;
+    const curr = el.getAttribute('data-status');
+    const idx = statusOptions.findIndex(o => o.code === curr);
+    const next = statusOptions[(idx + 1) % statusOptions.length];
+    el.className = `current-status ${next.code}`;
+    el.innerText = next.mark;
+    el.setAttribute('data-status', next.code);
+}
+
+async function saveInspection() {
+    const btn = document.getElementById('save-btn');
+    const model = document.getElementById('model-type').value;
+    const mid = document.getElementById('machine-id').value;
+    const companyMid = document.getElementById('company-machine-id').value;
+    const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+
+    const hoursEl = document.getElementById('operating-hours');
+    const hours = hoursEl.value;
+
+    if (!model || !mid || !companyMid || (!isDaily && !hours)) {
+        alert("必須項目(*印)を入力してください");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "保存中...";
+
+    try {
+        const statuses = {};
+        const selector = isDaily ? '.day-cell' : '.current-status';
+        document.querySelectorAll(selector).forEach(el => {
+            const id = el.id.replace('status-', '');
+            const stat = el.getAttribute('data-status');
+            if (isDaily) {
+                if (stat !== 'none') statuses[id] = stat;
+            } else {
+                statuses[id] = stat;
+            }
+        });
+
+        const inspectionDate = isDaily
+            ? document.getElementById('inspection-month').value + "-01"
+            : document.getElementById('inspection-date').value;
+
+        statuses['_company_machine_id'] = companyMid;
+        statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
+        statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
+
+        const payload = {
+            site_id: currentSiteId || null,
+            machine_type: currentMachineId,
+            model_type: model,
+            machine_id: mid,
+            inspection_date: inspectionDate,
+            operating_hours: hours ? parseFloat(hours) : 0,
+            inspector_name: "",
+            remarks: document.getElementById('remarks').value,
+            repairs: document.getElementById('repairs').value,
+            statuses: statuses,
+            line_user_id: lineUserInfo?.userId || null,
+            site_name: document.getElementById('site-name')?.value || '',
+            representative: document.getElementById('representative')?.value || '',
+            safety_manager: document.getElementById('safety-manager')?.value || ''
+        };
+
+        // Upsert Check
+        let checkQuery = supabaseClient
+            .from('inspections')
+            .select('id')
+            .eq('machine_type', payload.machine_type)
+            .eq('machine_id', payload.machine_id)
+            .eq('inspection_date', payload.inspection_date)
+            .or('is_deleted.is.null,is_deleted.eq.false')
+            .limit(1);
+
+        if (payload.site_id) {
+            checkQuery = checkQuery.eq('site_id', payload.site_id);
+        } else {
+            checkQuery = checkQuery.is('site_id', null);
+        }
+
+        const checkResult = await checkQuery;
+        if (checkResult.error) throw new Error("CheckQuery Error: " + checkResult.error.message);
+
+        let targetId = null;
+        if (checkResult.data && checkResult.data.length > 0) {
+            targetId = checkResult.data[0].id;
+        }
+
+        let result;
+        if (targetId) {
+            result = await supabaseClient.from('inspections').update(payload).eq('id', targetId).select();
+        } else {
+            result = await supabaseClient.from('inspections').insert([payload]).select();
+        }
+
+        if (result.error) throw new Error("Save Error: " + result.error.message);
+
+        // Success Handling
+        const newId = result.data[0].id;
+        currentInspectionId = newId;
+        const url = new URL(window.location);
+        url.searchParams.set('id', newId);
+        url.searchParams.delete('action');
+        window.history.replaceState({}, '', url);
+
+        if (isDaily) await loadMonthlyData();
+
+        // Auto-create Daily if needed
+        let autoCreatedMsg = "";
+        const baseType = getBaseMachineType(currentMachineId);
+        const dailyType = getDailyMachineType(baseType);
+
+        if (dailyType && currentMachineId === baseType) {
+            // Calculate range for auto-create check
+            const [y, m] = inspMonth.split('-').map(Number);
+            const startDate = `${inspMonth}-01`;
+            const nextMonthDate = new Date(y, m, 1);
+            const nm = nextMonthDate.getMonth() + 1;
+            const ny = nextMonthDate.getFullYear();
+            const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
+            const { data: existingDaily } = await supabaseClient
                 .from('inspections')
                 .select('id')
-                .eq('machine_type', payload.machine_type)
-                .eq('machine_id', payload.machine_id)
-                .eq('inspection_date', payload.inspection_date)
+                .eq('site_id', payload.site_id)
+                .eq('machine_type', dailyType)
+                .eq('machine_id', String(mid))
+                .gte('inspection_date', startDate)
+                .lt('inspection_date', nextMonthStr)
                 .or('is_deleted.is.null,is_deleted.eq.false')
-                .limit(1);
+                .limit(1)
+                .maybeSingle();
 
-            if (payload.site_id) {
-                checkQuery = checkQuery.eq('site_id', payload.site_id);
-            } else {
-                checkQuery = checkQuery.is('site_id', null);
+            if (!existingDaily) {
+                const dailyPayload = { ...payload };
+                dailyPayload.machine_type = dailyType;
+                dailyPayload.inspection_date = `${inspMonth}-01`;
+                dailyPayload.operating_hours = 0;
+                dailyPayload.statuses = {};
+                dailyPayload.remarks = '';
+                dailyPayload.repairs = '';
+
+                const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
+                if (!dailyErr) autoCreatedMsg = "\n(日常点検表も自動作成しました)";
             }
-
-            const checkResult = await checkQuery;
-            if (checkResult.error) throw new Error("CheckQuery Error: " + checkResult.error.message);
-
-            let targetId = null;
-            if (checkResult.data && checkResult.data.length > 0) {
-                targetId = checkResult.data[0].id;
-            }
-
-            let result;
-            if (targetId) {
-                result = await supabaseClient.from('inspections').update(payload).eq('id', targetId).select();
-            } else {
-                result = await supabaseClient.from('inspections').insert([payload]).select();
-            }
-
-            if (result.error) throw new Error("Save Error: " + result.error.message);
-
-            // Success Handling
-            const newId = result.data[0].id;
-            currentInspectionId = newId;
-            const url = new URL(window.location);
-            url.searchParams.set('id', newId);
-            url.searchParams.delete('action');
-            window.history.replaceState({}, '', url);
-
-            if (isDaily) await loadMonthlyData();
-
-            // Auto-create Daily if needed
-            let autoCreatedMsg = "";
-            const baseType = getBaseMachineType(currentMachineId);
-            const dailyType = getDailyMachineType(baseType);
-
-            if (dailyType && currentMachineId === baseType) {
-                // Calculate range for auto-create check
-                const [y, m] = inspMonth.split('-').map(Number);
-                const startDate = `${inspMonth}-01`;
-                const nextMonthDate = new Date(y, m, 1);
-                const nm = nextMonthDate.getMonth() + 1;
-                const ny = nextMonthDate.getFullYear();
-                const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
-
-                const { data: existingDaily } = await supabaseClient
-                    .from('inspections')
-                    .select('id')
-                    .eq('site_id', payload.site_id)
-                    .eq('machine_type', dailyType)
-                    .eq('machine_id', String(mid))
-                    .gte('inspection_date', startDate)
-                    .lt('inspection_date', nextMonthStr)
-                    .or('is_deleted.is.null,is_deleted.eq.false')
-                    .limit(1)
-                    .maybeSingle();
-
-                if (!existingDaily) {
-                    const dailyPayload = { ...payload };
-                    dailyPayload.machine_type = dailyType;
-                    dailyPayload.inspection_date = `${inspMonth}-01`;
-                    dailyPayload.operating_hours = 0;
-                    dailyPayload.statuses = {};
-                    dailyPayload.remarks = '';
-                    dailyPayload.repairs = '';
-
-                    const { error: dailyErr } = await supabaseClient.from('inspections').insert([dailyPayload]);
-                    if (!dailyErr) autoCreatedMsg = "\n(日常点検表も自動作成しました)";
-                }
-            }
-
-            alert("保存しました" + autoCreatedMsg);
-
-            if (typeof liff !== 'undefined' && liff.isInClient()) {
-                liff.closeWindow();
-            } else {
-                const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-                // window.location.href = redirectUrl; // Stay checking
-            }
-
-        } catch (e) {
-            console.error(e);
-            alert("予期せぬエラー: " + e.message);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "保存";
         }
+
+        alert("保存しました" + autoCreatedMsg);
 
         if (typeof liff !== 'undefined' && liff.isInClient()) {
             liff.closeWindow();
         } else {
             const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-            window.location.href = redirectUrl;
+            // window.location.href = redirectUrl; // Stay checking
         }
+
+    } catch (e) {
+        console.error(e);
+        alert("予期せぬエラー: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "保存";
     }
 
-    async function loadInspectionData(id) {
-        const { data: i, error } = await supabaseClient.from('inspections').select('*').eq('id', id).single();
-        if (error || !i) return;
+    if (typeof liff !== 'undefined' && liff.isInClient()) {
+        liff.closeWindow();
+    } else {
+        const redirectUrl = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+        window.location.href = redirectUrl;
+    }
+}
 
-        currentInspectionId = i.id;
-        currentMachineId = i.machine_type;
-        currentSiteId = i.site_id; // site_idも確実にセット
+async function loadInspectionData(id) {
+    const { data: i, error } = await supabaseClient.from('inspections').select('*').eq('id', id).single();
+    if (error || !i) return;
 
-        // 先に値をセットしておく（自動ロード時にmid等が必要になるため）
-        const modelEl = document.getElementById('model-type');
-        const midEl = document.getElementById('machine-id');
-        // const inspectorEl = document.getElementById('inspector-name'); // Removed
-        const remarksEl = document.getElementById('remarks');
-        const repairsEl = document.getElementById('repairs');
+    currentInspectionId = i.id;
+    currentMachineId = i.machine_type;
+    currentSiteId = i.site_id; // site_idも確実にセット
 
-        if (modelEl) modelEl.value = i.model_type || '';
-        if (midEl) midEl.value = i.machine_id || '';
-        // if (inspectorEl) inspectorEl.value = i.inspector_name || '';
+    // 先に値をセットしておく（自動ロード時にmid等が必要になるため）
+    const modelEl = document.getElementById('model-type');
+    const midEl = document.getElementById('machine-id');
+    // const inspectorEl = document.getElementById('inspector-name'); // Removed
+    const remarksEl = document.getElementById('remarks');
+    const repairsEl = document.getElementById('repairs');
 
-        // Add Main/Sub Inspector
-        const inspectorMainEl = document.getElementById('inspector-main');
-        const inspectorSubEl = document.getElementById('inspector-sub');
-        if (inspectorMainEl) inspectorMainEl.value = (i.statuses && i.statuses._inspector_main) || '';
-        if (inspectorSubEl) inspectorSubEl.value = (i.statuses && i.statuses._inspector_sub) || '';
+    if (modelEl) modelEl.value = i.model_type || '';
+    if (midEl) midEl.value = i.machine_id || '';
+    // if (inspectorEl) inspectorEl.value = i.inspector_name || '';
 
-        if (remarksEl) remarksEl.value = i.remarks || '';
-        if (repairsEl) repairsEl.value = i.repairs || '';
+    // Add Main/Sub Inspector
+    const inspectorMainEl = document.getElementById('inspector-main');
+    const inspectorSubEl = document.getElementById('inspector-sub');
+    if (inspectorMainEl) inspectorMainEl.value = (i.statuses && i.statuses._inspector_main) || '';
+    if (inspectorSubEl) inspectorSubEl.value = (i.statuses && i.statuses._inspector_sub) || '';
 
-        const companyMidEl = document.getElementById('company-machine-id');
-        // statusesの中に保存されている場合があるためそこから取得
-        if (companyMidEl) {
-            companyMidEl.value = i.company_machine_id || (i.statuses && i.statuses._company_machine_id) || '';
-        }
+    if (remarksEl) remarksEl.value = i.remarks || '';
+    if (repairsEl) repairsEl.value = i.repairs || '';
 
-        const representativeEl = document.getElementById('representative');
-        const safetyEl = document.getElementById('safety-manager');
-        const headerSiteNameEl = document.getElementById('header-site-name');
+    const companyMidEl = document.getElementById('company-machine-id');
+    // statusesの中に保存されている場合があるためそこから取得
+    if (companyMidEl) {
+        companyMidEl.value = i.company_machine_id || (i.statuses && i.statuses._company_machine_id) || '';
+    }
 
-        // if (siteNameEl) siteNameEl.value = i.site_name || ''; // Removed from input
-        if (headerSiteNameEl) headerSiteNameEl.innerText = i.site_name || ''; // Set header text
-        if (representativeEl) representativeEl.value = i.representative || '';
-        if (safetyEl) safetyEl.value = i.safety_manager || '';
+    const representativeEl = document.getElementById('representative');
+    const safetyEl = document.getElementById('safety-manager');
+    const headerSiteNameEl = document.getElementById('header-site-name');
 
-        // 日常点検の場合は月指定も復元
-        if (dailyMonthlyTypes.includes(i.machine_type)) {
-            const monthStr = i.inspection_date.slice(0, 7);
-            const monthInput = document.getElementById('inspection-month');
-            if (monthInput) monthInput.value = monthStr;
-        } else {
-            const dateInput = document.getElementById('inspection-date');
-            const hourInput = document.getElementById('operating-hours');
-            if (dateInput) dateInput.value = i.inspection_date;
-            if (hourInput) hourInput.value = i.operating_hours;
-        }
+    // if (siteNameEl) siteNameEl.value = i.site_name || ''; // Removed from input
+    if (headerSiteNameEl) headerSiteNameEl.innerText = i.site_name || ''; // Set header text
+    if (representativeEl) representativeEl.value = i.representative || '';
+    if (safetyEl) safetyEl.value = i.safety_manager || '';
 
-        // 画面構成を切り替え
-        updateMachineMasterList(i.machine_type); // ★ここに追加: 保存データ読み込み時にもリストを更新
-        selectMachine(i.machine_type);
+    // 日常点検の場合は月指定も復元
+    if (dailyMonthlyTypes.includes(i.machine_type)) {
+        const monthStr = i.inspection_date.slice(0, 7);
+        const monthInput = document.getElementById('inspection-month');
+        if (monthInput) monthInput.value = monthStr;
+    } else {
+        const dateInput = document.getElementById('inspection-date');
+        const hourInput = document.getElementById('operating-hours');
+        if (dateInput) dateInput.value = i.inspection_date;
+        if (hourInput) hourInput.value = i.operating_hours;
+    }
 
-        // 日常点検の場合は、selectMachine内のrenderFormから呼ばれるloadMonthlyDataが
-        // 終わるのを待ってから（あるいは明示的に呼び出してから）値をセットする
-        if (dailyMonthlyTypes.includes(i.machine_type)) {
-            await loadMonthlyData();
-        }
+    // 画面構成を切り替え
+    updateMachineMasterList(i.machine_type); // ★ここに追加: 保存データ読み込み時にもリストを更新
+    selectMachine(i.machine_type);
 
-        if (i.statuses) {
-            Object.keys(i.statuses).forEach(key => {
-                if (key.startsWith('_')) return; // メタデータはスキップ
-                const isDaily = dailyMonthlyTypes.includes(i.machine_type);
-                const el = document.getElementById(`status-${key}`);
-                if (el) {
-                    const code = i.statuses[key];
-                    const options = isDaily ? dailyStatusOptions : statusOptions;
-                    const opt = options.find(o => o.code === code);
-                    if (opt) {
-                        el.className = (isDaily ? 'day-cell status-cell-' : 'current-status ') + code;
-                        el.innerText = opt.mark;
-                        el.setAttribute('data-status', code);
-                    }
+    // 日常点検の場合は、selectMachine内のrenderFormから呼ばれるloadMonthlyDataが
+    // 終わるのを待ってから（あるいは明示的に呼び出してから）値をセットする
+    if (dailyMonthlyTypes.includes(i.machine_type)) {
+        await loadMonthlyData();
+    }
+
+    if (i.statuses) {
+        Object.keys(i.statuses).forEach(key => {
+            if (key.startsWith('_')) return; // メタデータはスキップ
+            const isDaily = dailyMonthlyTypes.includes(i.machine_type);
+            const el = document.getElementById(`status-${key}`);
+            if (el) {
+                const code = i.statuses[key];
+                const options = isDaily ? dailyStatusOptions : statusOptions;
+                const opt = options.find(o => o.code === code);
+                if (opt) {
+                    el.className = (isDaily ? 'day-cell status-cell-' : 'current-status ') + code;
+                    el.innerText = opt.mark;
+                    el.setAttribute('data-status', code);
                 }
-            });
-        }
-        updateDocumentTitle();
-    }
-
-    function goDashBoard() {
-        const url = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
-        window.location.href = url;
-    }
-
-    function getMachineIcon(type) {
-        // 1. 画像がある機種
-        const imgMap = {
-            'shovel': 'assets/icons/backhoe.png',
-            'shovel_daily': 'assets/icons/backhoe.png',
-            'tractor': 'assets/icons/trailer.png',
-            'crane': 'assets/icons/crane.png',
-            'crane_daily': 'assets/icons/crane.png'
-        };
-
-        if (imgMap[type]) {
-            return `<img src="${imgMap[type]}" class="machine-icon-img">`;
-        }
-
-        // 2. その他の日常点検用SVGアイコン
-        let svg = '';
-        let color = '#64748b'; // default gray
-
-        switch (type) {
-            case 'sandbag': // 大型土のう -> 茶色のBox
-                svg = '<path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>';
-                color = '#8d6e63';
-                break;
-            case 'power_tool': // 電動工具 -> オレンジの工具
-                svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
-                color = '#f97316';
-                break;
-            case 'generator': // 発電機 -> 黄色のカミナリ
-                svg = '<path d="M7 2v11h3v9l7-12h-4l4-8z"/>';
-                color = '#eab308';
-                break;
-            case 'pump': // ポンプ -> 青の水滴
-                svg = '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.88 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>';
-                color = '#3b82f6';
-                break;
-            case 'dist_board': // 分電盤 -> グレーの盤
-                svg = '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z M7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z"/>';
-                color = '#475569';
-                break;
-            case 'arc_welder': // 溶接機 -> 赤の火
-                svg = '<path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/>';
-                color = '#ef4444';
-                break;
-            case 'elec_equip': // 電気設備 -> 黄色の電球
-                svg = '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>';
-                color = '#f59e0b';
-                break;
-            case 'hanging_tools': // 玉掛け -> フック
-                svg = '<path d="M17 11c0-2.76-2.24-5-5-5s-5 2.24-5 5h2c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3v2c2.76 0 5-2.24 5-5zM11 16h2v6h-2z"/>';
-                color = '#64748b';
-                break;
-            case 'iron_plate': // 敷鉄板 -> 濃いグレー
-                svg = '<path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/>';
-                color = '#1f2937';
-                break;
-            case 'security_daily': // 保安 -> 赤の警告
-                svg = '<path d="M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>';
-                color = '#dc2626';
-                break;
-            case 'excavation_daily': // 掘削 -> 茶色の道具
-                svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
-                color = '#795548';
-                break;
-            default:
-                // デフォルト (四角)
-                return '<span style="font-size:24px; line-height:30px;">⬜</span>';
-        }
-
-        return `<svg viewBox="0 0 24 24" fill="${color}" style="vertical-align:middle;">${svg}</svg>`;
-    }
-
-    // DatalistのUX改善用関数
-    function setupDatalistUX(ids) {
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            // オリジナルのプレースホルダーを保存
-            if (!el.dataset.defaultPlaceholder) {
-                el.dataset.defaultPlaceholder = el.placeholder || '';
             }
-
-            el.addEventListener('focus', function () {
-                // 値が入っている場合のみ処理
-                if (this.value) {
-                    this.dataset.originalValue = this.value; // 値を退避
-                    this.placeholder = this.value;           // プレースホルダーに現在の値を表示（空に見えないように）
-                    this.value = '';                         // 値を空にしてリストを強制的に表示させる（多くのブラウザ用）
-                }
-            });
-
-            el.addEventListener('blur', function () {
-                // 何も入力せずに（空のまま）フォーカスが外れた場合、元の値を復元
-                if (this.value === '' && this.dataset.originalValue) {
-                    this.value = this.dataset.originalValue;
-                }
-                // プレースホルダーを元に戻す
-                this.placeholder = this.dataset.defaultPlaceholder;
-            });
         });
     }
+    updateDocumentTitle();
+}
 
-    // 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
-    document.addEventListener('DOMContentLoaded', async () => {
-        // --- UI系の初期化を最優先で行う ---
-        // 日付表示の更新
-        updateDateDisplay();
-        renderStaffList(); renderRepresentativeList();
-        fetchDynamicStaffList(); // 非同期で最新リスト取得
-        // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
+function goDashBoard() {
+    const url = currentSiteId ? `index.html?site_id=${currentSiteId}` : 'index.html';
+    window.location.href = url;
+}
 
+function getMachineIcon(type) {
+    // 1. 画像がある機種
+    const imgMap = {
+        'shovel': 'assets/icons/backhoe.png',
+        'shovel_daily': 'assets/icons/backhoe.png',
+        'tractor': 'assets/icons/trailer.png',
+        'crane': 'assets/icons/crane.png',
+        'crane_daily': 'assets/icons/crane.png'
+    };
 
-        setupDatalistUX([
-            'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
-            'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
-            'company-machine-id' // 会社管理No.に対象を変更
-        ]);
-        setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
-        updateMachineMasterList('shovel'); // 初期リストセット
+    if (imgMap[type]) {
+        return `<img src="${imgMap[type]}" class="machine-icon-img">`;
+    }
 
-        // 現場名の取得・表示 (ヘッダー用)
-        if (currentSiteId) {
-            const headerSiteNameEl = document.getElementById('header-site-name');
-            if (headerSiteNameEl) {
-                // 初期表示はロード中...とかにする？あるいはDB取得する
-                supabaseClient.from('sites').select('name').eq('id', currentSiteId).single()
-                    .then(({ data, error }) => {
-                        if (data && !error) {
-                            headerSiteNameEl.innerText = data.name;
-                        }
-                    });
-            }
+    // 2. その他の日常点検用SVGアイコン
+    let svg = '';
+    let color = '#64748b'; // default gray
+
+    switch (type) {
+        case 'sandbag': // 大型土のう -> 茶色のBox
+            svg = '<path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>';
+            color = '#8d6e63';
+            break;
+        case 'power_tool': // 電動工具 -> オレンジの工具
+            svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
+            color = '#f97316';
+            break;
+        case 'generator': // 発電機 -> 黄色のカミナリ
+            svg = '<path d="M7 2v11h3v9l7-12h-4l4-8z"/>';
+            color = '#eab308';
+            break;
+        case 'pump': // ポンプ -> 青の水滴
+            svg = '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.88 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>';
+            color = '#3b82f6';
+            break;
+        case 'dist_board': // 分電盤 -> グレーの盤
+            svg = '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z M7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z"/>';
+            color = '#475569';
+            break;
+        case 'arc_welder': // 溶接機 -> 赤の火
+            svg = '<path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/>';
+            color = '#ef4444';
+            break;
+        case 'elec_equip': // 電気設備 -> 黄色の電球
+            svg = '<path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>';
+            color = '#f59e0b';
+            break;
+        case 'hanging_tools': // 玉掛け -> フック
+            svg = '<path d="M17 11c0-2.76-2.24-5-5-5s-5 2.24-5 5h2c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3v2c2.76 0 5-2.24 5-5zM11 16h2v6h-2z"/>';
+            color = '#64748b';
+            break;
+        case 'iron_plate': // 敷鉄板 -> 濃いグレー
+            svg = '<path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/>';
+            color = '#1f2937';
+            break;
+        case 'security_daily': // 保安 -> 赤の警告
+            svg = '<path d="M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>';
+            color = '#dc2626';
+            break;
+        case 'excavation_daily': // 掘削 -> 茶色の道具
+            svg = '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>';
+            color = '#795548';
+            break;
+        default:
+            // デフォルト (四角)
+            return '<span style="font-size:24px; line-height:30px;">⬜</span>';
+    }
+
+    return `<svg viewBox="0 0 24 24" fill="${color}" style="vertical-align:middle;">${svg}</svg>`;
+}
+
+// DatalistのUX改善用関数
+function setupDatalistUX(ids) {
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        // オリジナルのプレースホルダーを保存
+        if (!el.dataset.defaultPlaceholder) {
+            el.dataset.defaultPlaceholder = el.placeholder || '';
         }
 
-        // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
-        // LIFF初期化
-        if (typeof liff !== 'undefined') {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (liff.isLoggedIn()) {
-                    lineUserInfo = await liff.getProfile();
-                } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
-                    liff.login();
-                }
-            } catch (err) { console.error("LIFF err", err); }
-        }
-
-        if (document.getElementById('site-list-view')) {
-            initIndex();
-            // URLにsite_idがある場合は直接詳細を開く
-            if (currentSiteId) {
-                setTimeout(() => {
-                    const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
-                    if (siteRow) {
-                        siteRow.click();
-                    } else {
-                        openSiteDetail(currentSiteId, "現場詳細");
-                    }
-                }, 500);
+        el.addEventListener('focus', function () {
+            // 値が入っている場合のみ処理
+            if (this.value) {
+                this.dataset.originalValue = this.value; // 値を退避
+                this.placeholder = this.value;           // プレースホルダーに現在の値を表示（空に見えないように）
+                this.value = '';                         // 値を空にしてリストを強制的に表示させる（多くのブラウザ用）
             }
-        } else if (document.getElementById('inspection-form')) {
-            // Initialization for Inspection Page
-            const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode');
-            const isDemo = urlParams.get('demo') === 'true';
+        });
 
-            if (mode === 'book') {
-                document.body.classList.add('print-mode-book');
-                const machineId = urlParams.get('machine_id');
-                const machineType = urlParams.get('mt');
-
-                if (isDemo) {
-                    populateMockData();
-                } else if (machineId && currentSiteId) {
-                    // Ver29: Real Data Book Mode
-                    loadBookDataReal(currentSiteId, machineId, machineType);
-                }
-            } else {
-                initInspection();
+        el.addEventListener('blur', function () {
+            // 何も入力せずに（空のまま）フォーカスが外れた場合、元の値を復元
+            if (this.value === '' && this.dataset.originalValue) {
+                this.value = this.dataset.originalValue;
             }
-        }
+            // プレースホルダーを元に戻す
+            this.placeholder = this.dataset.defaultPlaceholder;
+        });
     });
+}
 
-    // --- Inspection Book & Mock Data ---
+// 初期化実行 (ファイルの最後に移動して全ての関数が定義されてから実行されるようにする)
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- UI系の初期化を最優先で行う ---
+    // 日付表示の更新
+    updateDateDisplay();
+    renderStaffList(); renderRepresentativeList();
+    fetchDynamicStaffList(); // 非同期で最新リスト取得
+    // populateMachineDatalist(); // Removed: handled by setupMachineAutoFill
 
-    async function loadBookDataReal(siteId, machineId, machineType) {
-        if (!supabaseClient) return;
-        console.log("Loading Real Book Data...", siteId, machineId);
 
-        const container = document.getElementById('book-container');
-        if (!container) return; // Should be added in HTML if missing, but assuming it exists from Ver26
+    setupDatalistUX([
+        'new-site-representative', 'new-site-inspector', 'new-site-safety-manager', // 現場登録モーダル
+        'representative', 'inspector-main', 'inspector-sub', 'safety-manager', // 点検表画面
+        'company-machine-id' // 会社管理No.に対象を変更
+    ]);
+    setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
+    updateMachineMasterList('shovel'); // 初期リストセット
 
-        // Hide default views
-        document.getElementById('inspection-form').style.display = 'none';
-        document.getElementById('monthly-grid-view').style.display = 'none';
-        document.getElementById('inspection-form-page').style.display = 'none';
-        document.getElementById('monthly-grid-page').style.display = 'none';
-
-        container.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">データを読み込んでいます...</div>';
-        container.style.display = 'block';
-
-        // 1. Fetch ALL distinct months for this machine (Ascending)
-        // Supabase doesn't support 'distinct' easily on select directly with order in one go sometimes, 
-        // but let's try fetching all inspection_date and processing.
-        const { data: inspections, error } = await supabaseClient
-            .from('inspections')
-            .select('inspection_date, machine_type')
-            .eq('site_id', siteId)
-            .eq('machine_id', machineId)
-            .or('is_deleted.is.null,is_deleted.eq.false')
-            .order('inspection_date', { ascending: true });
-
-        if (error || !inspections || inspections.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:50px;">表示するデータがありません。</div>';
-            return;
+    // 現場名の取得・表示 (ヘッダー用)
+    if (currentSiteId) {
+        const headerSiteNameEl = document.getElementById('header-site-name');
+        if (headerSiteNameEl) {
+            // 初期表示はロード中...とかにする？あるいはDB取得する
+            supabaseClient.from('sites').select('name').eq('id', currentSiteId).single()
+                .then(({ data, error }) => {
+                    if (data && !error) {
+                        headerSiteNameEl.innerText = data.name;
+                    }
+                });
         }
+    }
 
-        // Extract unique YYYY-MM
-        const months = [...new Set(inspections.map(i => i.inspection_date.slice(0, 7)))];
-        console.log("Months to render:", months);
+    // --- 外部SDK系の初期化 (エラーや遅延の影響を受けないように後に実行) ---
+    // LIFF初期化
+    if (typeof liff !== 'undefined') {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                lineUserInfo = await liff.getProfile();
+            } else if (window.location.pathname.includes('inspection.html') && liff.isInClient()) {
+                liff.login();
+            }
+        } catch (err) { console.error("LIFF err", err); }
+    }
 
-        container.innerHTML = ''; // Clear loading message
+    if (document.getElementById('site-list-view')) {
+        initIndex();
+        // URLにsite_idがある場合は直接詳細を開く
+        if (currentSiteId) {
+            setTimeout(() => {
+                const siteRow = document.querySelector(`button[onclick*="openSiteDetail('${currentSiteId}'"]`);
+                if (siteRow) {
+                    siteRow.click();
+                } else {
+                    openSiteDetail(currentSiteId, "現場詳細");
+                }
+            }, 500);
+        }
+    } else if (document.getElementById('inspection-form')) {
+        // Initialization for Inspection Page
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const isDemo = urlParams.get('demo') === 'true';
 
-        // Base elements to clone
-        const baseFormPage = document.getElementById('inspection-form-page');
-        const baseGridPage = document.getElementById('monthly-grid-page');
+        if (mode === 'book') {
+            document.body.classList.add('print-mode-book');
+            const machineId = urlParams.get('machine_id');
+            const machineType = urlParams.get('mt');
 
-        // Determine Base and Daily Types
-        const baseType = getBaseMachineType(machineType);
-        const dailyType = getDailyMachineType(baseType);
+            if (isDemo) {
+                populateMockData();
+            } else if (machineId && currentSiteId) {
+                // Ver29: Real Data Book Mode
+                loadBookDataReal(currentSiteId, machineId, machineType);
+            }
+        } else {
+            initInspection();
+        }
+    }
+});
 
-        console.log(`DEBUG: Book Mode Context - Base: ${baseType}, Daily: ${dailyType}`);
+// --- Inspection Book & Mock Data ---
+
+async function loadBookDataReal(siteId, machineId, machineType) {
+    if (!supabaseClient) return;
+    console.log("Loading Real Book Data...", siteId, machineId);
+
+    const container = document.getElementById('book-container');
+    if (!container) return; // Should be added in HTML if missing, but assuming it exists from Ver26
+
+    // Hide default views
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
+    document.getElementById('inspection-form-page').style.display = 'none';
+    document.getElementById('monthly-grid-page').style.display = 'none';
+
+    container.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">データを読み込んでいます...</div>';
+    container.style.display = 'block';
+
+    // 1. Fetch ALL distinct months for this machine (Ascending)
+    // Supabase doesn't support 'distinct' easily on select directly with order in one go sometimes, 
+    // but let's try fetching all inspection_date and processing.
+    const { data: inspections, error } = await supabaseClient
+        .from('inspections')
+        .select('inspection_date, machine_type')
+        .eq('site_id', siteId)
+        .eq('machine_id', machineId)
+        .or('is_deleted.is.null,is_deleted.eq.false')
+        .order('inspection_date', { ascending: true });
+
+    if (error || !inspections || inspections.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:50px;">表示するデータがありません。</div>';
+        return;
+    }
+
+    // Extract unique YYYY-MM
+    const months = [...new Set(inspections.map(i => i.inspection_date.slice(0, 7)))];
+    console.log("Months to render:", months);
+
+    container.innerHTML = ''; // Clear loading message
+
+    // Base elements to clone
+    const baseFormPage = document.getElementById('inspection-form-page');
+    const baseGridPage = document.getElementById('monthly-grid-page');
+
+    // Determine Base and Daily Types
+    const baseType = getBaseMachineType(machineType);
+    const dailyType = getDailyMachineType(baseType);
+
+    console.log(`DEBUG: Book Mode Context - Base: ${baseType}, Daily: ${dailyType}`);
 
 
-        // Helper to process sequentially
-        for (const month of months) {
-            console.log(`Rendering ${month}...`);
+    // Helper to process sequentially
+    for (const month of months) {
+        console.log(`Rendering ${month}...`);
 
-            // --- 1. Load Monthly Data ---
-            document.getElementById('inspection-month').value = month;
-            document.getElementById('machine-id').value = machineId;
-            currentSiteId = siteId;
+        // --- 1. Load Monthly Data ---
+        document.getElementById('inspection-month').value = month;
+        document.getElementById('machine-id').value = machineId;
+        currentSiteId = siteId;
 
-            // Render Base Form (Original) -> Creates the structure but we won't fill it
-            currentMachineId = baseType;
-            renderForm(baseType);
+        // Render Base Form (Original) -> Creates the structure but we won't fill it
+        currentMachineId = baseType;
+        renderForm(baseType);
 
-            // --- CLONE FIRST (Empty) ---
-            const cloneFormPage = baseFormPage.cloneNode(true);
-            cloneFormPage.id = `inspection-form-page-${month}`;
-            cloneFormPage.style.display = 'block';
-            const internalForm = cloneFormPage.querySelector('#inspection-form');
-            if (internalForm) internalForm.style.display = 'grid';
+        // --- CLONE FIRST (Empty) ---
+        const cloneFormPage = baseFormPage.cloneNode(true);
+        cloneFormPage.id = `inspection-form-page-${month}`;
+        cloneFormPage.style.display = 'block';
+        const internalForm = cloneFormPage.querySelector('#inspection-form');
+        if (internalForm) internalForm.style.display = 'grid';
 
-            // Rename IDs
-            cloneFormPage.querySelectorAll('[id]').forEach(el => {
-                if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
-            });
-            container.appendChild(cloneFormPage);
+        // Rename IDs
+        cloneFormPage.querySelectorAll('[id]').forEach(el => {
+            if (el.id !== cloneFormPage.id) el.id = `bk-f-${month}-${el.id}`;
+        });
+        container.appendChild(cloneFormPage);
 
-            // --- LOAD DATA INTO CLONE ---
-            // Pass the clone as targetScope
-            const monthlyData = await loadMonthlyData(cloneFormPage, `bk-f-${month}-`);
+        // --- LOAD DATA INTO CLONE ---
+        // Pass the clone as targetScope
+        const monthlyData = await loadMonthlyData(cloneFormPage, `bk-f-${month}-`);
 
-            // --- Generate Header from Data ---
-            // We use the returned data (monthlyData) instead of reading DOM
-            // Note: machine_name might not be in the record if not joined, but model is.
-            // However, the original code read from #machine-name. loadMonthlyData sets #model-type etc.
-            // Wait, loadMonthlyData sets values on the clone now. We can read from the clone!
+        // --- Generate Header from Data ---
+        // We use the returned data (monthlyData) instead of reading DOM
+        // Note: machine_name might not be in the record if not joined, but model is.
+        // However, the original code read from #machine-name. loadMonthlyData sets #model-type etc.
+        // Wait, loadMonthlyData sets values on the clone now. We can read from the clone!
 
-            const getVal = (suffix) => {
-                const el = cloneFormPage.querySelector(`[id$="${suffix}"]`);
-                return el ? el.value : '';
-            };
-            const mModel = getVal('model-type');
-            // machine-name is usually read-only and coming from master data. 
-            // We should trigger the machine selection change logic? No, too complex.
-            // Let's assume the user selected the machine before opening the book.
-            // If so, the global #machine-name has the correct value!
-            const globalMName = document.getElementById('machine-name').value;
+        const getVal = (suffix) => {
+            const el = cloneFormPage.querySelector(`[id$="${suffix}"]`);
+            return el ? el.value : '';
+        };
+        const mModel = getVal('model-type');
+        // machine-name is usually read-only and coming from master data. 
+        // We should trigger the machine selection change logic? No, too complex.
+        // Let's assume the user selected the machine before opening the book.
+        // If so, the global #machine-name has the correct value!
+        const globalMName = document.getElementById('machine-name').value;
 
-            // Section Header
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'book-section-label';
-            const yearStr = month.split('-')[0];
-            const monthStr = month.split('-')[1];
-            headerDiv.innerHTML = `
+        // Section Header
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'book-section-label';
+        const yearStr = month.split('-')[0];
+        const monthStr = month.split('-')[1];
+        headerDiv.innerHTML = `
             <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
             <span class="header-separator">|</span>
             <span class="header-item header-machine">${globalMName || '名称未設定'}</span>
@@ -2285,107 +2284,107 @@ function toggleStatus(uid) {
             <span class="header-separator">|</span>
             <span class="header-item header-id">管理No: ${machineId}</span>
         `;
-            // Insert header before the form page
-            container.insertBefore(headerDiv, cloneFormPage);
+        // Insert header before the form page
+        container.insertBefore(headerDiv, cloneFormPage);
 
 
-            // --- 2. Load Daily Data (if applicable) ---
-            if (dailyType) {
-                currentMachineId = dailyType;
-                renderForm(dailyType); // Re-renders original execution grid (empty)
+        // --- 2. Load Daily Data (if applicable) ---
+        if (dailyType) {
+            currentMachineId = dailyType;
+            renderForm(dailyType); // Re-renders original execution grid (empty)
 
-                // Clone Grid
-                const cloneGridPage = baseGridPage.cloneNode(true);
-                cloneGridPage.id = `monthly-grid-page-${month}`;
-                cloneGridPage.style.display = 'block';
-                const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
-                if (internalGrid) internalGrid.style.display = 'block';
+            // Clone Grid
+            const cloneGridPage = baseGridPage.cloneNode(true);
+            cloneGridPage.id = `monthly-grid-page-${month}`;
+            cloneGridPage.style.display = 'block';
+            const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+            if (internalGrid) internalGrid.style.display = 'block';
 
-                // Rename IDs
-                cloneGridPage.querySelectorAll('[id]').forEach(el => {
-                    if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
-                });
-                container.appendChild(cloneGridPage);
+            // Rename IDs
+            cloneGridPage.querySelectorAll('[id]').forEach(el => {
+                if (el.id !== cloneGridPage.id) el.id = `bk-g-${month}-${el.id}`;
+            });
+            container.appendChild(cloneGridPage);
 
-                // Load Data into Clone
-                await loadMonthlyData(cloneGridPage, `bk-g-${month}-`);
+            // Load Data into Clone
+            await loadMonthlyData(cloneGridPage, `bk-g-${month}-`);
 
-                // Wait for DOM updates to settle
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
+            // Wait for DOM updates to settle
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
-
-        // Restore Global State
-        currentMachineId = machineType;
-        currentSiteId = siteId;
-
-        // Cleanup: Hide originals again (since renderForm unhides them)
-        document.getElementById('inspection-form').style.display = 'none';
-        document.getElementById('monthly-grid-view').style.display = 'none';
-        document.getElementById('inspection-form-page').style.display = 'none';
-        document.getElementById('monthly-grid-page').style.display = 'none';
     }
 
-    function populateMockData() {
-        console.log("Starting Multi-Month Mock Data Generation (Ver26)...");
+    // Restore Global State
+    currentMachineId = machineType;
+    currentSiteId = siteId;
 
-        const months = ['2026-01', '2026-02', '2026-03'];
-        const container = document.getElementById('book-container');
-        if (!container) return;
+    // Cleanup: Hide originals again (since renderForm unhides them)
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
+    document.getElementById('inspection-form-page').style.display = 'none';
+    document.getElementById('monthly-grid-page').style.display = 'none';
+}
 
-        // Clear container
-        container.innerHTML = '';
-        container.style.display = 'block';
+function populateMockData() {
+    console.log("Starting Multi-Month Mock Data Generation (Ver26)...");
 
-        // Base elements to clone
-        const baseFormPage = document.getElementById('inspection-form-page');
-        const baseGridPage = document.getElementById('monthly-grid-page');
+    const months = ['2026-01', '2026-02', '2026-03'];
+    const container = document.getElementById('book-container');
+    if (!container) return;
 
-        // Hide originals
-        baseFormPage.style.display = 'none';
-        baseGridPage.style.display = 'none';
-        document.getElementById('inspection-form').style.display = 'none';
-        document.getElementById('monthly-grid-view').style.display = 'none';
+    // Clear container
+    container.innerHTML = '';
+    container.style.display = 'block';
 
-        // Helper async function to process sequentially
-        const processMonth = async () => {
-            for (let i = 0; i < months.length; i++) {
-                const month = months[i];
-                console.log(`Generating data for ${month}...`);
+    // Base elements to clone
+    const baseFormPage = document.getElementById('inspection-form-page');
+    const baseGridPage = document.getElementById('monthly-grid-page');
 
-                // 1. Set Header Info for this month (on the hidden original form)
-                const yearStr = month.split('-')[0];
-                const monthStr = month.split('-')[1];
-                document.getElementById('header-site-name').innerText = `デモ現場 (${yearStr}年${parseInt(monthStr)}月)`;
+    // Hide originals
+    baseFormPage.style.display = 'none';
+    baseGridPage.style.display = 'none';
+    document.getElementById('inspection-form').style.display = 'none';
+    document.getElementById('monthly-grid-view').style.display = 'none';
 
-                document.getElementById('inspection-date').value = `${month}-01`;
-                document.getElementById('inspection-month').value = month;
-                document.getElementById('machine-name').value = "PC200-11 (デモ機)";
-                document.getElementById('model-type').value = "PC200-11";
-                document.getElementById('company-machine-id').value = "D-001";
-                document.getElementById('machine-id').value = "999999";
-                document.getElementById('representative').value = "山内 太郎";
-                document.getElementById('inspector-main').value = "点検 次郎";
+    // Helper async function to process sequentially
+    const processMonth = async () => {
+        for (let i = 0; i < months.length; i++) {
+            const month = months[i];
+            console.log(`Generating data for ${month}...`);
 
-                // Randomize hours
-                const hours = 1234.5 + (i * 150) + Math.floor(Math.random() * 50);
-                document.getElementById('operating-hours').value = hours.toFixed(1);
+            // 1. Set Header Info for this month (on the hidden original form)
+            const yearStr = month.split('-')[0];
+            const monthStr = month.split('-')[1];
+            document.getElementById('header-site-name').innerText = `デモ現場 (${yearStr}年${parseInt(monthStr)}月)`;
 
-                // 2. Render Forms (on the hidden original elements)
-                renderForm('shovel');
-                renderMonthlyGrid('shovel_daily');
+            document.getElementById('inspection-date').value = `${month}-01`;
+            document.getElementById('inspection-month').value = month;
+            document.getElementById('machine-name').value = "PC200-11 (デモ機)";
+            document.getElementById('model-type').value = "PC200-11";
+            document.getElementById('company-machine-id').value = "D-001";
+            document.getElementById('machine-id').value = "999999";
+            document.getElementById('representative').value = "山内 太郎";
+            document.getElementById('inspector-main').value = "点検 次郎";
 
-                // 3. Randomize Checkboxes & Grid content
-                await new Promise(r => setTimeout(r, 10));
-                randomizeMockData(month);
+            // Randomize hours
+            const hours = 1234.5 + (i * 150) + Math.floor(Math.random() * 50);
+            document.getElementById('operating-hours').value = hours.toFixed(1);
 
-                // 4. Clone and Append
+            // 2. Render Forms (on the hidden original elements)
+            renderForm('shovel');
+            renderMonthlyGrid('shovel_daily');
 
-                // Ver28: Inject Section Header (Refined)
-                const headerDiv = document.createElement('div');
-                headerDiv.className = 'book-section-label';
-                // Format: [ 2026年1月度 | PC200-11 (デモ機) | 型式: PC200-11 | 管理No: D-001 ]
-                headerDiv.innerHTML = `
+            // 3. Randomize Checkboxes & Grid content
+            await new Promise(r => setTimeout(r, 10));
+            randomizeMockData(month);
+
+            // 4. Clone and Append
+
+            // Ver28: Inject Section Header (Refined)
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'book-section-label';
+            // Format: [ 2026年1月度 | PC200-11 (デモ機) | 型式: PC200-11 | 管理No: D-001 ]
+            headerDiv.innerHTML = `
                 <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
                 <span class="header-separator">|</span>
                 <span class="header-item header-machine">PC200-11 (デモ機)</span>
@@ -2394,243 +2393,243 @@ function toggleStatus(uid) {
                 <span class="header-separator">|</span>
                 <span class="header-item header-id">管理No: D-001</span>
             `;
-                container.appendChild(headerDiv);
+            container.appendChild(headerDiv);
 
-                // Clone Form Page
-                const cloneFormPage = baseFormPage.cloneNode(true);
-                cloneFormPage.id = `inspection-form-page-${month}`;
-                cloneFormPage.style.display = 'block';
+            // Clone Form Page
+            const cloneFormPage = baseFormPage.cloneNode(true);
+            cloneFormPage.id = `inspection-form-page-${month}`;
+            cloneFormPage.style.display = 'block';
 
-                // Re-enable visibility of internal grid (it was hidden on original)
-                const internalForm = cloneFormPage.querySelector('#inspection-form');
-                if (internalForm) internalForm.style.display = 'grid';
+            // Re-enable visibility of internal grid (it was hidden on original)
+            const internalForm = cloneFormPage.querySelector('#inspection-form');
+            if (internalForm) internalForm.style.display = 'grid';
 
-                container.appendChild(cloneFormPage);
+            container.appendChild(cloneFormPage);
 
-                const cloneGridPage = baseGridPage.cloneNode(true);
-                cloneGridPage.id = `monthly-grid-page-${month}`;
-                cloneGridPage.style.display = 'block';
+            const cloneGridPage = baseGridPage.cloneNode(true);
+            cloneGridPage.id = `monthly-grid-page-${month}`;
+            cloneGridPage.style.display = 'block';
 
-                const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
-                if (internalGrid) internalGrid.style.display = 'block';
+            const internalGrid = cloneGridPage.querySelector('#monthly-grid-view');
+            if (internalGrid) internalGrid.style.display = 'block';
 
-                container.appendChild(cloneGridPage);
-            }
-        };
-
-        processMonth();
-
-        // Force Book Mode styles
-        document.body.classList.add('print-mode-book');
-    }
-
-    function randomizeMockData(month) {
-        // 1. Monthly Checklist - Target ONLY the original Hidden Form
-        const form = document.getElementById('inspection-form');
-        if (form) {
-            form.querySelectorAll('.current-status').forEach(el => {
-                el.className = 'current-status good';
-                el.innerText = 'レ';
-                el.setAttribute('data-status', 'good');
-            });
+            container.appendChild(cloneGridPage);
         }
+    };
 
-        // 2. Daily Grid - Target ONLY the original Hidden Grid
-        const gridBody = document.getElementById('monthly-table-body');
-        if (gridBody) {
-            gridBody.querySelectorAll('.day-cell').forEach(el => {
-                // Reset first
-                el.className = 'day-cell';
-                el.innerHTML = '';
-                el.removeAttribute('data-status');
+    processMonth();
 
-                // Random status
-                if (Math.random() > 0.85) return; // 15% empty
+    // Force Book Mode styles
+    document.body.classList.add('print-mode-book');
+}
 
-                const r = Math.random();
-                let code = 'good';
-                let mark = '○';
-                if (r > 0.98) { code = 'repair'; mark = '×'; }
-                else if (r > 0.95) { code = 'done'; mark = '●'; }
-
-                el.className = `day-cell status-cell-${code}`;
-                el.innerHTML = mark;
-                el.setAttribute('data-status', code);
-            });
-        }
-    }
-
-
-    // グローバル公開
-    window.selectMachine = selectMachine;
-    window.toggleStatus = toggleStatus;
-    window.openSiteDetail = openSiteDetail;
-    window.openMachineHistory = openMachineHistory;
-    window.openEditSite = (id) => window.openEditSite(id);
-    window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
-    window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
-    window.goDashBoard = goDashBoard;
-    window.printLabel = printLabel;
-
-    // Removed old setupMachineAutoFill
-
-
-
-    const representativeList = [
-        "杉本 鉄也",
-        "林 成司",
-        "佐藤 光一",
-        "辻 成人",
-        "白戸 嘉人",
-        "庄司 明",
-        "十河 弘樹",
-        "林 真人",
-        "金田 大作"
-    ];
-
-    const staffList = [
-        "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
-        "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
-        "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
-        "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
-        "堀 邦寿",
-        "郷 樹美"
-    ];
-
-
-    async function fetchDynamicStaffList() {
-        if (!supabaseClient) return;
-
-        // Fetch from Sites (Representatives, etc)
-        const { data: sites } = await supabaseClient
-            .from('sites')
-            .select('representative, site_inspector, safety_manager')
-            .order('last_updated', { ascending: false })
-            .limit(50);
-
-        // Fetch from Inspections (Inspectors)
-        const { data: inspections } = await supabaseClient
-            .from('inspections')
-            .select('statuses')
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-        const newStaff = new Set();
-        const newRep = new Set();
-
-        if (sites) {
-            sites.forEach(s => {
-                if (s.representative && s.representative.trim()) newRep.add(s.representative.trim());
-                if (s.site_inspector && s.site_inspector.trim()) newStaff.add(s.site_inspector.trim());
-                if (s.safety_manager && s.safety_manager.trim()) newStaff.add(s.safety_manager.trim());
-            });
-        }
-
-        if (inspections) {
-            inspections.forEach(i => {
-                if (i.statuses) {
-                    if (i.statuses._inspector_main && i.statuses._inspector_main.trim()) newStaff.add(i.statuses._inspector_main.trim());
-                    if (i.statuses._inspector_sub && i.statuses._inspector_sub.trim()) newStaff.add(i.statuses._inspector_sub.trim());
-                }
-            });
-        }
-
-        // Merge into arrays
-        let updated = false;
-        newRep.forEach(name => {
-            if (!representativeList.includes(name)) {
-                representativeList.push(name);
-                updated = true;
-            }
-        });
-
-        newStaff.forEach(name => {
-            if (!staffList.includes(name)) {
-                staffList.push(name);
-                updated = true;
-            }
-        });
-
-        if (updated) {
-            renderRepresentativeList();
-            renderStaffList();
-        }
-    }
-
-    function renderRepresentativeList() {
-        const dataList = document.getElementById('representative-list');
-        if (!dataList) return;
-        dataList.innerHTML = '';
-        representativeList.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            dataList.appendChild(option);
+function randomizeMockData(month) {
+    // 1. Monthly Checklist - Target ONLY the original Hidden Form
+    const form = document.getElementById('inspection-form');
+    if (form) {
+        form.querySelectorAll('.current-status').forEach(el => {
+            el.className = 'current-status good';
+            el.innerText = 'レ';
+            el.setAttribute('data-status', 'good');
         });
     }
 
-    function renderStaffList() {
-        const dataList = document.getElementById('staff-list');
-        if (!dataList) return;
-        dataList.innerHTML = '';
-        staffList.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            dataList.appendChild(option);
+    // 2. Daily Grid - Target ONLY the original Hidden Grid
+    const gridBody = document.getElementById('monthly-table-body');
+    if (gridBody) {
+        gridBody.querySelectorAll('.day-cell').forEach(el => {
+            // Reset first
+            el.className = 'day-cell';
+            el.innerHTML = '';
+            el.removeAttribute('data-status');
+
+            // Random status
+            if (Math.random() > 0.85) return; // 15% empty
+
+            const r = Math.random();
+            let code = 'good';
+            let mark = '○';
+            if (r > 0.98) { code = 'repair'; mark = '×'; }
+            else if (r > 0.95) { code = 'done'; mark = '●'; }
+
+            el.className = `day-cell status-cell-${code}`;
+            el.innerHTML = mark;
+            el.setAttribute('data-status', code);
+        });
+    }
+}
+
+
+// グローバル公開
+window.selectMachine = selectMachine;
+window.toggleStatus = toggleStatus;
+window.openSiteDetail = openSiteDetail;
+window.openMachineHistory = openMachineHistory;
+window.openEditSite = (id) => window.openEditSite(id);
+window.confirmDeleteSite = (id) => window.confirmDeleteSite(id);
+window.confirmDeleteInspection = (id) => window.confirmDeleteInspection(id);
+window.goDashBoard = goDashBoard;
+window.printLabel = printLabel;
+
+// Removed old setupMachineAutoFill
+
+
+
+const representativeList = [
+    "杉本 鉄也",
+    "林 成司",
+    "佐藤 光一",
+    "辻 成人",
+    "白戸 嘉人",
+    "庄司 明",
+    "十河 弘樹",
+    "林 真人",
+    "金田 大作"
+];
+
+const staffList = [
+    "杉本 鉄也", "林 成司", "佐藤 光一", "辻 成人", "白戸 嘉人", "庄司 明", "十河 弘樹", "林 真人", "金田 大作", "宮本 晴都", "五十嵐 友人", "広島 慶大",
+    "若林 哲也", "曽我 澄男", "平本 健太", "越谷 武司", "堀田 淳介", "及川 真実", "松本 宏幸", "山本 喜昭", "高野 智行", "上井 昌樹",
+    "高野 公彰", "平野 弥", "横田 裕輝", "宇佐美 剛", "鹿戸 文夫", "鳥本 全利", "宮井 仁志", "藤井 満浩", "橘井 哲也", "大羅 飛雄馬", "小玉 迅",
+    "増田 均", "坂本 隆洋", "大岡 弘志", "林 邦彦",
+    "堀 邦寿",
+    "郷 樹美"
+];
+
+
+async function fetchDynamicStaffList() {
+    if (!supabaseClient) return;
+
+    // Fetch from Sites (Representatives, etc)
+    const { data: sites } = await supabaseClient
+        .from('sites')
+        .select('representative, site_inspector, safety_manager')
+        .order('last_updated', { ascending: false })
+        .limit(50);
+
+    // Fetch from Inspections (Inspectors)
+    const { data: inspections } = await supabaseClient
+        .from('inspections')
+        .select('statuses')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    const newStaff = new Set();
+    const newRep = new Set();
+
+    if (sites) {
+        sites.forEach(s => {
+            if (s.representative && s.representative.trim()) newRep.add(s.representative.trim());
+            if (s.site_inspector && s.site_inspector.trim()) newStaff.add(s.site_inspector.trim());
+            if (s.safety_manager && s.safety_manager.trim()) newStaff.add(s.safety_manager.trim());
         });
     }
 
-    window.renderRepresentativeList = renderRepresentativeList;
-    window.renderStaffList = renderStaffList;
-
-    async function syncInspectorFromParent(mType, mId, siteId) {
-        if (!mType || !mType.endsWith('_daily')) return;
-        const parentType = mType.replace('_daily', '');
-        const monthEl = document.getElementById('inspection-month');
-        const month = monthEl ? monthEl.value : null;
-        if (!month || !siteId || !mId) return;
-
-        // Calculate date range
-        const [y, m] = month.split('-').map(Number);
-        const startDate = `${month}-01`;
-        const nextMonthDate = new Date(y, m, 1);
-        const nm = nextMonthDate.getMonth() + 1;
-        const ny = nextMonthDate.getFullYear();
-        const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
-
-        const { data: parent } = await supabaseClient
-            .from('inspections')
-            .select('statuses')
-            .eq('site_id', siteId)
-            .eq('machine_type', parentType)
-            .eq('machine_id', mId)
-            .gte('inspection_date', startDate)
-            .lt('inspection_date', nextMonthStr)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (parent && parent.statuses) {
-            const pMain = parent.statuses._inspector_main;
-            const pSub = parent.statuses._inspector_sub;
-
-            const mainEl = document.getElementById('inspector-main');
-            const subEl = document.getElementById('inspector-sub');
-
-            if (pMain && mainEl) mainEl.value = pMain;
-            if (pSub && subEl) subEl.value = pSub;
-        }
-    }
-
-    // Helper to lock fields
-    function lockMachineFields() {
-        const fields = ['machine-name', 'model-type', 'company-machine-id', 'machine-id'];
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.readOnly = true;
-                el.style.backgroundColor = '#f1f5f9';
-                el.style.color = '#64748b';
-                el.style.borderColor = '#e2e8f0';
+    if (inspections) {
+        inspections.forEach(i => {
+            if (i.statuses) {
+                if (i.statuses._inspector_main && i.statuses._inspector_main.trim()) newStaff.add(i.statuses._inspector_main.trim());
+                if (i.statuses._inspector_sub && i.statuses._inspector_sub.trim()) newStaff.add(i.statuses._inspector_sub.trim());
             }
         });
     }
+
+    // Merge into arrays
+    let updated = false;
+    newRep.forEach(name => {
+        if (!representativeList.includes(name)) {
+            representativeList.push(name);
+            updated = true;
+        }
+    });
+
+    newStaff.forEach(name => {
+        if (!staffList.includes(name)) {
+            staffList.push(name);
+            updated = true;
+        }
+    });
+
+    if (updated) {
+        renderRepresentativeList();
+        renderStaffList();
+    }
+}
+
+function renderRepresentativeList() {
+    const dataList = document.getElementById('representative-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    representativeList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+
+function renderStaffList() {
+    const dataList = document.getElementById('staff-list');
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    staffList.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        dataList.appendChild(option);
+    });
+}
+
+window.renderRepresentativeList = renderRepresentativeList;
+window.renderStaffList = renderStaffList;
+
+async function syncInspectorFromParent(mType, mId, siteId) {
+    if (!mType || !mType.endsWith('_daily')) return;
+    const parentType = mType.replace('_daily', '');
+    const monthEl = document.getElementById('inspection-month');
+    const month = monthEl ? monthEl.value : null;
+    if (!month || !siteId || !mId) return;
+
+    // Calculate date range
+    const [y, m] = month.split('-').map(Number);
+    const startDate = `${month}-01`;
+    const nextMonthDate = new Date(y, m, 1);
+    const nm = nextMonthDate.getMonth() + 1;
+    const ny = nextMonthDate.getFullYear();
+    const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
+    const { data: parent } = await supabaseClient
+        .from('inspections')
+        .select('statuses')
+        .eq('site_id', siteId)
+        .eq('machine_type', parentType)
+        .eq('machine_id', mId)
+        .gte('inspection_date', startDate)
+        .lt('inspection_date', nextMonthStr)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (parent && parent.statuses) {
+        const pMain = parent.statuses._inspector_main;
+        const pSub = parent.statuses._inspector_sub;
+
+        const mainEl = document.getElementById('inspector-main');
+        const subEl = document.getElementById('inspector-sub');
+
+        if (pMain && mainEl) mainEl.value = pMain;
+        if (pSub && subEl) subEl.value = pSub;
+    }
+}
+
+// Helper to lock fields
+function lockMachineFields() {
+    const fields = ['machine-name', 'model-type', 'company-machine-id', 'machine-id'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.readOnly = true;
+            el.style.backgroundColor = '#f1f5f9';
+            el.style.color = '#64748b';
+            el.style.borderColor = '#e2e8f0';
+        }
+    });
+}
