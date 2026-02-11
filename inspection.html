@@ -124,8 +124,8 @@
         }
 
         /* AGGRESSIVE VERTICAL COMPRESSION FOR MONTHLY PRINT */
-        body:not(.print-mode-daily) .inspection-item,
-        body:not(.print-mode-daily) .category-title {
+        body:not(.print-mode-daily):not(.print-mode-book) .inspection-item,
+        body:not(.print-mode-daily):not(.print-mode-book) .category-title {
             padding: 0.05rem 0.2rem !important;
             /* Minimal padding */
             font-size: 0.8rem !important;
@@ -155,14 +155,14 @@
             font-size: 0.7rem !important;
         }
 
-        body:not(.print-mode-daily) .machine-info-grid {
+        body:not(.print-mode-daily):not(.print-mode-book) .machine-info-grid {
             margin-bottom: 0 !important;
             /* Zero margin */
             gap: 0.1rem !important;
             padding: 0.2rem !important;
         }
 
-        body:not(.print-mode-daily) .inspection-grid {
+        body:not(.print-mode-daily):not(.print-mode-book) .inspection-grid {
             margin-top: 0 !important;
             /* Zero margin */
             gap: 0.2rem !important;
