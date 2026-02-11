@@ -1324,11 +1324,33 @@ body.print-mode-book #monthly-grid-page {
 
 /* Show both forms in Book Mode */
 body.print-mode-book #inspection-form {
-    display: grid !important; /* Force GRID for columns */
+    display: grid !important;
+    /* Force GRID for columns */
 }
 
 body.print-mode-book #monthly-grid-view {
     display: block !important;
+    width: 100% !important;
+}
+
+body.print-mode-book #monthly-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+body.print-mode-book #monthly-table th,
+body.print-mode-book #monthly-table td {
+    width: auto !important;
+    /* Let table-layout handle it */
+    min-width: 20px !important;
+}
+
+/* Ensure the first column (items) has enough width */
+body.print-mode-book #monthly-table th:first-child,
+body.print-mode-book #monthly-table td:first-child {
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
 }
 
 /* Helper to hide other things in book mode */
@@ -1355,7 +1377,7 @@ body.print-mode-book #daily-legend-section {
 }
 
 /* First header: no page break before */
-#book-container > .book-section-label:first-child {
+#book-container>.book-section-label:first-child {
     page-break-before: auto;
     margin-top: 10px;
 }
@@ -1401,19 +1423,19 @@ body.print-mode-book #daily-legend-section {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    
+
     page-break-before: always;
     margin: 20px auto !important;
     padding: 10px 15px !important;
     width: 95% !important;
-    
+
     background-color: #f8fafc !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 4px;
     box-sizing: border-box;
 }
 
-#book-container > .book-section-label:first-child {
+#book-container>.book-section-label:first-child {
     page-break-before: auto;
     margin-top: 10px !important;
     /* Ensure consistency with others */
@@ -1427,7 +1449,7 @@ body.print-mode-book #daily-legend-section {
 }
 
 .book-section-label .header-month {
-    font-size: 1.3rem; 
+    font-size: 1.3rem;
     font-weight: 800;
     color: #1e293b;
 }
@@ -1445,4 +1467,3 @@ body.print-mode-book #daily-legend-section {
         page-break-inside: avoid;
     }
 }
-
