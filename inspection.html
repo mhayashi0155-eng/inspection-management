@@ -237,9 +237,17 @@
         body.print-mode-book .monthly-table th,
         body.print-mode-book .monthly-table td {
             font-size: 0.95rem !important;
-            height: 2.0rem !important;
-            line-height: 2.0rem !important;
-            padding: 0 !important;
+            height: 2.2rem !important;
+            vertical-align: middle !important;
+            /* Fix vertical alignment */
+            text-align: center !important;
+            /* Fix horizontal alignment */
+            padding: 2px !important;
+            /* Restore padding */
+            line-height: 1.2 !important;
+            /* Reset line-height to normal */
+            border: 1px solid #ccc !important;
+            /* Ensure borders are visible/consistent */
         }
     </style>
     <!-- Google Fonts for a premium look -->
@@ -454,10 +462,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.11-Ver74_ScaleFix
+        v2026.02.11-Ver75_AlignFix
     </div>
 
-    <script src="script.js?v=Ver74_ScaleFix"></script>
+    <script src="script.js?v=Ver75_AlignFix"></script>
 </body>
 
 </html>
