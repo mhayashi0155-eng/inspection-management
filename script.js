@@ -2343,6 +2343,10 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         }
     }
 
+    // Force Book Mode styles (Match populateMockData)
+    document.body.classList.remove('print-mode-daily');
+    document.body.classList.add('print-mode-book');
+
     // Restore Global State
     currentMachineId = machineType;
     currentSiteId = siteId;
