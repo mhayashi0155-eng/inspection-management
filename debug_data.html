@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Data Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <h2>Data Debugger</h2>
+    <div id="output"></div>
+    <script>
+        async function runDebug() {
+            const out = document.getElementById('output');
+            const log = (msg) => out.innerHTML += `<div>${msg}</div>`;
+
+            if (!supabaseClient) {
+                log("Supabase Client not initialized");
+                return;
+            }
+
+            // URL params from the user's screenshot context (assumed)
+            // The screenshot shows "2026年2月度", Management No: 1.
+            // We need to find records for machine_id=1.
+
+            log("Searching for machine_id = '1' ...");
+
+            const { data, error } = await supabaseClient
+                .from('inspections')
+                .select('*')
+                .eq('machine_id', '1')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                log("Error: " + error.message);
+                return;
+            }
+
+            log(`Found ${data.length} records.`);
+
+            if (data.length > 0) {
+                log("Latest Record:");
+                log(JSON.stringify(data[0], null, 2));
+
+                // Check machine_type, site_id
+                data.forEach(d => {
+                    log(`ID: ${d.id}, Date: ${d.inspection_date}, Type: ${d.machine_type}, SiteID: ${d.site_id}, CompanyID: ${d.company_machine_id || (d.statuses?._company_machine_id) || 'N/A'}`);
+                });
+            }
+        }
+
+        setTimeout(runDebug, 1000);
+    </script>
+</body>
+
+</html>

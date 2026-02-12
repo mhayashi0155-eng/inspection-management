@@ -2234,7 +2234,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     // but let's try fetching all inspection_date and processing.
     const { data: inspections, error } = await supabaseClient
         .from('inspections')
-        .select('inspection_date, machine_type')
+        .select('inspection_date, machine_type, model_type, company_machine_id, statuses')
         .eq('site_id', siteId)
         .eq('machine_id', machineId)
         .or('is_deleted.is.null,is_deleted.eq.false')
@@ -2310,12 +2310,23 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         const monthlyData = await loadMonthlyData(cloneFormPage, `bk-f-${month}-`);
 
         // --- Generate Header from Data ---
+
+        // Find a representative record for this month to get Metadata
+        const monthRecord = inspections.find(i => i.inspection_date && i.inspection_date.startsWith(month));
+
+        // Metadata priority: 1. Loaded Monthly Data, 2. Found Record, 3. Defaults
+        let mModel = (monthlyData && monthlyData.model_type) || (monthRecord && monthRecord.model_type) || '-';
+        let cmid = (monthlyData && (monthlyData.company_machine_id || (monthlyData.statuses && monthlyData.statuses._company_machine_id)))
+            || (monthRecord && (monthRecord.company_machine_id || (monthRecord.statuses && monthRecord.statuses._company_machine_id)))
+            || '';
+
+        // Helper to get from DOM if still missing (fallback)
         const getVal = (suffix) => {
             const el = cloneFormPage.querySelector(`[id$="${suffix}"]`);
             return el ? el.value : '';
         };
-        const mModel = getVal('model-type');
-        const cmid = getVal('company-machine-id');
+        if (mModel === '-') mModel = getVal('model-type') || '-';
+        if (!cmid) cmid = getVal('company-machine-id');
 
         // Solve Machine Name from Master List
         let resolvedName = "名称未設定";
@@ -2325,7 +2336,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         if (match) {
             resolvedName = match.name;
         } else {
-            // Fallback: Try to get from global input if manually entered (though unlikely in read mode)
+            // Fallback: Try to get from global input
             const globalInput = document.getElementById('machine-name');
             if (globalInput && globalInput.value) resolvedName = globalInput.value;
         }
@@ -2340,7 +2351,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
             <span class="header-separator">|</span>
             <span class="header-item header-machine">${resolvedName}</span>
             <span class="header-separator">|</span>
-            <span class="header-item header-model">型式: ${mModel || '-'}</span>
+            <span class="header-item header-model">型式: ${mModel}</span>
             <span class="header-separator">|</span>
             <span class="header-item header-id">管理No: ${machineId}</span>
         `;
