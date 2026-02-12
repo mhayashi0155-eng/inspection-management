@@ -2276,6 +2276,8 @@ async function loadBookDataReal(siteId, machineId, machineType) {
 
     console.log(`DEBUG: Book Mode Context - Base: ${baseType}, Daily: ${dailyType}`);
 
+    // Clear "Loading..." message BEFORE rendering
+    container.innerHTML = '';
 
     // Helper to process sequentially
     for (const month of months) {
@@ -2308,21 +2310,25 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         const monthlyData = await loadMonthlyData(cloneFormPage, `bk-f-${month}-`);
 
         // --- Generate Header from Data ---
-        // We use the returned data (monthlyData) instead of reading DOM
-        // Note: machine_name might not be in the record if not joined, but model is.
-        // However, the original code read from #machine-name. loadMonthlyData sets #model-type etc.
-        // Wait, loadMonthlyData sets values on the clone now. We can read from the clone!
-
         const getVal = (suffix) => {
             const el = cloneFormPage.querySelector(`[id$="${suffix}"]`);
             return el ? el.value : '';
         };
         const mModel = getVal('model-type');
-        // machine-name is usually read-only and coming from master data. 
-        // We should trigger the machine selection change logic? No, too complex.
-        // Let's assume the user selected the machine before opening the book.
-        // If so, the global #machine-name has the correct value!
-        const globalMName = document.getElementById('machine-name').value;
+        const cmid = getVal('company-machine-id');
+
+        // Solve Machine Name from Master List
+        let resolvedName = "名称未設定";
+        // Combine all lists for search
+        const allMachines = [...shovelMachineList, ...tractorMachineList];
+        const match = allMachines.find(m => m.company_id === cmid);
+        if (match) {
+            resolvedName = match.name;
+        } else {
+            // Fallback: Try to get from global input if manually entered (though unlikely in read mode)
+            const globalInput = document.getElementById('machine-name');
+            if (globalInput && globalInput.value) resolvedName = globalInput.value;
+        }
 
         // Section Header
         const headerDiv = document.createElement('div');
@@ -2332,7 +2338,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         headerDiv.innerHTML = `
             <span class="header-item header-month">${yearStr}年${parseInt(monthStr)}月度</span>
             <span class="header-separator">|</span>
-            <span class="header-item header-machine">${globalMName || '名称未設定'}</span>
+            <span class="header-item header-machine">${resolvedName}</span>
             <span class="header-separator">|</span>
             <span class="header-item header-model">型式: ${mModel || '-'}</span>
             <span class="header-separator">|</span>
