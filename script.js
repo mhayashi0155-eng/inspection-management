@@ -2241,7 +2241,14 @@ async function loadBookDataReal(siteId, machineId, machineType) {
         .order('inspection_date', { ascending: true });
 
     if (error || !inspections || inspections.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:50px;">表示するデータがありません。</div>';
+        const errMsg = error ? error.message : "No Data Found";
+        const debugInfo = `SiteID: ${siteId}<br>MachineID: ${machineId}<br>Count: ${inspections ? inspections.length : 0}<br>Error: ${errMsg}`;
+        container.innerHTML = `<div style="text-align:center; padding:50px; color:red;">
+            表示するデータがありません。<br>
+            <div style="font-size:0.8rem; color:#666; margin-top:10px; border:1px solid #ccc; padding:10px; text-align:left; display:inline-block;">
+            <strong>Debug Info:</strong><br>${debugInfo}
+            </div>
+        </div>`;
         return;
     }
 
