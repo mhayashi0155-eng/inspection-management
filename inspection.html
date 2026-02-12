@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.12-Ver82_MonthPrintFix -->
+<!-- Version: v2026.02.12-Ver83_PrintFixHard -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver82_MonthPrintFix">
-    <link rel="stylesheet" href="style.css?v=Ver82_MonthPrintFix">
+    <link rel="stylesheet" href="style.css?v=Ver83_PrintFixHard">
+    <link rel="stylesheet" href="style.css?v=Ver83_PrintFixHard">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -101,12 +101,16 @@
 
         /* MONTHLY INSPECTION MODE (Standard Flow) - Force Portrait */
         /* Ensure body/html allow full height in print (except daily) */
+        /* MONTHLY INSPECTION MODE (Standard Flow) - Force Portrait */
+        /* Ensure body/html allow full height in print (except daily) */
         @media print {
 
             html,
             body {
-                height: auto !important;
-                overflow: visible !important;
+                height: 99% !important;
+                /* Force fit */
+                overflow: hidden !important;
+                /* Cut off overflow */
             }
         }
 
@@ -120,8 +124,12 @@
             margin: 0 auto !important;
             margin-top: 5px !important;
             /* Minimal top margin */
+            margin-bottom: 0 !important;
+            /* Ensure no bottom margin */
+            padding-bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
+            height: 100% !important;
         }
 
         /* AGGRESSIVE VERTICAL COMPRESSION FOR MONTHLY PRINT */
@@ -162,14 +170,16 @@
         }
 
         body:not(.print-mode-daily):not(.print-mode-book) .machine-info-grid {
-            margin-bottom: 0 !important;
-            /* Zero margin */
+            margin-bottom: 0.1rem !important;
+            /* Almost Zero margin */
             gap: 0.1rem !important;
             padding: 0.2rem !important;
         }
 
         body:not(.print-mode-daily):not(.print-mode-book) .inspection-grid {
             margin-top: 0 !important;
+            /* Zero margin */
+            margin-bottom: 0 !important;
             /* Zero margin */
             gap: 0.2rem !important;
         }
@@ -194,7 +204,11 @@
         .main-footer {
             display: flex !important;
             gap: 1rem !important;
-            margin-top: 1rem !important;
+            margin-top: 0.5rem !important;
+            /* Reduced from 1rem */
+            margin-bottom: 0 !important;
+            /* Force zero */
+            padding-bottom: 0 !important;
         }
 
         /* LABEL MODE OVERRIDES */
@@ -479,10 +493,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.12-Ver82_MonthPrintFix
+        v2026.02.12-Ver83_PrintFixHard
     </div>
 
-    <script src="script.js?v=Ver82_MonthPrintFix"></script>
+    <script src="script.js?v=Ver83_PrintFixHard"></script>
 </body>
 
 </html>
