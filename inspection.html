@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.11-Ver52_True_Demo -->
+<!-- Version: v2026.02.12-Ver82_MonthPrintFix -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver53_DataOverhaul">
-    <link rel="stylesheet" href="style.css?v=Ver53_DataOverhaul">
+    <link rel="stylesheet" href="style.css?v=Ver82_MonthPrintFix">
+    <link rel="stylesheet" href="style.css?v=Ver82_MonthPrintFix">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -19,6 +19,7 @@
             padding: 0;
             background: white;
             -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* DAILY INSPECTION MODE (1 Page Limit) */
@@ -145,6 +146,11 @@
             min-width: 0 !important;
         }
 
+        /* Hide Daily Grid in Monthly Report Mode to prevent 2nd page */
+        body:not(.print-mode-daily):not(.print-mode-book) #monthly-grid-page {
+            display: none !important;
+        }
+
         body:not(.print-mode-daily):not(.print-mode-book) .monthly-table th,
         body:not(.print-mode-daily):not(.print-mode-book) .monthly-table td {
             padding: 0 !important;
@@ -207,58 +213,59 @@
             left: 0;
             width: 100%;
             border: 4px solid #000;
+        }
 
-            /* BOOK MODE CONTAINER RESET & SCALE */
-            body.print-mode-book .app-container {
-                width: 100% !important;
-                max-width: none !important;
-                transform: scale(0.9) !important;
-                /* Global 90% scaling */
-                transform-origin: top left !important;
-                margin: 0 !important;
-                padding: 10px !important;
-            }
+        /* BOOK MODE CONTAINER RESET & SCALE */
+        body.print-mode-book .app-container {
+            width: 100% !important;
+            max-width: none !important;
+            transform: scale(0.9) !important;
+            /* Global 90% scaling */
+            transform-origin: top left !important;
+            margin: 0 !important;
+            padding: 10px !important;
+        }
 
-            /* BOOK MODE AUTO-RESIZE OVERRIDES (Placed here to ensure priority over internal compressed styles) */
-            /* REMOVED @media print wrapper to ensure it applies to screen view as well */
-            body.print-mode-book .monthly-table {
-                border-collapse: collapse !important;
-                /* Fix "shifted lines" (double borders) */
-                border-spacing: 0 !important;
-                width: 100% !important;
-                table-layout: fixed !important;
-            }
+        /* BOOK MODE AUTO-RESIZE OVERRIDES (Placed here to ensure priority over internal compressed styles) */
+        /* REMOVED @media print wrapper to ensure it applies to screen view as well */
+        body.print-mode-book .monthly-table {
+            border-collapse: collapse !important;
+            /* Fix "shifted lines" (double borders) */
+            border-spacing: 0 !important;
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
 
-            body.print-mode-book .monthly-table th:first-child,
-            body.print-mode-book .monthly-table td:first-child {
-                width: 200px !important;
-                min-width: 200px !important;
-                max-width: 200px !important;
-                font-size: 0.85rem !important;
-                /* Slightly smaller text */
-                line-height: 1.4 !important;
-                padding: 4px !important;
-                position: static !important;
-                /* Disable sticky to prevent alignment issues in Book Mode */
-                background: transparent !important;
-                /* Remove white background if sticky is off */
-            }
+        body.print-mode-book .monthly-table th:first-child,
+        body.print-mode-book .monthly-table td:first-child {
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            font-size: 0.85rem !important;
+            /* Slightly smaller text */
+            line-height: 1.4 !important;
+            padding: 4px !important;
+            position: static !important;
+            /* Disable sticky to prevent alignment issues in Book Mode */
+            background: transparent !important;
+            /* Remove white background if sticky is off */
+        }
 
-            body.print-mode-book .monthly-table th,
-            body.print-mode-book .monthly-table td {
-                font-size: 0.9rem !important;
-                /* Reduced from 1.0rem */
-                height: 2.0rem !important;
-                /* Reduced from 2.2rem */
-                vertical-align: middle !important;
-                text-align: center !important;
-                padding: 2px !important;
-                /* Restore padding */
-                line-height: normal !important;
-                /* Allow natural vertical centering */
-                border: 1px solid #cbd5e1 !important;
-                /* Use original border color */
-            }
+        body.print-mode-book .monthly-table th,
+        body.print-mode-book .monthly-table td {
+            font-size: 0.9rem !important;
+            /* Reduced from 1.0rem */
+            height: 2.0rem !important;
+            /* Reduced from 2.2rem */
+            vertical-align: middle !important;
+            text-align: center !important;
+            padding: 2px !important;
+            /* Restore padding */
+            line-height: normal !important;
+            /* Allow natural vertical centering */
+            border: 1px solid #cbd5e1 !important;
+            /* Use original border color */
+        }
     </style>
     <!-- Google Fonts for a premium look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -472,10 +479,10 @@
     <!-- Ver54: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.11-Ver81_DebugModules
+        v2026.02.12-Ver82_MonthPrintFix
     </div>
 
-    <script src="script.js?v=Ver81_DebugModules"></script>
+    <script src="script.js?v=Ver82_MonthPrintFix"></script>
 </body>
 
 </html>
