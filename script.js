@@ -2234,7 +2234,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     // but let's try fetching all inspection_date and processing.
     const { data: inspections, error } = await supabaseClient
         .from('inspections')
-        .select('inspection_date, machine_type, model_type, company_machine_id, statuses')
+        .select('inspection_date, machine_type, model_type, statuses')
         .eq('site_id', siteId)
         .eq('machine_id', machineId)
         .or('is_deleted.is.null,is_deleted.eq.false')
