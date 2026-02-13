@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.13-Ver89_PrintWidth -->
+<!-- Version: v2026.02.13-Ver90_RemoveLeftMargin -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver89_PrintWidth">
-    <link rel="stylesheet" href="style.css?v=Ver89_PrintWidth">
+    <link rel="stylesheet" href="style.css?v=Ver90_RemoveLeftMargin">
+    <link rel="stylesheet" href="style.css?v=Ver90_RemoveLeftMargin">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -119,13 +119,13 @@
             /* Fixed width - Reduced from 1280px (Ver89) */
             transform: scale(0.85) !important;
             /* User Request: 0.85 scale */
-            transform-origin: top center !important;
-            /* Center alignment */
-            margin: 0 auto !important;
-            margin-top: 5px !important;
-            /* Minimal top margin */
-            margin-bottom: 0 !important;
-            /* Ensure no bottom margin */
+            /* User Request: 0.85 scale */
+            transform-origin: top left !important;
+            /* Left alignment */
+            margin: 5px 0 0 0 !important;
+            /* Minimal top margin, No auto centering */
+            padding: 0 !important;
+            /* Remove padding from style.css */
             padding-bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
@@ -488,13 +488,13 @@
 
     </div>
 
-    <!-- Ver89: Fixed Version Indicator -->
+    <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.13-Ver89_PrintWidth
+        v2026.02.13-Ver90_RemoveLeftMargin
     </div>
 
-    <script src="script.js?v=Ver89_PrintWidth"></script>
+    <script src="script.js?v=Ver90_RemoveLeftMargin"></script>
 </body>
 
 </html>
