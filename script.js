@@ -1358,15 +1358,17 @@ async function initInspection() {
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn) saveBtn.onclick = () => saveInspection();
 
-    const changeMBtn = document.getElementById('change-machine-btn');
-    if (changeMBtn) changeMBtn.onclick = () => {
-        if (confirm("機種を変更しますか？ 入力内容がクリアされます。")) location.reload();
-    };
+    // Ver88: Removed Change Machine Button
+    // const changeMBtn = document.getElementById('change-machine-btn');
+    // if (changeMBtn) changeMBtn.onclick = () => {
+    //     if (confirm("機種を変更しますか？ 入力内容がクリアされます。")) location.reload();
+    // };
 
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) resetBtn.onclick = () => {
-        if (confirm("入力をリセットしますか？")) renderForm(currentMachineId);
-    };
+    // Ver88: Removed Reset Button
+    // const resetBtn = document.getElementById('reset-btn');
+    // if (resetBtn) resetBtn.onclick = () => {
+    //     if (confirm("入力をリセットしますか？")) renderForm(currentMachineId);
+    // };
 
     const printBtn = document.getElementById('print-btn');
     if (printBtn) printBtn.onclick = () => {

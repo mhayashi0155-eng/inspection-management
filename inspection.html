@@ -1,12 +1,12 @@
-<!-- Version: v2026.02.12-Ver87_FixQuery -->
+<!-- Version: v2026.02.13-Ver88_RemoveButtons -->
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver87_FixQuery">
-    <link rel="stylesheet" href="style.css?v=Ver87_FixQuery">
+    <link rel="stylesheet" href="style.css?v=Ver88_RemoveButtons">
+    <link rel="stylesheet" href="style.css?v=Ver88_RemoveButtons">
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -348,7 +348,7 @@
             <div class="header-top">
                 <div class="header-controls">
                     <button onclick="goDashBoard()" class="secondary-btn">&lt; 一覧へ戻る</button>
-                    <button id="change-machine-btn" class="secondary-btn">機種変更</button>
+                    <!-- 機種変更ボタン削除 (Ver88) -->
                 </div>
 
                 <h1 id="form-title">車両系建設機械 定期自主検査表(月例)</h1>
@@ -480,9 +480,7 @@
             </div>
 
             <div class="action-buttons">
-                <!-- Ver53 Data Reset -->
-                <button onclick="resetAllData()" class="ghost-btn" style="color:red; font-size:0.7rem;">全データ消去</button>
-                <button id="reset-btn" class="danger-btn">リセット</button>
+                <!-- Ver88: Removed Reset & Delete All Data buttons -->
                 <button id="save-btn" class="primary-btn">保存</button>
                 <button id="print-btn" class="success-btn">PDF発行 / 印刷</button>
             </div>
@@ -490,13 +488,13 @@
 
     </div>
 
-    <!-- Ver54: Fixed Version Indicator -->
+    <!-- Ver88: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.12-Ver87_FixQuery
+        v2026.02.13-Ver88_RemoveButtons
     </div>
 
-    <script src="script.js?v=Ver87_FixQuery"></script>
+    <script src="script.js?v=Ver88_RemoveButtons"></script>
 </body>
 
 </html>
