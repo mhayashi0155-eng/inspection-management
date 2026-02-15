@@ -1,12 +1,14 @@
-<!-- Version: v2026.02.13-Ver92_TopMarginHooks -->
+<!-- Version: v2026.02.16-Ver93_DailyResize -->
+
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver92_TopMarginHooks">
-    <link rel="stylesheet" href="style.css?v=Ver92_TopMarginHooks">
+    <link rel="stylesheet" href="style.css?v=Ver93_DailyResize">
+    <link rel="stylesheet" href="style.css?v=Ver93_DailyResize">
+
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -164,6 +166,14 @@
             display: none !important;
         }
 
+        /* Page 2: Daily Grid */
+        body.print-mode-book .print-page[id^="bk-g-"] #monthly-grid-page {
+            transform: none !important;
+            transform-origin: top left;
+            padding-top: 10px;
+            padding-left: 10px;
+        }
+
         body:not(.print-mode-daily):not(.print-mode-book) .monthly-table th,
         body:not(.print-mode-daily):not(.print-mode-book) .monthly-table td {
             padding: 0 !important;
@@ -179,6 +189,20 @@
             /* Almost Zero margin */
             gap: 0.1rem !important;
             padding: 0.2rem !important;
+        }
+
+        body.print-mode-book #inspection-form-page,
+        body.print-mode-book #monthly-grid-page {
+            /* Hide template pages in Book Mode (User Request: Hide Items 1 & 2) */
+            display: none !important;
+        }
+
+        /* Page 1: Monthly Form */
+        body.print-mode-book .print-page[id^="bk-f-"] #inspection-form-page {
+            transform: none !important;
+            /* Unified scaling on app-container */
+            transform-origin: top center;
+            margin-bottom: 0;
         }
 
         body:not(.print-mode-daily):not(.print-mode-book) .inspection-grid {
@@ -260,6 +284,7 @@
             width: 200px !important;
             min-width: 200px !important;
             max-width: 200px !important;
+            /* Ensure height rules apply here too by inheritance or cascade */
             font-size: 0.85rem !important;
             /* Slightly smaller text */
             line-height: 1.4 !important;
@@ -273,12 +298,13 @@
         body.print-mode-book .monthly-table th,
         body.print-mode-book .monthly-table td {
             font-size: 0.9rem !important;
-            /* Reduced from 1.0rem */
-            height: 2.0rem !important;
-            /* Reduced from 2.2rem */
+            height: 1.5rem !important;
             vertical-align: middle !important;
             text-align: center !important;
-            padding: 2px !important;
+            padding: 1px !important;
+            /* Reduced padding */
+            line-height: 1.2 !important;
+
             /* Restore padding */
             line-height: normal !important;
             /* Allow natural vertical centering */
@@ -496,10 +522,13 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.13-Ver92_TopMarginHooks
+        v2026.02.16-Ver93_DailyResize
     </div>
 
-    <script src="script.js?v=Ver92_TopMarginHooks"></script>
+
+    <!-- Ver90: Fixed Version Indicator -->
+    <script src="script.js?v=Ver93_DailyResize"></script>
 </body>
+
 
 </html>
