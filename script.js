@@ -2225,8 +2225,15 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     // Hide default views
     document.getElementById('inspection-form').style.display = 'none';
     document.getElementById('monthly-grid-view').style.display = 'none';
-    document.getElementById('inspection-form-page').style.display = 'none';
-    document.getElementById('monthly-grid-page').style.display = 'none';
+
+    // Explicitly hide the template pages using a class that CSS can target differently if needed,
+    // or just ensure they are display:none.
+    const baseFormPage = document.getElementById('inspection-form-page');
+    const baseGridPage = document.getElementById('monthly-grid-page');
+
+    if (baseFormPage) baseFormPage.style.display = 'none';
+    if (baseGridPage) baseGridPage.style.display = 'none';
+
 
     container.innerHTML = '<div style="text-align:center; padding:50px; font-size:1.5rem;">データを読み込んでいます...</div>';
     container.style.display = 'block';
@@ -2276,8 +2283,9 @@ async function loadBookDataReal(siteId, machineId, machineType) {
     container.appendChild(debugMsg);
 
     // Base elements to clone
-    const baseFormPage = document.getElementById('inspection-form-page');
-    const baseGridPage = document.getElementById('monthly-grid-page');
+    // (Already declared above, so no const here)
+    // baseFormPage = document.getElementById('inspection-form-page');
+    // baseGridPage = document.getElementById('monthly-grid-page');
 
     // Determine Base and Daily Types
     const baseType = getBaseMachineType(machineType);
@@ -2294,6 +2302,7 @@ async function loadBookDataReal(siteId, machineId, machineType) {
 
         // --- 1. Load Monthly Data ---
         document.getElementById('inspection-month').value = month;
+
         document.getElementById('machine-id').value = machineId;
         currentSiteId = siteId;
 
