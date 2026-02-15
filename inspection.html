@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver94_HideTemplate -->
+<!-- Version: v2026.02.16-Ver95_GlobalBookStyle -->
+
 
 
 <html lang="ja">
@@ -7,8 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver94_HideTemplate">
-    <link rel="stylesheet" href="style.css?v=Ver94_HideTemplate">
+    <link rel="stylesheet" href="style.css?v=Ver95_GlobalBookStyle">
+    <link rel="stylesheet" href="style.css?v=Ver95_GlobalBookStyle">
+
 
 
     <!-- Inline Print Styles to bypass cache and force layout -->
@@ -318,6 +320,36 @@
             /* Use original border color */
         }
     </style>
+
+    <!-- Screen & Print Overrides for Book Mode (Applied globally) -->
+    <style>
+        /* Hide Original Template Pages in Book Mode (User Items 1 & 2) */
+        body.print-mode-book>#inspection-form-page,
+        body.print-mode-book>#monthly-grid-page,
+        body.print-mode-book>.app-container>#inspection-form-page,
+        body.print-mode-book>.app-container>#monthly-grid-page {
+            display: none !important;
+        }
+
+        /* 
+         * Verify On-Screen: 
+         * Apply same height reduction to Book Mode tables on screen 
+         */
+        body.print-mode-book .monthly-table th,
+        body.print-mode-book .monthly-table td {
+            font-size: 0.9rem !important;
+            height: 1.5rem !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+            padding: 1px !important;
+            line-height: 1.2 !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        /* Ensure clones are positioned correctly on screen too if needed, though transform might be print specific. 
+           For now, just ensuring they are visible and templates are hidden is priority. */
+    </style>
+
     <!-- Google Fonts for a premium look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -528,14 +560,16 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver94_HideTemplate
+        v2026.02.16-Ver95_GlobalBookStyle
     </div>
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver94_HideTemplate"></script>
+    <script src="script.js?v=Ver95_GlobalBookStyle"></script>
 </body>
+
 
 
 
