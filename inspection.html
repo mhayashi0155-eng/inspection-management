@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver98_PrintSizeAdjust -->
+<!-- Version: v2026.02.16-Ver99_BookFinalAdjust -->
+
 
 
 
@@ -11,8 +12,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver98_PrintSizeAdjust">
-    <link rel="stylesheet" href="style.css?v=Ver98_PrintSizeAdjust">
+    <link rel="stylesheet" href="style.css?v=Ver99_BookFinalAdjust">
+    <link rel="stylesheet" href="style.css?v=Ver99_BookFinalAdjust">
+
 
 
 
@@ -330,10 +332,12 @@
     <!-- Screen & Print Overrides for Book Mode (Applied globally) -->
     </style>
 
-    <!-- Print Overrides for Book Mode (Applied ONLY to Print) -->
-    <!-- Screen starts at Ver39 pattern (Standard) -->
-    <style media="print">
-        /* Hide Original Template Pages in Book Mode */
+    <!-- Screen & Print Overrides for Book Mode (Applied globally) -->
+    <style>
+        /* 
+         * 1. Hide Original Template Pages in Book Mode (User Items 1 & 2) 
+         * Applied globally so they are hidden on screen too.
+         */
         body.print-mode-book>#inspection-form-page,
         body.print-mode-book>#monthly-grid-page,
         body.print-mode-book>.app-container>#inspection-form-page,
@@ -341,9 +345,9 @@
             display: none !important;
         }
 
-        /*
-         * Verify On-Screen:
-         * Apply same height reduction to Book Mode tables on screen
+        /* 
+         * Verify On-Screen: 
+         * Apply same height reduction to Book Mode tables on screen 
          */
         body.print-mode-book .monthly-table th,
         body.print-mode-book .monthly-table td {
@@ -355,7 +359,11 @@
             line-height: 1.2 !important;
             border: 1px solid #cbd5e1 !important;
         }
+    </style>
 
+    <!-- Print Overrides for Book Mode (Applied ONLY to Print) -->
+    <!-- Screen starts at Ver39 pattern (Standard) -->
+    <style media="print">
         /* PAGINATION & SIZING FOR BOOK MODE */
 
         /* 1. Global Container Reset */
@@ -392,9 +400,11 @@
            Let's apply Zoom to the targeted IDs.
         */
 
-        /* 3. Monthly Inspection Form (The detailed checklist) -> 50% Size */
+        /* 3. Monthly Inspection Form (The detailed checklist) -> HALF HEIGHT (50%) */
+        /* User Request: "Height to half" -> Zoom 0.5 */
         body.print-mode-book [id^="inspection-form-page-"] {
-            zoom: 0.55 !important;
+            zoom: 0.5 !important;
+            /* 50% Size */
             margin-bottom: 20px !important;
         }
 
@@ -635,7 +645,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver98_PrintSizeAdjust
+        v2026.02.16-Ver99_BookFinalAdjust
     </div>
 
 
@@ -644,9 +654,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver98_PrintSizeAdjust"></script>
+    <script src="script.js?v=Ver99_BookFinalAdjust"></script>
 </body>
+
 
 
 
