@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver97_PrintOnlyBookStyle -->
+<!-- Version: v2026.02.16-Ver98_PrintSizeAdjust -->
+
 
 
 
@@ -10,8 +11,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver97_PrintOnlyBookStyle">
-    <link rel="stylesheet" href="style.css?v=Ver97_PrintOnlyBookStyle">
+    <link rel="stylesheet" href="style.css?v=Ver98_PrintSizeAdjust">
+    <link rel="stylesheet" href="style.css?v=Ver98_PrintSizeAdjust">
+
 
 
 
@@ -329,9 +331,9 @@
     </style>
 
     <!-- Print Overrides for Book Mode (Applied ONLY to Print) -->
-    <!-- Screen will remain default (templates visible, no scaling) as per user request -->
+    <!-- Screen starts at Ver39 pattern (Standard) -->
     <style media="print">
-        /* Hide Original Template Pages in Book Mode (User Items 1 & 2) */
+        /* Hide Original Template Pages in Book Mode */
         body.print-mode-book>#inspection-form-page,
         body.print-mode-book>#monthly-grid-page,
         body.print-mode-book>.app-container>#inspection-form-page,
@@ -339,9 +341,9 @@
             display: none !important;
         }
 
-        /* 
-         * Verify On-Screen: 
-         * Apply same height reduction to Book Mode tables on screen 
+        /*
+         * Verify On-Screen:
+         * Apply same height reduction to Book Mode tables on screen
          */
         body.print-mode-book .monthly-table th,
         body.print-mode-book .monthly-table td {
@@ -354,35 +356,69 @@
             border: 1px solid #cbd5e1 !important;
         }
 
-        /* Ensure clones are positioned correctly on screen too if needed, though transform might be print specific. 
-           For now, just ensuring they are visible and templates are hidden is priority. */
+        /* PAGINATION & SIZING FOR BOOK MODE */
 
-        /* PAGINATION FOR BOOK MODE */
-        body.print-mode-book .print-page {
-            break-after: page !important;
-            page-break-after: always !important;
-            /* Removed height:100vh and overflow:hidden to prevent cut-off */
-            position: relative !important;
-            display: block !important;
-        }
-
-        /* Last page doesn't need a break */
-        body.print-mode-book .print-page:last-child {
-            break-after: auto !important;
-            page-break-after: auto !important;
-        }
-
-        /* Adjust scaling for Book Mode to ensure single page fit using ZOOM */
-        /* Zoom handles flow better for print than transform */
+        /* 1. Global Container Reset */
         body.print-mode-book .app-container {
-            zoom: 0.8 !important;
-            /* 80% zoom */
+            zoom: 1 !important;
+            /* Reset global zoom */
             width: 100% !important;
             max-width: none !important;
             margin: 0 auto !important;
-            padding-top: 10px !important;
+            padding: 0 !important;
             transform: none !important;
-            /* Disable transform */
+        }
+
+        /* 2. Common Page Break Rules */
+        body.print-mode-book .print-page,
+        body.print-mode-book .book-section-label {
+            break-after: page !important;
+            page-break-after: always !important;
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* Exception: Label should be attached to the form, so avoid break immediately after label if possible,
+           BUT user wants "Half Size", implying the form itself is small.
+           Actually, the label usually goes WITH the month.
+           Let's wrap them or ensure they stay together if we can, but break-after is safer for distinct pages.
+           However, usually the label comes right before the form.
+           Let's try to keep label and form on the same page if they fit, or just treat them as a flow.
+
+           Current JS inserts label BEFORE form.
+           If we Zoom the Form to 50%, it will take half page.
+           Let's Zoom the Label too or keep it?
+           Let's apply Zoom to the targeted IDs.
+        */
+
+        /* 3. Monthly Inspection Form (The detailed checklist) -> 50% Size */
+        body.print-mode-book [id^="inspection-form-page-"] {
+            zoom: 0.55 !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* 4. Section Label (Year/Month Header) -> Match scale or keep slightly larger? */
+        body.print-mode-book .book-section-label {
+            zoom: 0.6 !important;
+            margin-top: 20px !important;
+            break-after: avoid !important;
+            /* Keep with the form */
+            page-break-after: avoid !important;
+        }
+
+        /* 5. Daily Inspection Grid (The table) -> 80% Size (Fit to Page) */
+        body.print-mode-book [id^="monthly-grid-page-"] {
+            zoom: 0.8 !important;
+            break-before: page !important;
+            /* Ensure it starts on new page */
+            page-break-before: always !important;
+        }
+
+        /* Last page cleanup */
+        body.print-mode-book .print-page:last-child {
+            break-after: auto !important;
+            page-break-after: auto !important;
         }
     </style>
 
@@ -599,7 +635,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver97_PrintOnlyBookStyle
+        v2026.02.16-Ver98_PrintSizeAdjust
     </div>
 
 
@@ -607,9 +643,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver97_PrintOnlyBookStyle"></script>
+    <script src="script.js?v=Ver98_PrintSizeAdjust"></script>
 </body>
+
 
 
 
