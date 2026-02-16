@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>点検表管理システム - 現場管理</title>
-    <link rel="stylesheet" href="style.css?v=Ver93_RemoveDemo">
-    <link rel="stylesheet" href="style.css?v=Ver93_RemoveDemo">
+    <link rel="stylesheet" href="style.css?v=Ver110_UnifiedVersion">
+    <link rel="stylesheet" href="style.css?v=Ver110_UnifiedVersion">
 
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
@@ -266,6 +266,11 @@
         <div class="modal-content">
             <h2>削除の確認</h2>
             <p>このデータ（履歴含む）を削除してもよろしいですか？<br>この操作は取り消せません。</p>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>セキュリティのため、暗証番号を入力してください</label>
+                <input type="password" id="delete-pin" placeholder="暗証番号"
+                    style="text-align:center; letter-spacing: 0.2rem; font-size: 1.2rem;">
+            </div>
             <div class="modal-actions">
                 <button class="secondary-btn" id="cancel-delete">キャンセル</button>
                 <button class="danger-btn" id="confirm-delete" style="border-radius:9999px;">削除する</button>
@@ -315,14 +320,14 @@
     <datalist id="staff-list"></datalist>
     <datalist id="representative-list"></datalist>
 
-    <script src="script.js?v=Ver93_RemoveDemo"></script>
+    <script src="script.js?v=Ver110_UnifiedVersion"></script>
     <div class="sidebar-decoration left"></div>
     <div class="sidebar-decoration right"></div>
 
     <!-- Ver90: Fixed Version Indicator -->
     <div id="global-version"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver106_QRWidth50
+        v2026.02.16-Ver110_UnifiedVersion
     </div>
 
 

@@ -480,9 +480,20 @@ function initIndex() {
 
     document.getElementById('cancel-delete')?.addEventListener('click', () => {
         document.getElementById('delete-modal').style.display = 'none';
+        document.getElementById('delete-pin').value = ''; // Clear PIN
     });
 
     document.getElementById('confirm-delete')?.addEventListener('click', async () => {
+        // PIN Check
+        const pinInput = document.getElementById('delete-pin');
+        const pin = pinInput.value;
+        const DELETE_PIN = "0155522311";
+
+        if (pin !== DELETE_PIN) {
+            alert("暗証番号が違います。削除できません。");
+            return;
+        }
+
         if (!supabaseClient) return;
 
         if (deleteType === 'machine') {
@@ -498,6 +509,7 @@ function initIndex() {
                 alert("削除に失敗しました: " + error.message);
             } else {
                 document.getElementById('delete-modal').style.display = 'none';
+                pinInput.value = ''; // Clear PIN
                 renderMachineList(currentSiteId);
             }
             return;
@@ -511,6 +523,7 @@ function initIndex() {
             alert("削除に失敗しました: " + error.message);
         } else {
             document.getElementById('delete-modal').style.display = 'none';
+            pinInput.value = ''; // Clear PIN
             if (deleteType === 'site') renderSiteList();
             else renderMachineList(currentSiteId);
         }
