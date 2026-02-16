@@ -915,10 +915,10 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
     }
 
     // --- 3. Build HTML Structure ---
-    // We need to adjust .label-qr-col to hold multiple QRs if needed.
-    // If 2 QRs, we might want them side-by-side or stacked.
-    // The user request: "Layout remains same" -> presumably the A5 layout structure.
-    // The .label-qr-col is flex-column. We can put a container inside it.
+    // User request: "Text position horizontal (side-by-side) and Maximize QR"
+    // .label-qr-col now has more width (flex: 1 vs 1.2).
+    // We will stack the two QRs vertically as before, but for each QR block:
+    // [Label] [QR Code]  (Horizontal alignment)
 
     const contentHtml = `
         <div class="print-label-container">
@@ -962,10 +962,9 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
                 </div>
                 <!-- Modify QR Column -->
                 <div class="label-qr-col">
-                    <div id="qrcode-wrapper" style="display:flex; flex-direction:column; gap:10px; align-items:center; width:100%;">
+                    <div id="qrcode-wrapper" style="display:flex; flex-direction:column; gap:5px; align-items:center; width:100%; height:100%; justify-content:space-evenly;">
                         <!-- QRs will be injected here -->
                     </div>
-                    <div class="qr-note" style="margin-top:5px;">スマホで読取</div>
                 </div>
             </div>
         </div>
@@ -991,28 +990,36 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
     if (wrapper) {
         wrapper.innerHTML = '';
 
-        // If 2 QRs, use smaller size. If 1, use standard.
-        // Standard was 160.
-        // In A5 print (approx 210mm x 148mm), the QR col is 1/3 of body.
-        // Vertical stacking 2 QRs might be tight if they are 160px.
-        // Let's try 128px for dual, 160px for single.
+        // Maximize size logic
+        // If 2 QRs, we try to fit them. Code was 110. Now we try bigger.
+        // We use flex-row for label and QR.
+        // Available width in A5 (half width ~100mm) is approx 350px+ on screen (scaled).
 
-        const size = qrCodes.length > 1 ? 110 : 160;
+        const size = qrCodes.length > 1 ? 128 : 180;
 
         qrCodes.forEach(item => {
             const containerDiv = document.createElement('div');
-            containerDiv.style.textAlign = 'center';
-            containerDiv.style.marginBottom = '5px';
+            // Horizontal Layout: [Label] [QR]
+            containerDiv.style.display = 'flex';
+            containerDiv.style.flexDirection = 'row';
+            containerDiv.style.alignItems = 'center';
+            containerDiv.style.justifyContent = 'center'; // Center the pair
+            containerDiv.style.gap = '10px';
+            containerDiv.style.width = '100%';
 
+            // Label
             const labelDiv = document.createElement('div');
-            labelDiv.innerText = `（${item.label}）`;
+            // Vertical text for label might look good if space is tight, but "horizontal position" usually means side-by-side.
+            // Let's try standard horizontal text.
+            labelDiv.innerText = `${item.label}`;
             labelDiv.style.fontWeight = 'bold';
-            labelDiv.style.fontSize = '0.9rem';
-            labelDiv.style.marginBottom = '2px';
+            labelDiv.style.fontSize = '1.1rem'; // Larger text
+            // labelDiv.style.writingMode = 'vertical-rl'; // Option: vertical text if needed
+            labelDiv.style.whiteSpace = 'nowrap';
 
             const qrDiv = document.createElement('div');
-            // qrDiv needs to be kept clean for QRCode library
 
+            // Order: Label Left, QR Right
             containerDiv.appendChild(labelDiv);
             containerDiv.appendChild(qrDiv);
             wrapper.appendChild(containerDiv);
