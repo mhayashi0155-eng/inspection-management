@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver101_HeaderShrink -->
+<!-- Version: v2026.02.16-Ver102_MonthlyZoom80 -->
+
 
 
 
@@ -14,8 +15,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver101_HeaderShrink">
-    <link rel="stylesheet" href="style.css?v=Ver101_HeaderShrink">
+    <link rel="stylesheet" href="style.css?v=Ver102_MonthlyZoom80">
+    <link rel="stylesheet" href="style.css?v=Ver102_MonthlyZoom80">
+
 
 
 
@@ -392,12 +394,12 @@
         }
 
         /* 
-         * 3. Monthly Inspection Form VERTICAL COMPRESSION (User Request: "Height only smaller, keep font size") 
-         * Remove zoom, apply aggressive padding/margin reduction.
+         * 3. Monthly Inspection Form VERTICAL COMPRESSION + ZOOM 80% (User Request: "Monthly table also 80% smaller") 
+         * Apply zoom 0.8 ON TOP OF vertical compression.
          */
         body.print-mode-book [id^="inspection-form-page-"] {
-            zoom: 1 !important;
-            /* Reset zoom */
+            zoom: 0.8 !important;
+            /* 80% Size */
             margin-bottom: 0 !important;
         }
 
@@ -736,7 +738,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver101_HeaderShrink
+        v2026.02.16-Ver102_MonthlyZoom80
     </div>
 
 
@@ -748,9 +750,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver101_HeaderShrink"></script>
+    <script src="script.js?v=Ver102_MonthlyZoom80"></script>
 </body>
+
 
 
 
