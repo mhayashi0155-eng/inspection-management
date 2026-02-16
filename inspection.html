@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver100_VerticalCompression -->
+<!-- Version: v2026.02.16-Ver101_HeaderShrink -->
+
 
 
 
@@ -13,8 +14,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver100_VerticalCompression">
-    <link rel="stylesheet" href="style.css?v=Ver100_VerticalCompression">
+    <link rel="stylesheet" href="style.css?v=Ver101_HeaderShrink">
+    <link rel="stylesheet" href="style.css?v=Ver101_HeaderShrink">
+
 
 
 
@@ -470,7 +472,55 @@
             break-after: auto !important;
             page-break-after: auto !important;
         }
+
+        /* 
+         * 6. Header Shrinkage (User Request: "Upper items are too big")
+         * Apply zoom and reduce spacing for the header section.
+         */
+        body.print-mode-book .main-header {
+            zoom: 0.8 !important;
+            /* Shrink header to 80% */
+            margin-bottom: 5px !important;
+            padding-bottom: 0 !important;
+            border-bottom: 1px solid #ddd !important;
+        }
+
+        body.print-mode-book .main-header h1 {
+            font-size: 1.2rem !important;
+            /* Smaller title */
+            margin: 0 !important;
+            padding: 5px 0 !important;
+        }
+
+        body.print-mode-book .machine-info-grid {
+            gap: 5px !important;
+            /* Tighter grid */
+            margin-bottom: 5px !important;
+        }
+
+        body.print-mode-book .input-group {
+            margin-bottom: 2px !important;
+            /* Reduce gap between inputs */
+        }
+
+        body.print-mode-book .input-group label {
+            font-size: 0.75rem !important;
+            margin-bottom: 1px !important;
+        }
+
+        body.print-mode-book .input-group input,
+        body.print-mode-book .input-group select {
+            padding: 2px !important;
+            height: 1.4rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* Hide non-essential header elements in Book Mode if needed */
+        body.print-mode-book .header-controls {
+            display: none !important;
+        }
     </style>
+
 
 
 
@@ -686,7 +736,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver100_VerticalCompression
+        v2026.02.16-Ver101_HeaderShrink
     </div>
 
 
@@ -697,9 +747,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver100_VerticalCompression"></script>
+    <script src="script.js?v=Ver101_HeaderShrink"></script>
 </body>
+
 
 
 
