@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver99_BookFinalAdjust -->
+<!-- Version: v2026.02.16-Ver100_VerticalCompression -->
+
 
 
 
@@ -12,8 +13,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver99_BookFinalAdjust">
-    <link rel="stylesheet" href="style.css?v=Ver99_BookFinalAdjust">
+    <link rel="stylesheet" href="style.css?v=Ver100_VerticalCompression">
+    <link rel="stylesheet" href="style.css?v=Ver100_VerticalCompression">
+
 
 
 
@@ -387,33 +389,71 @@
             width: 100% !important;
         }
 
-        /* Exception: Label should be attached to the form, so avoid break immediately after label if possible,
-           BUT user wants "Half Size", implying the form itself is small.
-           Actually, the label usually goes WITH the month.
-           Let's wrap them or ensure they stay together if we can, but break-after is safer for distinct pages.
-           However, usually the label comes right before the form.
-           Let's try to keep label and form on the same page if they fit, or just treat them as a flow.
-
-           Current JS inserts label BEFORE form.
-           If we Zoom the Form to 50%, it will take half page.
-           Let's Zoom the Label too or keep it?
-           Let's apply Zoom to the targeted IDs.
-        */
-
-        /* 3. Monthly Inspection Form (The detailed checklist) -> HALF HEIGHT (50%) */
-        /* User Request: "Height to half" -> Zoom 0.5 */
+        /* 
+         * 3. Monthly Inspection Form VERTICAL COMPRESSION (User Request: "Height only smaller, keep font size") 
+         * Remove zoom, apply aggressive padding/margin reduction.
+         */
         body.print-mode-book [id^="inspection-form-page-"] {
-            zoom: 0.5 !important;
-            /* 50% Size */
-            margin-bottom: 20px !important;
+            zoom: 1 !important;
+            /* Reset zoom */
+            margin-bottom: 0 !important;
         }
 
-        /* 4. Section Label (Year/Month Header) -> Match scale or keep slightly larger? */
+        /* Compress the Grid Structure */
+        body.print-mode-book [id^="inspection-form-page-"] .inspection-grid {
+            gap: 2px !important;
+            /* Reduce gap between rows/cols */
+            margin: 0 !important;
+        }
+
+        /* Compress Individual Items */
+        body.print-mode-book [id^="inspection-form-page-"] .inspection-item,
+        body.print-mode-book [id^="inspection-form-page-"] .category-title {
+            padding: 0 4px !important;
+            /* Remove vertical padding totally */
+            min-height: 0 !important;
+            height: auto !important;
+            margin-bottom: 0 !important;
+            line-height: 1.1 !important;
+            /* Tighten line height */
+        }
+
+        /* Compress Input Fields */
+        body.print-mode-book [id^="inspection-form-page-"] input[type="text"],
+        body.print-mode-book [id^="inspection-form-page-"] select {
+            height: 1.3rem !important;
+            /* Reduce input height */
+            min-height: 0 !important;
+            padding: 0 2px !important;
+            font-size: 0.8rem !important;
+            /* Keep font readable but slightly adjust if needed, mostly height matters */
+            margin: 0 !important;
+        }
+
+        /* Compress Checkboxes/Status */
+        body.print-mode-book [id^="inspection-form-page-"] .status-group {
+            gap: 1px !important;
+        }
+
+        body.print-mode-book [id^="inspection-form-page-"] .status-option {
+            width: 1.2rem !important;
+            height: 1.2rem !important;
+            line-height: normal !important;
+            min-height: 0 !important;
+        }
+
+        /* Hide unnecessary elements in Monthly Form to save space if needed */
+        /* body.print-mode-book [id^="inspection-form-page-"] .category-title { display: none !important; } */
+        /* Keep titles for now, but compress them */
+
+
+        /* 4. Section Label (Year/Month Header) -> Keep clear but compact */
         body.print-mode-book .book-section-label {
-            zoom: 0.6 !important;
-            margin-top: 20px !important;
+            zoom: 0.8 !important;
+            /* Slight zoom ok for header */
+            margin-top: 10px !important;
+            margin-bottom: 5px !important;
             break-after: avoid !important;
-            /* Keep with the form */
             page-break-after: avoid !important;
         }
 
@@ -431,6 +471,7 @@
             page-break-after: auto !important;
         }
     </style>
+
 
 
 
@@ -645,7 +686,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver99_BookFinalAdjust
+        v2026.02.16-Ver100_VerticalCompression
     </div>
 
 
@@ -655,9 +696,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver99_BookFinalAdjust"></script>
+    <script src="script.js?v=Ver100_VerticalCompression"></script>
 </body>
+
 
 
 
