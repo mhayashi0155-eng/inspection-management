@@ -840,7 +840,7 @@ async function renderMachineList(siteId) {
                         </div>
                         <div style="display:flex; gap:0.3rem;">
                              <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; background: #fffbeb; border-color: #fbbf24; color: #d97706;" onclick='showQrCode("${siteId}", "${m.base.machine_type}", "${m.base.machine_id}", "${m.base.model_type}", "${(m.base.statuses && m.base.statuses._company_machine_id) || ''}", "${inspectorMain}", "${inspectorSub}")'>QR</button>
-                            <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="location.href='inspection.html?id=${targetIdForEdit}&site_id=${siteId}'">詳細</button>
+                            <!-- Details button removed (Ver108) -->
                             <button class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="openMachineHistory('${siteId}', '${m.base.machine_id}')">履歴</button>
                             <button class="ghost-btn" style="padding:0.3rem 0.6rem; font-size:0.8rem; color:var(--danger-color);" onclick="confirmDeleteMachine('${siteId}', '${m.base.machine_id}')">削除</button>
                         </div>
