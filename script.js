@@ -867,23 +867,58 @@ async function renderMachineList(siteId) {
 
 function showQrCode(siteId, machineType, machineId, modelType, companyMachineId, inspectorMain, inspectorSub) {
     const modal = document.getElementById('qr-modal');
-    // const container = document.getElementById('qrcode-container'); // Changed: dynamic generation
-
     if (!modal) return;
 
-    // A5 Label Layout Generation
-    // We will inject the HTML dynamically into modal-content
-
-    // Machine Name lookup
+    // --- 1. Machine Name & Info Lookup ---
     let machineName = "（不明）";
-    // Combine lists to search
     const allMachines = [...(typeof shovelMachineList !== 'undefined' ? shovelMachineList : []), ...(typeof tractorMachineList !== 'undefined' ? tractorMachineList : [])];
     const match = allMachines.find(m => m.company_id === companyMachineId);
     if (match) machineName = match.name;
-    else if (!companyMachineId) machineName = ""; // If no ID, leave empty or logic?
+    else if (!companyMachineId) machineName = "";
 
-    // Site Name
     const siteName = document.getElementById('current-site-title')?.innerText || "";
+
+    // --- 2. Determine QR Codes to Generate ---
+    // If machineType is vehicle (shovel, tractor, crane), generate BOTH Monthly and Daily.
+    // Otherwise, generate only ONE (the type passed in).
+    const isVehicle = ['shovel', 'tractor', 'crane'].includes(machineType);
+
+    let qrCodes = [];
+
+    // Helper to build URL
+    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/inspection.html';
+    const buildUrl = (mType) => {
+        return `${baseUrl}?action=new&s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(mType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}&cmid=${encodeURIComponent(companyMachineId || '')}&main=${encodeURIComponent(inspectorMain || '')}&sub=${encodeURIComponent(inspectorSub || '')}`;
+    };
+
+    if (isVehicle) {
+        // 1. Monthly (base type)
+        qrCodes.push({
+            label: "月次点検",
+            url: buildUrl(machineType)
+        });
+        // 2. Daily (base type + _daily)
+        qrCodes.push({
+            label: "日常点検",
+            url: buildUrl(machineType + '_daily')
+        });
+    } else {
+        // Single type (Daily only or specific)
+        let label = "点検用";
+        if (machineType.endsWith('_daily')) label = "日常点検";
+        else if (['sandbag', 'pump'].includes(machineType)) label = "始業点検"; // Custom label if needed
+
+        qrCodes.push({
+            label: label,
+            url: buildUrl(machineType)
+        });
+    }
+
+    // --- 3. Build HTML Structure ---
+    // We need to adjust .label-qr-col to hold multiple QRs if needed.
+    // If 2 QRs, we might want them side-by-side or stacked.
+    // The user request: "Layout remains same" -> presumably the A5 layout structure.
+    // The .label-qr-col is flex-column. We can put a container inside it.
 
     const contentHtml = `
         <div class="print-label-container">
@@ -925,9 +960,12 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
                         </div>
                     </div>
                 </div>
+                <!-- Modify QR Column -->
                 <div class="label-qr-col">
-                    <div id="qrcode-target"></div>
-                    <div class="qr-note">スマホで読取</div>
+                    <div id="qrcode-wrapper" style="display:flex; flex-direction:column; gap:10px; align-items:center; width:100%;">
+                        <!-- QRs will be injected here -->
+                    </div>
+                    <div class="qr-note" style="margin-top:5px;">スマホで読取</div>
                 </div>
             </div>
         </div>
@@ -945,25 +983,48 @@ function showQrCode(siteId, machineType, machineId, modelType, companyMachineId,
     const modalContent = modal.querySelector('.modal-content');
     if (modalContent) {
         modalContent.innerHTML = contentHtml;
-        // Re-attach close handler since we wiped it
         document.getElementById('close-qr-btn').onclick = () => modal.style.display = 'none';
     }
 
-    // Generate QR
-    const container = document.getElementById('qrcode-target');
-    if (container) {
-        container.innerHTML = '';
-        // ベースURLを取得 (現在のパスからinspection.htmlへのパスを構築)
-        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/inspection.html';
-        const url = `${baseUrl}?action=new&s=${encodeURIComponent(siteId)}&mt=${encodeURIComponent(machineType)}&id=${encodeURIComponent(machineId)}&mo=${encodeURIComponent(modelType)}&cmid=${encodeURIComponent(companyMachineId || '')}&main=${encodeURIComponent(inspectorMain || '')}&sub=${encodeURIComponent(inspectorSub || '')}`;
+    // --- 4. Generate QRs ---
+    const wrapper = document.getElementById('qrcode-wrapper');
+    if (wrapper) {
+        wrapper.innerHTML = '';
 
-        new QRCode(container, {
-            text: url,
-            width: 160, // Smaller for label? or Big enough
-            height: 160,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+        // If 2 QRs, use smaller size. If 1, use standard.
+        // Standard was 160.
+        // In A5 print (approx 210mm x 148mm), the QR col is 1/3 of body.
+        // Vertical stacking 2 QRs might be tight if they are 160px.
+        // Let's try 128px for dual, 160px for single.
+
+        const size = qrCodes.length > 1 ? 110 : 160;
+
+        qrCodes.forEach(item => {
+            const containerDiv = document.createElement('div');
+            containerDiv.style.textAlign = 'center';
+            containerDiv.style.marginBottom = '5px';
+
+            const labelDiv = document.createElement('div');
+            labelDiv.innerText = `（${item.label}）`;
+            labelDiv.style.fontWeight = 'bold';
+            labelDiv.style.fontSize = '0.9rem';
+            labelDiv.style.marginBottom = '2px';
+
+            const qrDiv = document.createElement('div');
+            // qrDiv needs to be kept clean for QRCode library
+
+            containerDiv.appendChild(labelDiv);
+            containerDiv.appendChild(qrDiv);
+            wrapper.appendChild(containerDiv);
+
+            new QRCode(qrDiv, {
+                text: item.url,
+                width: size,
+                height: size,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
         });
     }
 
