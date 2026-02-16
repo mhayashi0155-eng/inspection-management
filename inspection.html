@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver95_GlobalBookStyle -->
+<!-- Version: v2026.02.16-Ver96_BookPagination -->
+
 
 
 
@@ -8,8 +9,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver95_GlobalBookStyle">
-    <link rel="stylesheet" href="style.css?v=Ver95_GlobalBookStyle">
+    <link rel="stylesheet" href="style.css?v=Ver96_BookPagination">
+    <link rel="stylesheet" href="style.css?v=Ver96_BookPagination">
+
 
 
 
@@ -348,7 +350,37 @@
 
         /* Ensure clones are positioned correctly on screen too if needed, though transform might be print specific. 
            For now, just ensuring they are visible and templates are hidden is priority. */
+
+        /* PAGINATION FOR BOOK MODE */
+        body.print-mode-book .print-page {
+            break-after: page !important;
+            page-break-after: always !important;
+            height: 100vh !important;
+            /* Force full page height to ensure break context */
+            overflow: hidden !important;
+            /* Prevent spillover */
+            position: relative !important;
+        }
+
+        /* Last page doesn't need a break */
+        body.print-mode-book .print-page:last-child {
+            break-after: auto !important;
+            page-break-after: auto !important;
+        }
+
+        /* Adjust scaling for Book Mode to ensure single page fit */
+        body.print-mode-book .app-container {
+            transform: scale(0.85) !important;
+            /* Reduced from 0.9 to 0.85 to ensure safe fit */
+            transform-origin: top center !important;
+            /* Center to look better */
+            width: 100% !important;
+            margin: 0 auto !important;
+            padding-top: 20px !important;
+            /* Slight top padding */
+        }
     </style>
+
 
     <!-- Google Fonts for a premium look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -560,15 +592,17 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver95_GlobalBookStyle
+        v2026.02.16-Ver96_BookPagination
     </div>
 
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver95_GlobalBookStyle"></script>
+    <script src="script.js?v=Ver96_BookPagination"></script>
 </body>
+
 
 
 
