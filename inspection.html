@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver102_MonthlyZoom80 -->
+<!-- Version: v2026.02.16-Ver103_HeaderTextLarger -->
+
 
 
 
@@ -15,8 +16,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver102_MonthlyZoom80">
-    <link rel="stylesheet" href="style.css?v=Ver102_MonthlyZoom80">
+    <link rel="stylesheet" href="style.css?v=Ver103_HeaderTextLarger">
+    <link rel="stylesheet" href="style.css?v=Ver103_HeaderTextLarger">
+
 
 
 
@@ -488,8 +490,8 @@
         }
 
         body.print-mode-book .main-header h1 {
-            font-size: 1.2rem !important;
-            /* Smaller title */
+            font-size: 1.5rem !important;
+            /* Larger title (was 1.2rem) */
             margin: 0 !important;
             padding: 5px 0 !important;
         }
@@ -506,15 +508,20 @@
         }
 
         body.print-mode-book .input-group label {
-            font-size: 0.75rem !important;
+            font-size: 0.9rem !important;
+            /* Larger label (was 0.75rem) */
             margin-bottom: 1px !important;
+            font-weight: bold !important;
+            /* Make it bolder to pop */
         }
 
         body.print-mode-book .input-group input,
         body.print-mode-book .input-group select {
             padding: 2px !important;
-            height: 1.4rem !important;
-            font-size: 0.8rem !important;
+            height: 1.5rem !important;
+            /* Slightly taller to fit larger text */
+            font-size: 1.0rem !important;
+            /* Larger input text (was 0.8rem) */
         }
 
         /* Hide non-essential header elements in Book Mode if needed */
@@ -738,7 +745,7 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver102_MonthlyZoom80
+        v2026.02.16-Ver103_HeaderTextLarger
     </div>
 
 
@@ -751,9 +758,11 @@
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver102_MonthlyZoom80"></script>
+    <script src="script.js?v=Ver103_HeaderTextLarger"></script>
 </body>
+
 
 
 
