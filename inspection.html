@@ -1,4 +1,5 @@
-<!-- Version: v2026.02.16-Ver96_BookPagination -->
+<!-- Version: v2026.02.16-Ver97_PrintOnlyBookStyle -->
+
 
 
 
@@ -9,8 +10,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>車両系建設機械 定期自主検査表</title>
-    <link rel="stylesheet" href="style.css?v=Ver96_BookPagination">
-    <link rel="stylesheet" href="style.css?v=Ver96_BookPagination">
+    <link rel="stylesheet" href="style.css?v=Ver97_PrintOnlyBookStyle">
+    <link rel="stylesheet" href="style.css?v=Ver97_PrintOnlyBookStyle">
+
 
 
 
@@ -324,7 +326,11 @@
     </style>
 
     <!-- Screen & Print Overrides for Book Mode (Applied globally) -->
-    <style>
+    </style>
+
+    <!-- Print Overrides for Book Mode (Applied ONLY to Print) -->
+    <!-- Screen will remain default (templates visible, no scaling) as per user request -->
+    <style media="print">
         /* Hide Original Template Pages in Book Mode (User Items 1 & 2) */
         body.print-mode-book>#inspection-form-page,
         body.print-mode-book>#monthly-grid-page,
@@ -355,11 +361,9 @@
         body.print-mode-book .print-page {
             break-after: page !important;
             page-break-after: always !important;
-            height: 100vh !important;
-            /* Force full page height to ensure break context */
-            overflow: hidden !important;
-            /* Prevent spillover */
+            /* Removed height:100vh and overflow:hidden to prevent cut-off */
             position: relative !important;
+            display: block !important;
         }
 
         /* Last page doesn't need a break */
@@ -368,18 +372,21 @@
             page-break-after: auto !important;
         }
 
-        /* Adjust scaling for Book Mode to ensure single page fit */
+        /* Adjust scaling for Book Mode to ensure single page fit using ZOOM */
+        /* Zoom handles flow better for print than transform */
         body.print-mode-book .app-container {
-            transform: scale(0.85) !important;
-            /* Reduced from 0.9 to 0.85 to ensure safe fit */
-            transform-origin: top center !important;
-            /* Center to look better */
+            zoom: 0.8 !important;
+            /* 80% zoom */
             width: 100% !important;
+            max-width: none !important;
             margin: 0 auto !important;
-            padding-top: 20px !important;
-            /* Slight top padding */
+            padding-top: 10px !important;
+            transform: none !important;
+            /* Disable transform */
         }
     </style>
+
+
 
 
     <!-- Google Fonts for a premium look -->
@@ -592,16 +599,18 @@
     <!-- Ver90: Fixed Version Indicator -->
     <div id="version-indicator"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.16-Ver96_BookPagination
+        v2026.02.16-Ver97_PrintOnlyBookStyle
     </div>
 
 
 
 
 
+
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver96_BookPagination"></script>
+    <script src="script.js?v=Ver97_PrintOnlyBookStyle"></script>
 </body>
+
 
 
 
