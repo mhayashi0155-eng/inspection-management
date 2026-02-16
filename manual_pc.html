@@ -100,23 +100,48 @@
             <p>現場スタッフが入力した点検データをPCで確認・修正できます。</p>
             <img src="assets/manual/inspection_pc.png" alt="PCでの点検表画面" class="screenshot">
             <ul class="instruction-list">
-                <li>現場を選択した後、確認したい機械の「編集」または「閲覧」ボタンをクリックします。</li>
-                <li>広い画面で一覧性高く点検項目を確認できます。</li>
+                <li>現場を選択した後、確認したい機械の「月次点検」または「日常点検」ボタンをクリックします。</li>
+                <li>「月次点検」：詳細な定期点検項目の確認・編集が行えます。</li>
+                <li>「日常点検」：日々の運行前点検（カレンダー形式）の確認・編集が行えます。</li>
                 <li>誤入力があった場合は、クリックして修正し再度「保存」を押してください。</li>
             </ul>
-            <div class="note">
-                <strong>💡 ヒント:</strong> 読み取り専用になっている項目（現場名など）は変更できません。
-            </div>
         </div>
 
         <!-- Section 3 -->
         <div class="step-card">
             <span class="step-number">機能 3</span>
-            <h2 class="step-title">PDF発行 / 印刷</h2>
-            <p>月例報告や提出用に、点検表を印刷またはPDF化します。</p>
+            <h2 class="step-title">点検簿 (Bookモード) の印刷</h2>
+            <p>1ヶ月分の点検記録（月次＋日常）をまとめて A4横 2ページ で印刷します。</p>
+            <ul class="instruction-list">
+                <li>機械一覧の「📖 点検簿」ボタンをクリックします。</li>
+                <li>自動的に印刷プレビューが開きます（1枚目：月次点検表、2枚目：日常点検表）。</li>
+                <li>そのまま印刷、またはPDFとして保存して、月報として提出できます。</li>
+            </ul>
+            <div class="note">
+                <strong>💡 ヒント:</strong> 印刷設定は「A4」「横」「倍率100%」を推奨します。ヘッダーの文字などは自動で見やすく調整されます。
+            </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="step-card">
+            <span class="step-number">機能 4</span>
+            <h2 class="step-title">QRコード (A5ラベル) の発行</h2>
+            <p>現場の機械に貼り付けるためのQRコードラベルを発行します。</p>
+            <ul class="instruction-list">
+                <li>機械一覧の「QR」ボタンをクリックします。</li>
+                <li>「月次点検」用と「日常点検」用の2つのQRコードが生成されます（ショベル等の場合）。</li>
+                <li>「🖨️ 印刷 (A5)」ボタンを押すと、A5サイズのラベルとして印刷できます。</li>
+                <li>印刷時は「A5」「横」「倍率100%」に設定してください。</li>
+            </ul>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="step-card">
+            <span class="step-number">機能 5</span>
+            <h2 class="step-title">通常の印刷 (単票)</h2>
+            <p>点検表画面から、表示中の内容（月次のみ、または日常のみ）を個別に印刷する場合の手順です。</p>
             <ul class="instruction-list">
                 <li>点検表画面の最下部にある緑色の「PDF発行 / 印刷」ボタンをクリックします。</li>
-                <li>印刷プレビューが表示されるので、プリンターを選択して印刷するか、「PDFとして保存」を選択してください。</li>
                 <li>ブラウザの印刷設定で「背景のグラフィック」を有効にすると、チェックマークの色などもそのまま印刷されます。</li>
             </ul>
         </div>
