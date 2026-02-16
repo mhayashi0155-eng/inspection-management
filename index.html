@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>点検表管理システム - 現場管理</title>
-    <link rel="stylesheet" href="style.css?v=Ver92_TopMarginHooks">
-    <link rel="stylesheet" href="style.css?v=Ver92_TopMarginHooks">
+    <link rel="stylesheet" href="style.css?v=Ver93_RemoveDemo">
+    <link rel="stylesheet" href="style.css?v=Ver93_RemoveDemo">
+
     <!-- Inline Print Styles to bypass cache and force layout -->
     <style media="print">
         @page {
@@ -120,9 +121,9 @@
                 <div class="nav-actions">
                     <a href="manual_sp.html" target="_blank" class="btn secondary-btn">📱 スマホ説明書</a>
                     <a href="manual_pc.html" target="_blank" class="btn secondary-btn">💻 PC説明書</a>
-                    <a href="inspection.html?mode=book&demo=true" target="_blank" class="btn secondary-btn"
-                        style="background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;">📖 点検簿デモ</a>
+                    <!-- <a href="inspection.html?mode=book&demo=true"> is removed -->
                     <button class="primary-btn" id="new-site-btn">+ 新規現場作成</button>
+
                 </div>
             </header>
 
@@ -314,15 +315,16 @@
     <datalist id="staff-list"></datalist>
     <datalist id="representative-list"></datalist>
 
-    <script src="script.js?v=Ver92_TopMarginHooks"></script>
+    <script src="script.js?v=Ver93_RemoveDemo"></script>
     <div class="sidebar-decoration left"></div>
     <div class="sidebar-decoration right"></div>
 
     <!-- Ver90: Fixed Version Indicator -->
     <div id="global-version"
         style="position: fixed; bottom: 5px; right: 10px; z-index: 9999; font-size: 0.75rem; color: rgba(0,0,0,0.5); pointer-events: none;">
-        v2026.02.13-Ver92_TopMarginHooks
+        v2026.02.16-Ver93_RemoveDemo
     </div>
+
 </body>
 
 </html>
