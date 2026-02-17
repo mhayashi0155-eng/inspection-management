@@ -1525,7 +1525,18 @@ function renderForm(machineId) {
 
         document.getElementById('month-selector-group').style.display = 'block';
         document.getElementById('inspection-date-group').style.display = 'none';
+        document.getElementById('inspection-date-group').style.display = 'none';
         document.getElementById('operating-hours-group').style.display = 'none';
+
+        // Ver111: 会社管理No.の表示制御
+        // 必須とするもの: shovel, tractor, crane, shovel_daily, tractor_daily
+        // 不要(非表示): crane_daily, その他日常
+        const requiresCompanyId = ['shovel', 'tractor', 'crane', 'shovel_daily', 'tractor_daily'].includes(machineId);
+        const companyIdGroup = document.getElementById('company-machine-id-group');
+        if (companyIdGroup) {
+            companyIdGroup.style.display = requiresCompanyId ? 'block' : 'none';
+        }
+
         renderMonthlyGrid(machineId);
         loadMonthlyData(); // 月間データを読み込む
     } else {
@@ -1566,6 +1577,12 @@ function renderForm(machineId) {
                 container.appendChild(groupEl);
             });
         });
+
+        // Ver111: 月次点検(その他含む)でも一応制御（現状は車両系月次しかないので常時表示でOKだが、ロジック統一のため）
+        if (!dailyMonthlyTypes.includes(machineId)) {
+            const companyIdGroup = document.getElementById('company-machine-id-group');
+            if (companyIdGroup) companyIdGroup.style.display = 'block'; // 月次は基本必須
+        }
     }
     updateDocumentTitle();
 }
@@ -1838,7 +1855,11 @@ async function saveInspection() {
     const hoursEl = document.getElementById('operating-hours');
     const hours = hoursEl.value;
 
-    if (!model || !mid || !companyMid || (!isDaily && !hours)) {
+    // Ver111: 会社管理No.必須チェックの条件変更
+    // shovel, tractor, crane, shovel_daily, tractor_daily のみ必須
+    const requiresCompanyId = ['shovel', 'tractor', 'crane', 'shovel_daily', 'tractor_daily'].includes(currentMachineId);
+
+    if (!model || !mid || (requiresCompanyId && !companyMid) || (!isDaily && !hours)) {
         alert("必須項目(*印)を入力してください");
         return;
     }
