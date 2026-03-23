@@ -1,4 +1,27 @@
-﻿// --- 設定情報 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- 設定情報 ---
 const SUPABASE_URL = 'https://vaxlifsrimttefjevpbx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheGxpZnNyaW10dGVmamV2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MzYyMTgsImV4cCI6MjA4NDAxMjIxOH0.AnffwtWCoprPdwgqKeThGBUclWUaJbh5ZemzM-CwK4Q';
 const LIFF_ID = '2008902635-5DQbjvmz';
@@ -605,7 +628,9 @@ async function renderSiteList() {
     sites.forEach(site => {
         const row = document.createElement('tr');
         const badgeClass = site.status === '施工中' ? 'badge-active' : 'badge-done';
-        const dateStr = site.start_date ? `${site.start_date.replace(/-/g, '/')} 〜 ${site.end_date ? site.end_date.replace(/-/g, '/') : '未定'}` : '-';
+        const dateStr = site.start_date
+            ? `${site.start_date.replace(/-/g, '/')}<br>〜 ${site.end_date ? site.end_date.replace(/-/g, '/') : '未定'}`
+            : '-';
 
         let updatedAt = '-';
         try {
@@ -621,6 +646,7 @@ async function renderSiteList() {
             <td><div class="last-updated">${updatedAt}</div></td>
             <td style="text-align:right;">
                 <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                    <button class="secondary-btn" style="padding:0.4rem 0.8rem; border:1px solid var(--primary-color); color:var(--primary-color);" onclick="window.location.href='ky_form/index.html?site_id=${site.id}'">📝 KY用紙</button>
                     <button class="secondary-btn" style="padding:0.4rem 0.8rem;" onclick="openEditSite('${site.id}')">編集</button>
                     <button class="ghost-btn" style="color:var(--danger-color); padding:0.4rem;" onclick="confirmDeleteSite('${site.id}')">削除</button>
                     <button class="primary-btn" onclick="openSiteDetail('${site.id}', '${site.name}')">開く</button>
@@ -1902,8 +1928,8 @@ async function saveInspection() {
             inspection_date: inspectionDate,
             operating_hours: hours ? parseFloat(hours) : 0,
             inspector_name: "",
-            remarks: document.getElementById('remarks').value,
-            repairs: document.getElementById('repairs').value,
+            remarks: document.getElementById('remarks')?.value || '',
+            repairs: document.getElementById('repairs')?.value || '',
             statuses: statuses,
             line_user_id: lineUserInfo?.userId || null,
             site_name: document.getElementById('site-name')?.value || '',
@@ -1984,6 +2010,10 @@ async function saveInspection() {
 
         if (dailyType && currentMachineId === baseType) {
             // Calculate range for auto-create check
+            const inspMonthEl = document.getElementById('inspection-month');
+            const inspDateEl = document.getElementById('inspection-date');
+            const inspMonth = (inspMonthEl && inspMonthEl.value) || (inspDateEl && inspDateEl.value ? inspDateEl.value.slice(0, 7) : '');
+            if (!inspMonth) { console.warn('inspMonth が取得できませんでした'); }
             const [y, m] = inspMonth.split('-').map(Number);
             const startDate = `${inspMonth}-01`;
             const nextMonthDate = new Date(y, m, 1);
