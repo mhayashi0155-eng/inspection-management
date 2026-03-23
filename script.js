@@ -1452,7 +1452,14 @@ async function initInspection() {
 
             const monthIn = document.getElementById('inspection-month');
             if (monthIn) {
-                monthIn.onchange = () => { if (currentMachineId) loadMonthlyData(); };
+                monthIn.onchange = () => {
+                    if (currentMachineId) {
+                        // Ver113: 月変更時にグリッドと月表示を再描画してから、データを読み込む
+                        renderMonthlyGrid(currentMachineId);
+                        updatePrintMonth();
+                        loadMonthlyData();
+                    }
+                };
             }
             const midIn = document.getElementById('machine-id');
             if (midIn) {
