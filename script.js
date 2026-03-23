@@ -21,14 +21,22 @@
 
 
 
+// --- Ver113: UUID形式バリデーション追加、saveInspection/loadMonthlyDataのエラーハンドリング改善 ---
 // --- 設定情報 ---
 const SUPABASE_URL = 'https://vaxlifsrimttefjevpbx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheGxpZnNyaW10dGVmamV2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MzYyMTgsImV4cCI6MjA4NDAxMjIxOH0.AnffwtWCoprPdwgqKeThGBUclWUaJbh5ZemzM-CwK4Q';
 const LIFF_ID = '2008902635-5DQbjvmz';
 
+// --- ヘルパー: UUID形式バリデーション ---
+function isValidUUID(str) {
+    if (!str) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 // --- グローバル変数 ---
 let currentMachineId = null;
-let currentSiteId = new URLSearchParams(window.location.search).get('site_id');
+let rawSiteId = new URLSearchParams(window.location.search).get('site_id');
+let currentSiteId = (rawSiteId && isValidUUID(rawSiteId)) ? rawSiteId : rawSiteId; // UUID不正でも一旦保持
 let currentInspectionId = new URLSearchParams(window.location.search).get('id');
 let lineUserInfo = null;
 let deleteTargetId = null; // for site/inspection deletion
@@ -1780,7 +1788,7 @@ async function loadMonthlyData(targetScope = null, idSuffix = '') {
             .lt('inspection_date', nextMonthStr)
             .order('created_at', { ascending: false });
 
-        if (currentSiteId) {
+        if (currentSiteId && isValidUUID(currentSiteId)) {
             const sid = currentSiteId.trim();
             query = query.eq('site_id', sid);
         } else {
@@ -1919,9 +1927,11 @@ async function saveInspection() {
         statuses['_company_machine_id'] = companyMid;
         statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
         statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
+        // site_idがUUID形式でない場合はnullとして扱う（Supabaseエラー防止）
+        const validSiteId = (currentSiteId && isValidUUID(currentSiteId)) ? currentSiteId : null;
 
         const payload = {
-            site_id: currentSiteId || null,
+            site_id: validSiteId,
             machine_type: currentMachineId,
             model_type: model,
             machine_id: mid,
@@ -1977,7 +1987,38 @@ async function saveInspection() {
         const checkResult = await checkQuery;
         console.log("DEBUG: Check Result:", checkResult);
 
-        if (checkResult.error) throw new Error("CheckQuery Error: " + checkResult.error.message);
+        if (checkResult.error) {
+            console.error("CheckQuery Error:", checkResult.error);
+            // UUID形式のエラーの場合はsite_idをnullにしてリトライ
+            if (checkResult.error.message && checkResult.error.message.includes('invalid input syntax for type uuid')) {
+                console.warn('site_idのUUID形式が不正です。site_idをnullにしてリトライします:', currentSiteId);
+                checkQuery = supabaseClient
+                    .from('inspections')
+                    .select('id')
+                    .eq('machine_type', payload.machine_type)
+                    .eq('machine_id', payload.machine_id);
+                if (isDaily) {
+                    const [y2, m2] = document.getElementById('inspection-month').value.split('-').map(Number);
+                    const sd2 = `${document.getElementById('inspection-month').value}-01`;
+                    const nd2 = new Date(y2, m2, 1);
+                    const ns2 = `${nd2.getFullYear()}-${String(nd2.getMonth()+1).padStart(2,'0')}-01`;
+                    checkQuery = checkQuery.gte('inspection_date', sd2).lt('inspection_date', ns2);
+                } else {
+                    checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
+                }
+                checkQuery = checkQuery
+                    .or('is_deleted.is.null,is_deleted.eq.false')
+                    .is('site_id', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                const retryResult = await checkQuery;
+                if (retryResult.error) throw new Error("保存先の確認に失敗しました: " + retryResult.error.message);
+                checkResult.data = retryResult.data;
+                checkResult.error = null;
+            } else {
+                throw new Error("保存先の確認に失敗しました: " + checkResult.error.message);
+            }
+        }
 
         let targetId = null;
         if (checkResult.data && checkResult.data.length > 0) {
