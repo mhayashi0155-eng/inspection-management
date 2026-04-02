@@ -21,19 +21,175 @@
 
 
 
-// --- Ver113: UUID形式バリデーション追加、saveInspection/loadMonthlyDataのエラーハンドリング改善 ---
+
+// --- Ver114: Supabase → Firebase Firestore 移行 ---
 // --- 設定情報 ---
-const SUPABASE_URL = 'https://vaxlifsrimttefjevpbx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheGxpZnNyaW10dGVmamV2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MzYyMTgsImV4cCI6MjA4NDAxMjIxOH0.AnffwtWCoprPdwgqKeThGBUclWUaJbh5ZemzM-CwK4Q';
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArhneHfz1Xvy8HFvsESJnMLegynKq8rDw",
+    authDomain: "yamauchi0155522311.firebaseapp.com",
+    projectId: "yamauchi0155522311",
+    storageBucket: "yamauchi0155522311.firebasestorage.app",
+    messagingSenderId: "537923527023",
+    appId: "1:537923527023:web:593b95df7f01fc6f56c89a"
+};
 const LIFF_ID = '2008902635-5DQbjvmz';
 
-// --- ヘルパー: UUID形式バリデーション ---
+// Firebase初期化
+if (typeof firebase !== 'undefined') {
+    if (!firebase.apps || firebase.apps.length === 0) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+    }
+}
+const db = (typeof firebase !== 'undefined') ? firebase.firestore() : null;
+
+// --- ヘルパー: ID形式バリデーション (Firebase IDを受け入れるよう修正) ---
 function isValidUUID(str) {
-    if (!str) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+    if (!str || typeof str !== 'string') return false;
+    return str.trim().length > 0; // Firebase IDは任意の文字列
 }
 
-// --- グローバル変数 ---
+// --- Supabase互換ラッパー (内部はFirestore) ---
+// 既存コードの変更を最小化するため supabaseClient変数名を維持
+const supabaseClient = (() => {
+    if (!db) return null;
+
+    class Query {
+        constructor(collectionName) {
+            this.collectionName = collectionName;
+            this._op = 'select';
+            this._payload = null;
+            this._conditions = [];
+            this._orderField = null;
+            this._orderAsc = true;
+            this._limitVal = null;
+            this._single = false;
+            this._docId = null;
+            this._filterDeleted = false;
+        }
+
+        select()                    { return this; }
+        single()                    { this._single = true; return this; }
+        maybeSingle()               { this._single = true; return this; }
+        limit(n)                    { this._limitVal = n; return this; }
+
+        eq(field, value) {
+            if (field === 'id') this._docId = value;
+            else this._conditions.push({ op: '==', field, value });
+            return this;
+        }
+        is(field, value)            { this._conditions.push({ op: '==', field, value }); return this; }
+        or()                        { this._filterDeleted = true; return this; }
+        gte(field, value)           { this._conditions.push({ op: '>=', field, value }); return this; }
+        lt(field, value)            { this._conditions.push({ op: '<', field, value }); return this; }
+
+        order(field, opts = {}) {
+            this._orderField = field;
+            this._orderAsc = (opts.ascending !== false);
+            return this;
+        }
+
+        update(payload)             { this._op = 'update'; this._payload = payload; return this; }
+        insert(records)             { this._op = 'insert'; this._payload = records; return this; }
+
+        async _run() {
+            const collRef = db.collection(this.collectionName);
+
+            // --- INSERT ---
+            if (this._op === 'insert') {
+                const results = [];
+                for (const r of this._payload) {
+                    const rec = { ...r, is_deleted: false, created_at: new Date().toISOString() };
+                    const docRef = await collRef.add(rec);
+                    results.push({ id: docRef.id, ...rec });
+                }
+                return { data: results, error: null };
+            }
+
+            // --- UPDATE ---
+            if (this._op === 'update') {
+                try {
+                    if (this._docId) {
+                        await collRef.doc(this._docId).update(this._payload);
+                        return { data: [{ id: this._docId, ...this._payload }], error: null };
+                    }
+                    // 条件に一致するドキュメントを一括更新
+                    const eqConds = this._conditions.filter(c => c.op === '==');
+                    let q = collRef;
+                    eqConds.forEach(({ field, value }) => { q = q.where(field, '==', value); });
+                    const snap = await q.get();
+                    if (snap.empty) return { data: [], error: null };
+                    const promises = snap.docs.map(d => d.ref.update(this._payload));
+                    await Promise.all(promises);
+                    return { data: snap.docs.map(d => ({ id: d.id })), error: null };
+                } catch (e) {
+                    return { data: null, error: e };
+                }
+            }
+
+            // --- SELECT ---
+            try {
+                if (this._docId) {
+                    const doc = await collRef.doc(this._docId).get();
+                    if (!doc.exists) return { data: this._single ? null : [], error: null };
+                    return { data: { id: doc.id, ...doc.data() }, error: null };
+                }
+
+                // 等値条件のみFirestoreに渡し、範囲条件はクライアント側でフィルタ
+                const eqConds = this._conditions.filter(c => c.op === '==');
+                const rangeConds = this._conditions.filter(c => c.op !== '==');
+                let q = collRef;
+                eqConds.forEach(({ field, value }) => { q = q.where(field, '==', value); });
+
+                const snap = await q.get();
+                let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 範囲条件クライアント側フィルタ
+                if (rangeConds.length > 0) {
+                    docs = docs.filter(doc => rangeConds.every(({ op, field, value }) => {
+                        const v = doc[field];
+                        if (v === undefined || v === null) return false;
+                        if (op === '>=') return v >= value;
+                        if (op === '<') return v < value;
+                        return true;
+                    }));
+                }
+
+                // 削除済みフィルタ
+                if (this._filterDeleted) {
+                    docs = docs.filter(d => d.is_deleted !== true);
+                }
+
+                // ソート
+                if (this._orderField) {
+                    const f = this._orderField;
+                    const asc = this._orderAsc;
+                    docs.sort((a, b) => {
+                        const va = a[f] ?? '', vb = b[f] ?? '';
+                        return asc ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
+                    });
+                }
+
+                // リミット
+                if (this._limitVal) docs = docs.slice(0, this._limitVal);
+
+                if (this._single) return { data: docs.length > 0 ? docs[0] : null, error: null };
+                return { data: docs, error: null };
+
+            } catch (e) {
+                console.error('Firestore Error:', e);
+                return { data: null, error: e };
+            }
+        }
+
+        // awaitで呼び出せるようにthenを実装
+        then(resolve, reject) {
+            return this._run().then(resolve).catch(e => reject ? reject(e) : Promise.reject(e));
+        }
+    }
+
+    return { from: (coll) => new Query(coll) };
+})();
+
 let currentMachineId = null;
 let rawSiteId = new URLSearchParams(window.location.search).get('site_id');
 let currentSiteId = (rawSiteId && isValidUUID(rawSiteId)) ? rawSiteId : rawSiteId; // UUID不正でも一旦保持
@@ -67,8 +223,7 @@ const dailyMonthlyTypes = [
     'security_daily', 'excavation_daily', 'crane_daily', 'tractor_daily'
 ];
 
-// Supabaseクライアントの初期化
-const supabaseClient = (typeof window.supabase !== 'undefined') ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
 
 // 機械マスターデータ
 // ここに頻繁に使用する機械の情報を登録しておくと、現場管理No選時に自動入力されます
