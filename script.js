@@ -2726,12 +2726,12 @@ function setupDatalistUX(ids) {
         }
 
         el.addEventListener('focus', function () {
-            // 値が入っている場合のみ処理
+            // 常に値を退避してリストを強制表示（空フィールドでも動作するよう修正）
+            this.dataset.originalValue = this.value;
             if (this.value) {
-                this.dataset.originalValue = this.value; // 値を退避
-                this.placeholder = this.value;           // プレースホルダーに現在の値を表示（空に見えないように）
-                this.value = '';                         // 値を空にしてリストを強制的に表示させる（多くのブラウザ用）
+                this.placeholder = this.value; // 現在の値をプレースホルダーに表示
             }
+            this.value = ''; // 値を空にしてリストを強制的に表示させる
         });
 
         el.addEventListener('blur', function () {
