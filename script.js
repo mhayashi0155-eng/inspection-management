@@ -204,6 +204,21 @@ function updateMachineMasterList(machineType) {
 }
 // 点検データの定義
 const inspectionData = {
+    uav_template1: {
+        title: "UAV フライト記録・点検表 (Template 1)",
+        items: [
+            { category: "基本事項", items: ["飛行目的", "飛行場所", "離陸・着陸時間", "操縦者"] },
+            { category: "飛行前点検", items: ["機体各部の損傷", "プロペラ", "バッテリー残量", "コンパス・GPS", "カメラ・ジンバル"] },
+            { category: "飛行後点検", items: ["機体の清掃", "モーターの過熱", "バッテリーの保管"] }
+        ]
+    },
+    uav_template2: {
+        title: "UAV 定期点検表 (Template 2)",
+        items: [
+            { category: "飛行前点検", items: ["プロペラの損傷・ガタつき", "モーターの異音・回転異常", "バッテリーの充電・膨張・固定状態", "機体本体の損傷・ネジの緩み", "コンパス・GPSの異常", "プロポとの通信状態・映像転送", "カメラ・ジンバルの動作", "障害物センサーの動作"] },
+            { category: "飛行後点検", items: ["機体・カメラの汚れ・清掃", "モーター・各部の過熱・異常", "バッテリーの残量・保管状態"] }
+        ]
+    },
     shovel: {
         title: "車両系建設機械(整地・運搬・積込・掘削用) 定期自主検査表",
         columns: [
@@ -1553,11 +1568,61 @@ function renderForm(machineId) {
     if (!data) return;
     document.getElementById('form-title').innerText = data.title;
 
-    if (dailyMonthlyTypes.includes(machineId)) {
+    if (machineId === 'uav_template1') {
+        document.body.classList.remove('print-mode-daily');
+        document.getElementById('inspection-form').style.display = 'none';
+        document.getElementById('monthly-grid-view').style.display = 'none';
+        document.getElementById('uav-template2-page').style.display = 'none';
+        
+        const uavT1Page = document.getElementById('uav-template1-page');
+        if(uavT1Page) uavT1Page.style.display = 'block';
+
+        document.getElementById('legend-section').style.display = 'none';
+        const dailyLegend = document.getElementById('daily-legend-section');
+        if (dailyLegend) dailyLegend.style.display = 'none';
+
+        document.getElementById('month-selector-group').style.display = 'none';
+        // Date and stuff handled in main form
+        document.getElementById('inspection-date-group').style.display = 'block';
+        document.getElementById('operating-hours-group').style.display = 'none';
+
+        const companyIdGroup = document.getElementById('company-machine-id-group');
+        if (companyIdGroup) companyIdGroup.style.display = 'block';
+
+        renderUAVTemplate1();
+        loadUAVTemplateData('uav_template1');
+
+    } else if (machineId === 'uav_template2') {
+        document.body.classList.remove('print-mode-daily');
+        document.getElementById('inspection-form').style.display = 'none';
+        document.getElementById('monthly-grid-view').style.display = 'none';
+        document.getElementById('uav-template1-page').style.display = 'none';
+        
+        const uavT2Page = document.getElementById('uav-template2-page');
+        if(uavT2Page) uavT2Page.style.display = 'block';
+
+        document.getElementById('legend-section').style.display = 'none';
+        const dailyLegend = document.getElementById('daily-legend-section');
+        if (dailyLegend) dailyLegend.style.display = 'none';
+
+        document.getElementById('month-selector-group').style.display = 'none';
+        document.getElementById('inspection-date-group').style.display = 'none';
+        document.getElementById('operating-hours-group').style.display = 'none';
+
+        const companyIdGroup = document.getElementById('company-machine-id-group');
+        if (companyIdGroup) companyIdGroup.style.display = 'block';
+
+        renderUAVTemplate2();
+        loadUAVTemplateData('uav_template2');
+
+    } else if (dailyMonthlyTypes.includes(machineId)) {
         // 日常始業点検（月間シート）の場合
         document.body.classList.add('print-mode-daily'); // Add print class
         document.getElementById('inspection-form').style.display = 'none';
         document.getElementById('monthly-grid-view').style.display = 'block';
+
+        document.getElementById('uav-template1-page').style.display = 'none';
+        document.getElementById('uav-template2-page').style.display = 'none';
 
         // 凡例切り替え
         document.getElementById('legend-section').style.display = 'none';
@@ -1585,6 +1650,9 @@ function renderForm(machineId) {
         document.body.classList.remove('print-mode-daily'); // Remove print class
         document.getElementById('inspection-form').style.display = 'grid';
         document.getElementById('monthly-grid-view').style.display = 'none';
+
+        document.getElementById('uav-template1-page').style.display = 'none';
+        document.getElementById('uav-template2-page').style.display = 'none';
 
         // 凡例切り替え
         document.getElementById('legend-section').style.display = 'flex';
@@ -1626,6 +1694,188 @@ function renderForm(machineId) {
         }
     }
     updateDocumentTitle();
+}
+
+// --- UAV Template 1 (Flight Log) ---
+function renderUAVTemplate1() {
+    const data = inspectionData['uav_template1'];
+    if (!data) return;
+
+    const col = document.getElementById('uav-t1-col');
+    if (!col) return;
+    
+    col.innerHTML = '';
+    
+    // There are 9 pairs (item_2 to item_19)
+    let itemIdx = 2;
+
+    data.items.forEach(group => {
+        const groupTitle = document.createElement('div');
+        groupTitle.className = 'category-title';
+        groupTitle.innerText = group.category;
+        groupTitle.style.marginTop = '1rem';
+        col.appendChild(groupTitle);
+
+        group.items.forEach(itemText => {
+            const selectId = `status-item_${itemIdx}`;
+            const textId = `status-item_${itemIdx + 1}`;
+            
+            const row = document.createElement('div');
+            row.className = 'inspection-item';
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.justifyContent = 'space-between';
+            row.style.borderBottom = '1px solid #eee';
+            row.style.padding = '0.5rem 0';
+            
+            row.innerHTML = `
+                <div style="flex: 1; font-size: 0.9rem;">${itemText}</div>
+                <div style="width: 80px; text-align: center;">
+                    <select id="${selectId}" class="uav-t1-input" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.9rem;">
+                        <option value="〇">〇</option>
+                        <option value="✕">✕</option>
+                    </select>
+                </div>
+                <div style="flex: 1; margin-left: 10px;">
+                    <input type="text" id="${textId}" class="uav-t1-input" style="width: 85%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;" placeholder="備考・値など">
+                </div>
+            `;
+            col.appendChild(row);
+            itemIdx += 2;
+        });
+    });
+}
+
+// --- UAV Template 2 (8-Day Matrix) ---
+function renderUAVTemplate2() {
+    const data = inspectionData['uav_template2'];
+    if (!data) return;
+
+    const headRow = document.getElementById('uav-t2-table-head');
+    const dateRow = document.getElementById('uav-t2-date-row');
+    const tbody = document.getElementById('uav-t2-table-body');
+    if (!headRow || !dateRow || !tbody) return;
+
+    headRow.innerHTML = '<th style="width: 250px;">点検項目</th>';
+    dateRow.innerHTML = '<th>点検日</th>';
+    for (let c = 1; c <= 8; c++) {
+        headRow.innerHTML += `<th>${c}回目</th>`;
+        const dateId = `status-item_${c}`; // item_1 to item_8
+        dateRow.innerHTML += `
+            <td style="padding: 2px;">
+                <input type="date" id="${dateId}" class="uav-t2-input uav-t2-date-input" style="width: 90%; font-size: 0.8rem; padding: 2px; text-align: center; border: 1px solid #ccc; border-radius: 4px;">
+            </td>
+        `;
+    }
+
+    tbody.innerHTML = '';
+    
+    let itemBaseIdx = 9;
+
+    data.items.forEach(group => {
+        const groupRow = document.createElement('tr');
+        groupRow.innerHTML = `<td colspan="9" style="text-align: left; font-weight: bold; background-color: #f8fafc; padding-left: 0.5rem;">${group.category}</td>`;
+        tbody.appendChild(groupRow);
+
+        group.items.forEach(item => {
+            const row = document.createElement('tr');
+            let colsHtml = `<td style="text-align: left; font-size: 0.85rem; padding-left: 0.5rem;">${item}</td>`;
+            for (let c = 1; c <= 8; c++) {
+                const textId = `status-item_${itemBaseIdx + c - 1}`;
+                colsHtml += `
+                    <td style="padding: 2px;">
+                        <input type="text" id="${textId}" class="uav-t2-input uav-t2-text-input" style="width: 90%; text-align: center; font-size: 0.9rem; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" placeholder="〇/✕や値">
+                    </td>
+                `;
+            }
+            row.innerHTML = colsHtml;
+            tbody.appendChild(row);
+            itemBaseIdx += 8;
+        });
+    });
+}
+
+// --- Load UAV Template Data ---
+async function loadUAVTemplateData(templateType) {
+    if (!currentMachineId || !supabaseClient) return;
+
+    const initForm = () => {
+        if (templateType === 'uav_template1') {
+            const btn = document.getElementById('new-uav-t1-btn');
+            if(btn) btn.style.display = 'none'; // 新規時は非表示（または編集中表示）
+            document.getElementById('uav-t1-lock-badge').style.display = 'none';
+            document.querySelectorAll('#uav-template1-page input, #uav-template1-page select').forEach(el => el.disabled = false);
+            document.getElementById('save-btn').style.display = 'inline-block';
+        } else {
+            const btn = document.getElementById('new-uav-t2-btn');
+            if(btn) btn.style.display = 'none';
+            document.getElementById('uav-t2-lock-badge').style.display = 'none';
+            document.querySelectorAll('#uav-template2-page input, #uav-template2-page select').forEach(el => el.disabled = false);
+            document.getElementById('save-btn').style.display = 'inline-block';
+        }
+        window.uavIsLocked = false;
+        currentInspectionId = null;
+    };
+
+    initForm();
+
+    const midInput = document.getElementById('machine-id')?.value;
+    
+    let query = supabaseClient.from('inspections')
+        .select('*')
+        .eq('site_id', currentSiteId)
+        .eq('machine_type', templateType);
+
+    if (currentInspectionId) {
+        query = query.eq('id', currentInspectionId);
+    } else if (midInput) {
+        query = query.eq('machine_id', midInput).order('created_at', { ascending: false }).limit(1);
+    } else {
+        return;
+    }
+
+    const { data: records, error } = await query;
+    if (error || !records || records.length === 0) return;
+
+    const record = records[0];
+    const isExplicitId = !!new URL(window.location).searchParams.get('id');
+    const isLocked = record.remarks && record.remarks.includes('[LOCKED]');
+
+    if (!isExplicitId && isLocked) {
+        initForm();
+        return; 
+    }
+
+    currentInspectionId = record.id;
+
+    if (record.statuses) {
+        Object.keys(record.statuses).forEach(key => {
+            const val = record.statuses[key];
+            const elId = `status-${key}`;
+            const el = document.getElementById(elId);
+            if (el) el.value = val;
+        });
+    }
+
+    if (isLocked) {
+        window.uavIsLocked = true;
+        document.getElementById('save-btn').style.display = 'none';
+        
+        if (templateType === 'uav_template1') {
+            document.getElementById('uav-t1-lock-badge').style.display = 'inline-block';
+            document.querySelectorAll('#uav-template1-page input, #uav-template1-page select').forEach(el => el.disabled = true);
+        } else {
+            document.getElementById('uav-t2-lock-badge').style.display = 'inline-block';
+            document.querySelectorAll('#uav-template2-page input, #uav-template2-page select').forEach(el => el.disabled = true);
+        }
+    } else {
+        document.getElementById('save-btn').style.display = 'inline-block';
+        if (templateType === 'uav_template1') {
+            document.getElementById('new-uav-t1-btn').style.display = 'inline-block';
+        } else {
+            document.getElementById('new-uav-t2-btn').style.display = 'inline-block';
+        }
+    }
 }
 
 function renderMonthlyGrid(machineId) {
@@ -1892,15 +2142,16 @@ async function saveInspection() {
     const mid = document.getElementById('machine-id').value;
     const companyMid = document.getElementById('company-machine-id').value;
     const isDaily = dailyMonthlyTypes.includes(currentMachineId);
+    const isUAV1 = currentMachineId === 'uav_template1';
+    const isUAV2 = currentMachineId === 'uav_template2';
+    const isUAV = isUAV1 || isUAV2;
 
     const hoursEl = document.getElementById('operating-hours');
     const hours = hoursEl.value;
 
-    // Ver111: 会社管理No.必須チェックの条件変更
-    // shovel, tractor, crane, shovel_daily, tractor_daily のみ必須
     const requiresCompanyId = ['shovel', 'tractor', 'crane', 'shovel_daily', 'tractor_daily'].includes(currentMachineId);
 
-    if (!model || !mid || (requiresCompanyId && !companyMid) || (!isDaily && !hours)) {
+    if (!model || !mid || (requiresCompanyId && !companyMid) || (!isDaily && !isUAV1 && !isUAV2 && !hours)) {
         alert("必須項目(*印)を入力してください");
         return;
     }
@@ -1910,31 +2161,56 @@ async function saveInspection() {
 
     try {
         const statuses = {};
-        const selector = isDaily ? '.day-cell' : '.current-status';
+        
+        if (isUAV1) {
+            document.querySelectorAll('#uav-template1-page .uav-t1-input').forEach(el => {
+                const parts = el.id.split('-');
+                if(parts.length > 1) {
+                    statuses[parts[1]] = el.value; // set 'item_X' = value
+                }
+            });
+        } else if (isUAV2) {
+            document.querySelectorAll('#uav-template2-page .uav-t2-input').forEach(el => {
+                const parts = el.id.split('-');
+                if(parts.length > 1) {
+                    statuses[parts[1]] = el.value; // set 'item_X' = value
+                }
+            });
+        } else {
+            const selector = isDaily ? '.day-cell' : '.current-status';
 
-        // Debug: Log Scraping
-        console.log(`DEBUG: saveInspection - isDaily:${isDaily}, Selector:${selector}`);
-        console.log(`DEBUG: Found elements: ${document.querySelectorAll(selector).length}`);
-        console.log(`DEBUG: Captured Statuses:`, statuses);
+            console.log(`DEBUG: saveInspection - isDaily:${isDaily}, Selector:${selector}`);
+            console.log(`DEBUG: Found elements: ${document.querySelectorAll(selector).length}`);
+            console.log(`DEBUG: Captured Statuses:`, statuses);
 
-        document.querySelectorAll(selector).forEach(el => {
-            const id = el.id.replace('status-', '');
-            const stat = el.getAttribute('data-status');
-            if (isDaily) {
-                if (stat !== 'none') statuses[id] = stat;
-            } else {
-                statuses[id] = stat;
+            document.querySelectorAll(selector).forEach(el => {
+                const id = el.id.replace('status-', '');
+                const stat = el.getAttribute('data-status');
+                if (isDaily) {
+                    if (stat !== 'none') statuses[id] = stat;
+                } else {
+                    statuses[id] = stat;
+                }
+            });
+        }
+
+        let inspectionDate;
+        if (isUAV2) {
+            let firstDate = null;
+            for(let i=1; i<=8; i++) {
+                const df = document.getElementById(`status-item_${i}`);
+                if (df && df.value) { firstDate = df.value; break; }
             }
-        });
-
-        const inspectionDate = isDaily
-            ? document.getElementById('inspection-month').value + "-01"
-            : document.getElementById('inspection-date').value;
+            inspectionDate = firstDate || new Date().toISOString().split('T')[0];
+        } else {
+            inspectionDate = isDaily
+                ? document.getElementById('inspection-month').value + "-01"
+                : document.getElementById('inspection-date').value;
+        }
 
         statuses['_company_machine_id'] = companyMid;
         statuses['_inspector_main'] = document.getElementById('inspector-main')?.value || '';
         statuses['_inspector_sub'] = document.getElementById('inspector-sub')?.value || '';
-        // site_idがUUID形式でない場合はnullとして扱う（Supabaseエラー防止）
         const validSiteId = (currentSiteId && isValidUUID(currentSiteId)) ? currentSiteId : null;
 
         const payload = {
@@ -1954,82 +2230,84 @@ async function saveInspection() {
             safety_manager: document.getElementById('safety-manager')?.value || ''
         };
 
-        console.log("DEBUG: Save Payload:", payload);
+        let targetId = null;
 
-        // Upsert Check
-        let checkQuery = supabaseClient
-            .from('inspections')
-            .select('id')
-            .eq('machine_type', payload.machine_type)
-            .eq('machine_id', payload.machine_id);
+        if (isUAV) {
+            targetId = currentInspectionId;
+        } else {
+            // Upsert Check
+            let checkQuery = supabaseClient
+                .from('inspections')
+                .select('id')
+                .eq('machine_type', payload.machine_type)
+                .eq('machine_id', payload.machine_id);
 
-        // Ver60: Use Range Query for Daily to match loadMonthlyData logic
-        if (isDaily) {
-            // Calculate range
-            const [y, m] = document.getElementById('inspection-month').value.split('-').map(Number);
-            const startDate = `${document.getElementById('inspection-month').value}-01`;
-            const nextMonthDate = new Date(y, m, 1);
-            const nm = nextMonthDate.getMonth() + 1;
-            const ny = nextMonthDate.getFullYear();
-            const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+            // Ver60: Use Range Query for Daily to match loadMonthlyData logic
+            if (isDaily) {
+                // Calculate range
+                const [y, m] = document.getElementById('inspection-month').value.split('-').map(Number);
+                const startDate = `${document.getElementById('inspection-month').value}-01`;
+                const nextMonthDate = new Date(y, m, 1);
+                const nm = nextMonthDate.getMonth() + 1;
+                const ny = nextMonthDate.getFullYear();
+                const nextMonthStr = `${ny}-${String(nm).padStart(2, '0')}-01`;
+
+                checkQuery = checkQuery
+                    .gte('inspection_date', startDate)
+                    .lt('inspection_date', nextMonthStr);
+            } else {
+                checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
+            }
 
             checkQuery = checkQuery
-                .gte('inspection_date', startDate)
-                .lt('inspection_date', nextMonthStr);
-        } else {
-            checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
-        }
+                .or('is_deleted.is.null,is_deleted.eq.false')
+                .order('created_at', { ascending: false }) // Get latest if multiple
+                .limit(1);
 
-        checkQuery = checkQuery
-            .or('is_deleted.is.null,is_deleted.eq.false')
-            .order('created_at', { ascending: false }) // Get latest if multiple
-            .limit(1);
-
-        if (payload.site_id) {
-            checkQuery = checkQuery.eq('site_id', payload.site_id);
-        } else {
-            checkQuery = checkQuery.is('site_id', null);
-        }
-
-        const checkResult = await checkQuery;
-        console.log("DEBUG: Check Result:", checkResult);
-
-        if (checkResult.error) {
-            console.error("CheckQuery Error:", checkResult.error);
-            // UUID形式のエラーの場合はsite_idをnullにしてリトライ
-            if (checkResult.error.message && checkResult.error.message.includes('invalid input syntax for type uuid')) {
-                console.warn('site_idのUUID形式が不正です。site_idをnullにしてリトライします:', currentSiteId);
-                checkQuery = supabaseClient
-                    .from('inspections')
-                    .select('id')
-                    .eq('machine_type', payload.machine_type)
-                    .eq('machine_id', payload.machine_id);
-                if (isDaily) {
-                    const [y2, m2] = document.getElementById('inspection-month').value.split('-').map(Number);
-                    const sd2 = `${document.getElementById('inspection-month').value}-01`;
-                    const nd2 = new Date(y2, m2, 1);
-                    const ns2 = `${nd2.getFullYear()}-${String(nd2.getMonth()+1).padStart(2,'0')}-01`;
-                    checkQuery = checkQuery.gte('inspection_date', sd2).lt('inspection_date', ns2);
-                } else {
-                    checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
-                }
-                checkQuery = checkQuery
-                    .or('is_deleted.is.null,is_deleted.eq.false')
-                    .is('site_id', null)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                const retryResult = await checkQuery;
-                if (retryResult.error) throw new Error("保存先の確認に失敗しました: " + retryResult.error.message);
-                checkResult.data = retryResult.data;
-                checkResult.error = null;
+            if (payload.site_id) {
+                checkQuery = checkQuery.eq('site_id', payload.site_id);
             } else {
-                throw new Error("保存先の確認に失敗しました: " + checkResult.error.message);
+                checkQuery = checkQuery.is('site_id', null);
             }
-        }
 
-        let targetId = null;
-        if (checkResult.data && checkResult.data.length > 0) {
-            targetId = checkResult.data[0].id;
+            const checkResult = await checkQuery;
+            console.log("DEBUG: Check Result:", checkResult);
+
+            if (checkResult.error) {
+                console.error("CheckQuery Error:", checkResult.error);
+                // UUID形式のエラーの場合はsite_idをnullにしてリトライ
+                if (checkResult.error.message && checkResult.error.message.includes('invalid input syntax for type uuid')) {
+                    console.warn('site_idのUUID形式が不正です。site_idをnullにしてリトライします:', currentSiteId);
+                    checkQuery = supabaseClient
+                        .from('inspections')
+                        .select('id')
+                        .eq('machine_type', payload.machine_type)
+                        .eq('machine_id', payload.machine_id);
+                    if (isDaily) {
+                        const [y2, m2] = document.getElementById('inspection-month').value.split('-').map(Number);
+                        const sd2 = `${document.getElementById('inspection-month').value}-01`;
+                        const nd2 = new Date(y2, m2, 1);
+                        const ns2 = `${nd2.getFullYear()}-${String(nd2.getMonth()+1).padStart(2,'0')}-01`;
+                        checkQuery = checkQuery.gte('inspection_date', sd2).lt('inspection_date', ns2);
+                    } else {
+                        checkQuery = checkQuery.eq('inspection_date', payload.inspection_date);
+                    }
+                    checkQuery = checkQuery
+                        .or('is_deleted.is.null,is_deleted.eq.false')
+                        .is('site_id', null)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    const retryResult = await checkQuery;
+                    if (retryResult.error) throw new Error("保存先の確認に失敗しました: " + retryResult.error.message);
+                    if (retryResult.data && retryResult.data.length > 0) targetId = retryResult.data[0].id;
+                } else {
+                    throw new Error("保存先の確認に失敗しました: " + checkResult.error.message);
+                }
+            } else {
+                if (checkResult.data && checkResult.data.length > 0) {
+                    targetId = checkResult.data[0].id;
+                }
+            }
         }
 
         let result;
@@ -2328,6 +2606,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         'company-machine-id' // 会社管理No.に対象を変更
     ]);
     setupMachineAutoFillListener(); // 自動入力リスナー設定（初回のみ）
+
+    // UAVの次ページ発行用イベント
+    const lockAndNewUavSheet = async () => {
+        if(!confirm("保存して新しい用紙発行を行いますか？\n（完了したページは後から修正できません）")) return;
+        
+        await saveInspection();
+
+        if (currentInspectionId && supabaseClient) {
+            const { data } = await supabaseClient.from('inspections').select('remarks').eq('id', currentInspectionId).single();
+            const currentRemarks = data?.remarks || '';
+            if(!currentRemarks.includes('[LOCKED]')) {
+                await supabaseClient.from('inspections').update({ remarks: currentRemarks + " [LOCKED]" }).eq('id', currentInspectionId);
+            }
+        }
+
+        const url = new URL(window.location);
+        url.searchParams.delete('id');
+        window.history.replaceState({}, '', url);
+        location.reload();
+    };
+
+    const newUavT1Btn = document.getElementById('new-uav-t1-btn');
+    if (newUavT1Btn) newUavT1Btn.addEventListener('click', lockAndNewUavSheet);
+    const newUavT2Btn = document.getElementById('new-uav-t2-btn');
+    if (newUavT2Btn) newUavT2Btn.addEventListener('click', lockAndNewUavSheet);
+
     updateMachineMasterList('shovel'); // 初期リストセット
 
     // 現場名の取得・表示 (ヘッダー用)

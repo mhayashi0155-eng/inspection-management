@@ -6,14 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>危険予知活動表（KY用紙）</title>
     <!-- キャッシュ避けのためにクエリパラメータを追加 -->
-    <link rel="stylesheet" href="style.css?v=46">
+    <link rel="stylesheet" href="style.css?v=66">
 </head>
 
 <body>
     <div class="user-info-bar">
         <span>← 戻る | KY用紙 入力・印刷</span>
         <div style="flex:1"></div>
-        <span style="color: red; margin-right: 20px;">※現在【レイアウト調整モード】のため全枠を可視化しています</span>
         <button id="btn-save" class="btn" onclick="saveData()">保存(ブラウザ)</button>
         <button id="btn-print" class="btn" onclick="window.print()">🖨️ 印刷する</button>
     </div>
@@ -43,7 +42,9 @@
             <input type="text" id="ky-date-day" class="abs-input text-center"
                 style="top: 7.5%; left: 30%; width: 4.5%; height: 5.5%; font-size: 2.7cqw;" value="">
 
-            <!-- ====== 2. 作業内容 & 作業所確認 ====== -->
+            <!-- ====== 2. 工事名 & 作業内容 & 作業所確認 ====== -->
+            <input type="text" id="construction-name" class="abs-input text-right"
+                style="top: 92%; left: 48%; width: 43%; height: 4.5%; font-size: 1.6cqw;" value="" placeholder="工事名">
             <input type="text" id="work-content" class="abs-input text-left"
                 style="top: 12.5%; left: 24.5%; width: 47%; height: 4.5%; font-size: 1.6cqw;" value="">
 
@@ -57,75 +58,23 @@
             <!-- ====== 3. 危険のポイント (4行) ====== -->
             <!-- 行1 -->
             <textarea id="danger-point-1" class="abs-textarea auto-resize-textarea"
-                style="top: 23%; left: 11.5%; width: 26%; height: 5.2%;" placeholder="行1: 危険のポイント"></textarea>
+                style="top: 23%; left: 11.5%; width: 26%; height: 5.2%;" placeholder="例: バックホウと作業員の接触により怪我"></textarea>
             <input type="text" id="danger-prob-1" class="abs-input text-center"
-                style="top: 23%; left: 38%; width: 3.6%; height: 5.2%;" value="" placeholder="行1: 確率">
+                style="top: 23%; left: 38%; width: 3.6%; height: 5.2%;" value="" placeholder="2">
             <input type="text" id="danger-sev-1" class="abs-input text-center"
-                style="top: 23%; left: 42%; width: 3.6%; height: 5.2%;" value="" placeholder="行1: 重大性">
+                style="top: 23%; left: 42%; width: 3.6%; height: 5.2%;" value="" placeholder="3">
             <input type="text" id="danger-eval-1" class="abs-input text-center"
-                style="top: 23%; left: 46%; width: 3.6%; height: 5.2%;" value="" placeholder="行1: 評価">
+                style="top: 23%; left: 46%; width: 3.6%; height: 5.2%;" value="" placeholder="6">
             <input type="text" id="danger-level-1" class="abs-input text-center"
-                style="top: 23%; left: 50%; width: 3.6%; height: 5.2%;" value="" placeholder="行1: 危険度">
+                style="top: 23%; left: 50%; width: 3.6%; height: 5.2%;" value="" placeholder="Ⅳ">
             <textarea id="danger-resp-1" class="abs-textarea auto-resize-textarea"
-                style="top: 23%; left: 53.5%; width: 27.8%; height: 5.2%;" placeholder="行1: 私達はこうする"></textarea>
+                style="top: 23%; left: 53.5%; width: 27.8%; height: 5.2%;" placeholder="例: 作業範囲を明確にするためカラーコーンの設置"></textarea>
             <input type="text" id="danger-after-eval-1" class="abs-input text-center"
-                style="top: 23%; left: 81.5%; width: 5%; height: 5.2%;" value="" placeholder="行1: (後)評価">
+                style="top: 23%; left: 81.5%; width: 5%; height: 5.2%;" value="" placeholder="4">
             <input type="text" id="danger-after-level-1" class="abs-input text-center"
-                style="top: 23%; left: 86.5%; width: 6%; height: 5.2%;" value="" placeholder="行1: (後)危険度">
+                style="top: 23%; left: 86.5%; width: 6%; height: 5.2%;" value="" placeholder="Ⅲ">
 
-            <!-- 行2 -->
-            <textarea id="danger-point-2" class="abs-textarea auto-resize-textarea"
-                style="top: 28.5%; left: 11.5%; width: 26%; height: 5.2%;" placeholder="行2: 危険のポイント"></textarea>
-            <input type="text" id="danger-prob-2" class="abs-input text-center"
-                style="top: 28.5%; left: 38%; width: 3.6%; height: 5.2%;" value="" placeholder="行2: 確率">
-            <input type="text" id="danger-sev-2" class="abs-input text-center"
-                style="top: 28.5%; left: 42%; width: 3.6%; height: 5.2%;" value="" placeholder="行2: 重大性">
-            <input type="text" id="danger-eval-2" class="abs-input text-center"
-                style="top: 28.5%; left: 46%; width: 3.6%; height: 5.2%;" value="" placeholder="行2: 評価">
-            <input type="text" id="danger-level-2" class="abs-input text-center"
-                style="top: 28.5%; left: 50%; width: 3.6%; height: 5.2%;" value="" placeholder="行2: 危険度">
-            <textarea id="danger-resp-2" class="abs-textarea auto-resize-textarea"
-                style="top: 28.5%; left: 53.5%; width: 27.8%; height: 5.2%;" placeholder="行2: 私達はこうする"></textarea>
-            <input type="text" id="danger-after-eval-2" class="abs-input text-center"
-                style="top: 28.5%; left: 81.5%; width: 5%; height: 5.2%;" value="" placeholder="行2: (後)評価">
-            <input type="text" id="danger-after-level-2" class="abs-input text-center"
-                style="top: 28.5%; left: 86.5%; width: 6%; height: 5.2%;" value="" placeholder="行2: (後)危険度">
 
-            <!-- 行3 -->
-            <textarea id="danger-point-3" class="abs-textarea auto-resize-textarea"
-                style="top: 34%; left: 11.5%; width: 26%; height: 5.2%;" placeholder="行3: 危険のポイント"></textarea>
-            <input type="text" id="danger-prob-3" class="abs-input text-center"
-                style="top: 34%; left: 38%; width: 3.6%; height: 5.2%;" value="" placeholder="行3: 確率">
-            <input type="text" id="danger-sev-3" class="abs-input text-center"
-                style="top: 34%; left: 42%; width: 3.6%; height: 5.2%;" value="" placeholder="行3: 重大性">
-            <input type="text" id="danger-eval-3" class="abs-input text-center"
-                style="top: 34%; left: 46%; width: 3.6%; height: 5.2%;" value="" placeholder="行3: 評価">
-            <input type="text" id="danger-level-3" class="abs-input text-center"
-                style="top: 34%; left: 50%; width: 3.6%; height: 5.2%;" value="" placeholder="行3: 危険度">
-            <textarea id="danger-resp-3" class="abs-textarea auto-resize-textarea"
-                style="top: 34%; left: 53.5%; width: 27.8%; height: 5.2%;" placeholder="行3: 私達はこうする"></textarea>
-            <input type="text" id="danger-after-eval-3" class="abs-input text-center"
-                style="top: 34%; left: 81.5%; width: 5%; height: 5.2%;" value="" placeholder="行3: (後)評価">
-            <input type="text" id="danger-after-level-3" class="abs-input text-center"
-                style="top: 34%; left: 86.5%; width: 6%; height: 5.2%;" value="" placeholder="行3: (後)危険度">
-
-            <!-- 行4 -->
-            <textarea id="danger-point-4" class="abs-textarea auto-resize-textarea"
-                style="top: 39.7%; left: 11.5%; width: 26%; height: 5.2%;" placeholder="行4: 危険のポイント"></textarea>
-            <input type="text" id="danger-prob-4" class="abs-input text-center"
-                style="top: 39.7%; left: 38%; width: 3.6%; height: 5.2%;" value="" placeholder="行4: 確率">
-            <input type="text" id="danger-sev-4" class="abs-input text-center"
-                style="top: 39.7%; left: 42%; width: 3.6%; height: 5.2%;" value="" placeholder="行4: 重大性">
-            <input type="text" id="danger-eval-4" class="abs-input text-center"
-                style="top: 39.7%; left: 46%; width: 3.6%; height: 5.2%;" value="" placeholder="行4: 評価">
-            <input type="text" id="danger-level-4" class="abs-input text-center"
-                style="top: 39.7%; left: 50%; width: 3.6%; height: 5.2%;" value="" placeholder="行4: 危険度">
-            <textarea id="danger-resp-4" class="abs-textarea auto-resize-textarea"
-                style="top: 39.7%; left: 53.5%; width: 27.8%; height: 5.2%;" placeholder="行4: 私達はこうする"></textarea>
-            <input type="text" id="danger-after-eval-4" class="abs-input text-center"
-                style="top: 39.7%; left: 81.5%; width: 5%; height: 5.2%;" value="" placeholder="行4: (後)評価">
-            <input type="text" id="danger-after-level-4" class="abs-input text-center"
-                style="top: 39.7%; left: 86.5%; width: 6%; height: 5.2%;" value="" placeholder="行4: (後)危険度">
 
             <!-- ====== 4. 今日の行動目標 ====== -->
             <input type="text" id="today-goal" class="abs-input text-center"
@@ -183,20 +132,44 @@
                 style="top: 60.4%; left: 87.5%; width: 3.5%; height: 4%;" value="">
 
             <!-- ====== 7. 参加者サイン (手書きキャンバス) ====== -->
-            <div style="position: absolute; z-index: 20; top: 64.0%; left: 22%; width: 37.3%; height: 11.6%;">
+            <div id="signature-wrapper" style="position: absolute; z-index: 20; top: 64.0%; left: 22%; width: 37.3%; height: 11.6%; cursor: pointer;">
                 <canvas id="signature-pad" class="abs-input"
-                    style="width: 100%; height: 100%; touch-action: none; cursor: crosshair; outline: none; background: transparent; border: none;"></canvas>
+                    style="width: 100%; height: 100%; pointer-events: none; outline: none; background: transparent; border: none;"></canvas>
                 <button id="btn-clear-signature" type="button" class="btn no-print"
                     style="position: absolute; right: 0; bottom: -30px; padding: 4px 8px; font-size: 1.2cqw; z-index: 10;">やり直し</button>
             </div>
 
         </div>
 
-        <div class="ky-version-info">Ver 1.89_UnifiedVersion</div>
+        <!-- ====== 参加者サイン用モーダル ====== -->
+        <div id="signature-modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+            <div style="background:#fff; width:95%; max-width:800px; padding:20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:15px;">
+                <div style="font-weight:bold; font-size:1.2rem; color:#333; text-align:center;">参加者サインを入力してください</div>
+                
+                <div style="border: 2px solid #ccc; border-radius: 4px; height: 300px; position: relative; background: #fafafa;">
+                    <canvas id="modal-signature-pad" style="width: 100%; height: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                    <div style="display:flex; gap:10px;">
+                        <button id="modal-signature-clear" class="btn" style="background:#f87171; color:white; border:none; padding:10px 15px; font-size:1.1rem;">全消去</button>
+                        <button id="modal-signature-undo" class="btn" style="background:#eab308; color:white; border:none; padding:10px 15px; font-size:1.1rem;">↶ 1つ戻る</button>
+                        <button id="modal-signature-eraser" class="btn" style="background:#64748b; color:white; border:none; padding:10px 15px; font-size:1.1rem;">消しゴム</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button id="modal-signature-cancel" class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; font-size:1.1rem;">キャンセル</button>
+                        <button id="modal-signature-save" class="btn" style="background:#3b82f6; color:white; border:none; padding:10px 25px; font-size:1.1rem; font-weight:bold;">確 定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ky-version-info">Ver 2.15_RightAlignConstructionName</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=66"></script></script>
 </body>
 
 </html>

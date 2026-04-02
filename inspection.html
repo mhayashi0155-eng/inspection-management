@@ -572,6 +572,18 @@
                 </div>
             </div>
 
+            <div class="modal-section" style="margin-top: 1rem;">
+                <h3>UAV（ドローン）点検表</h3>
+                <div class="machine-grid compact">
+                    <button class="machine-btn" onclick="selectMachine('uav_template1')">
+                        <span class="text">template_1<br><small>フライト日別記録</small></span>
+                    </button>
+                    <button class="machine-btn" onclick="selectMachine('uav_template2')">
+                        <span class="text">template_2<br><small>マトリクス形式(縦横)</small></span>
+                    </button>
+                </div>
+            </div>
+
             <div class="modal-section">
                 <h3>日常始業点検 <span
                         style="font-size:0.8rem; font-weight:normal; color:#e11d48; margin-left:0.5rem;">※ショベル系は月次点検を作成すると自動で作成されます</span>
@@ -720,6 +732,61 @@
             </main>
         </section>
 
+        <!-- UAV template_1: 日付ごとの記録用コンテナ (縦並びなど) -->
+        <section id="uav-template1-page" class="print-page" style="display: none;">
+            <style>
+                @media print {
+                    #uav-template1-page {
+                        page-break-inside: avoid;
+                    }
+                }
+            </style>
+            <!-- ここにフライトごとの記録UI (1日分) -->
+            <div id="uav-t1-form" class="inspection-grid">
+                <div class="column" id="uav-t1-col"></div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap;">
+                <span id="uav-t1-lock-badge" class="badge" style="display:none; background:#f1f5f9; color:#64748b; margin-right:auto;">閲覧モード</span>
+                <button id="new-uav-t1-btn" class="secondary-btn" style="background-color: #fef08a; color: #854d0e; border-color: #fde047; display: none;">保存して新しい用紙発行</button>
+            </div>
+        </section>
+
+        <!-- UAV template_2: 縦に項目、横に日付の構成 (マトリクス) -->
+        <section id="uav-template2-page" class="print-page" style="display: none;">
+            <style>
+                @media print {
+                    @page { size: landscape; } /* 右に90度回転(横向き) */
+                    #uav-template2-page {
+                        page-break-inside: avoid;
+                        width: 100%;
+                    }
+                }
+            </style>
+            <div class="uav-grid-container" style="overflow-x: auto;">
+                <table id="uav-t2-table" class="monthly-table" style="width: 100%; min-width: 800px; text-align: center; border-collapse: collapse;">
+                    <thead>
+                        <tr id="uav-t2-table-head">
+                            <th style="width: 250px;">点検項目</th>
+                            <!-- JSで生成 -->
+                        </tr>
+                        <tr id="uav-t2-date-row">
+                            <th>点検日</th>
+                            <!-- 日付入力欄 -->
+                        </tr>
+                    </thead>
+                    <tbody id="uav-t2-table-body">
+                        <!-- JSで生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap;">
+                <span id="uav-t2-lock-badge" class="badge" style="display:none; background:#f1f5f9; color:#64748b; margin-right:auto;">閲覧モード</span>
+                <button id="new-uav-t2-btn" class="secondary-btn" style="background-color: #fef08a; color: #854d0e; border-color: #fde047; display: none;">保存して新しい用紙発行</button>
+            </div>
+        </section>
+
         <!-- Multi-Month Book Container (Ver26) -->
         <div id="book-container" style="display: none;"></div>
 
@@ -761,6 +828,8 @@
 
     <!-- Ver90: Fixed Version Indicator -->
     <script src="script.js?v=Ver112_KYFormAdded"></script>
+    <!-- App Version -->
+    <div id="app-version" style="position: fixed; bottom: 5px; right: 10px; font-size: 0.75rem; color: #94a3b8; pointer-events: none; z-index: 9999;">v1.0.1</div>
 </body>
 
 

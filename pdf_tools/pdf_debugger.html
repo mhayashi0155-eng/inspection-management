@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Antigravity 座標確認ツール</title>
+    <!-- pdf.jsのCDNリンク -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background: #f0f0f0; }
+        #controls { 
+            position: fixed; top: 10px; left: 10px; background: white; padding: 15px; 
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+            z-index: 100; max-height: 90vh; display: flex; flex-direction: column; width: 320px;
+        }
+        #pdf-wrapper { 
+            margin-left: 360px; position: relative; display: inline-block; 
+            border: 2px solid #333; cursor: crosshair; 
+        }
+        #pdf-canvas { display: block; background: white; }
+        #overlay-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; background: transparent; }
+        
+        .info { color: #d32f2f; font-weight: bold; margin-top: 5px; }
+        button { margin: 5px 0; padding: 5px 10px; cursor: pointer; }
+        
+        #history-wrapper { margin-top: 15px; flex-grow: 1; overflow-y: auto; border-top: 2px solid #ddd; padding-top: 10px; }
+        .history-item { 
+            background: #fafafa; border: 1px solid #ccc; padding: 8px; margin-bottom: 5px; 
+            border-radius: 4px; font-family: monospace; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .history-item input { width: 110px; font-size: 12px; border: 1px solid #aaa; padding: 2px; }
+        .del-btn { color: white; background-color: #e53935; border: none; border-radius: 3px; cursor: pointer; padding: 2px 6px; font-size: 12px; margin-top: 0px; }
+        .del-btn:hover { background-color: #c62828; }
+
+        .mode-switch { background: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; font-size: 14px; border: 1px solid #bbdefb; }
+        .mode-switch label { cursor: pointer; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <strong>Antigravity 座標デバッガー</strong>
+    <div style="margin-top: 10px;">
+        <input type="file" id="pdf-file" accept="application/pdf" style="margin-bottom: 5px;"><br>
+        <button onclick="rotatePDF()">右に90度回転(表示のみ)</button>
+    </div>
+    
+    <div class="mode-switch">
+        <strong>📍 取得モード選択</strong><br>
+        <label><input type="radio" name="mode" value="point" checked onchange="modeChanged()"> 1点 (クリックで文字位置用)</label>
+        <label><input type="radio" name="mode" value="rect" onchange="modeChanged()"> 枠 (ドラッグで四角い枠を指定)</label>
+    </div>
+    <small style="color: #666; line-height: 1.3;">※PDF上では左下(0,0)が原点です。<br>文字を置く場合は「1点」、枠全体の幅と高さが必要な場合は「枠」を使用します。</small>
+
+    <div id="history-wrapper">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong>📋 取得履歴</strong>
+            <div>
+                <button onclick="copyHistory()" style="font-size: 12px; background: #e3f2fd; border: 1px solid #90caf9; margin-right: 5px;">まとめてコピー</button>
+                <button onclick="clearHistory()" style="font-size: 12px; background: #eee; border: 1px solid #ccc;">一括クリア</button>
+            </div>
+        </div>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<div id="pdf-wrapper">
+    <canvas id="pdf-canvas"></canvas>
+    <canvas id="overlay-canvas"></canvas>
+</div>
+
+<script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    let pdfPage = null;
+    let currentRotation = 0; 
+    let historyCount = 0;
+    let viewport = null;
+
+    let isDrawing = false;
+    let startX = 0;
+    let startY = 0;
+    let mode = 'point'; // デフォルトは点モード
+
+    function modeChanged() {
+        mode = document.querySelector('input[name="mode"]:checked').value;
+    }
+
+    document.getElementById('pdf-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function(event) {
+            const typedarray = new Uint8Array(event.target.result);
+            try {
+                const loadingTask = pdfjsLib.getDocument(typedarray);
+                const pdf = await loadingTask.promise;
+                pdfPage = await pdf.getPage(1); 
+                
+                currentRotation = pdfPage.rotate; 
+                renderPDF(); 
+            } catch (error) {
+                alert('PDFの読み込みに失敗しました。');
+                console.error(error);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    function rotatePDF() {
+        if (!pdfPage) return;
+        currentRotation = (currentRotation + 90) % 360;
+        renderPDF();
+    }
+
+    function clearHistory() {
+        document.getElementById('history-list').innerHTML = '';
+        historyCount = 0;
+    }
+
+    // 履歴をクリップボードに一括コピーする
+    function copyHistory() {
+        const items = document.querySelectorAll('.history-item');
+        if (items.length === 0) {
+            alert('コピーする履歴がありません。');
+            return;
+        }
+        
+        let copyText = "--- 取得座標リスト ---\n";
+        
+        // 取得した順番（表示の下）から順にテキスト化
+        Array.from(items).reverse().forEach(item => {
+            const name = item.querySelector('input').value;
+            const coords = item.querySelector('div > div').innerText;
+            copyText += `【${name}】\n${coords}\n\n`;
+        });
+
+        navigator.clipboard.writeText(copyText).then(() => {
+            alert('クリップボードにコピーしました！\nチャット画面に戻って貼り付け（Ctrl + V）してください。');
+        }).catch(err => {
+            alert('コピーに失敗しました。テキストを手動で選択してコピーしてください。');
+        });
+    }
+
+    function addHistory(text) {
+        historyCount++;
+        const listContainer = document.getElementById('history-list');
+        
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <div>
+                <input type="text" placeholder="名前 (例: 氏名)" value="項目 ${historyCount}"><br>
+                <div style="margin-top: 5px; color: #333; line-height: 1.4; white-space: pre-wrap; font-size: 12px;">${text}</div>
+            </div>
+            <button class="del-btn" onclick="this.parentElement.remove()">消</button>
+        `;
+        listContainer.prepend(div);
+    }
+
+    async function renderPDF() {
+        if (!pdfPage) return;
+
+        viewport = pdfPage.getViewport({ scale: 1.5, rotation: currentRotation }); 
+        const canvas = document.getElementById('pdf-canvas');
+        const overlay = document.getElementById('overlay-canvas');
+        const context = canvas.getContext('2d');
+        const wrapper = document.getElementById('pdf-wrapper');
+        
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        overlay.height = viewport.height;
+        overlay.width = viewport.width;
+
+        // wrapperのサイズも合わせる
+        wrapper.style.width = viewport.width + 'px';
+        wrapper.style.height = viewport.height + 'px';
+
+        const renderContext = { canvasContext: context, viewport: viewport };
+        await pdfPage.render(renderContext).promise;
+
+        setupOverlayEvents(overlay);
+    }
+
+    function setupOverlayEvents(overlay) {
+        const ctx = overlay.getContext('2d');
+        
+        overlay.onmousedown = (e) => {
+            if (!viewport) return;
+            const rect = overlay.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+
+            if (mode === 'rect') {
+                isDrawing = true;
+            } else if (mode === 'point') {
+                // 点モードならクリックした時点で履歴に追加
+                const normalized = viewport.convertToPdfPoint(startX, startY);
+                const pdfX = Math.round(normalized[0]);
+                const pdfY = Math.round(normalized[1]);
+                addHistory(`{ x: ${pdfX}, y: ${pdfY} }`);
+            }
+        };
+
+        overlay.onmousemove = (e) => {
+            if (!isDrawing || mode !== 'rect') return;
+            const rect = overlay.getBoundingClientRect();
+            const currX = e.clientX - rect.left;
+            const currY = e.clientY - rect.top;
+
+            // 描画をクリアして青い半透明の四角を描く
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            ctx.fillStyle = 'rgba(26, 115, 232, 0.2)';
+            ctx.strokeStyle = '#1a73e8';
+            ctx.lineWidth = 1;
+            
+            ctx.beginPath();
+            ctx.rect(startX, startY, currX - startX, currY - startY);
+            ctx.fill();
+            ctx.stroke();
+        };
+
+        overlay.onmouseup = (e) => {
+            if (!isDrawing || mode !== 'rect') return;
+            isDrawing = false;
+            
+            const rect = overlay.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+
+            const pt1 = viewport.convertToPdfPoint(startX, startY);
+            const pt2 = viewport.convertToPdfPoint(endX, endY);
+            
+            const x1 = pt1[0], y1 = pt1[1];
+            const x2 = pt2[0], y2 = pt2[1];
+            
+            // XとYの最小値(左下座標)、幅、高さを計算
+            const pdfX = Math.round(Math.min(x1, x2));
+            const pdfY = Math.round(Math.min(y1, y2));
+            const pdfW = Math.round(Math.abs(x1 - x2));
+            const pdfH = Math.round(Math.abs(y1 - y2));
+
+            // ドラッグ量が小さすぎる場合はクリックとみなして無視
+            if (pdfW > 5 && pdfH > 5) {
+                addHistory(`{ x: ${pdfX}, y: ${pdfY},\n  width: ${pdfW}, height: ${pdfH} }`);
+            } else {
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+            }
+        };
+        
+        // 画面外に出たときのキャンセル処理
+        overlay.onmouseleave = () => {
+            if (isDrawing && mode === 'rect') {
+                isDrawing = false;
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+            }
+        };
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,838 @@
+{
+  "templates": [
+    {
+      "id": "template_1",
+      "name": "無人機登録用 点検表",
+      "pdfPath": "template_1.pdf",
+      "filePrefix": "日常点検表",
+      "rotation": 90,
+      "fields": [
+        {
+          "id": "無人機登録",
+          "label": "無人機登録",
+          "type": "select",
+          "options": [
+            {
+              "value": "JU32636BA3D2",
+              "text": "JU32636BA3D2（DJI Matrice 4E）"
+            },
+            {
+              "value": "JU3235658E75",
+              "text": "JU3235658E75（DJI Air2S）"
+            },
+            {
+              "value": "JU3235E21263",
+              "text": "JU3235E21263（DJI Air2S）"
+            },
+            {
+              "value": "JU3235DDC840",
+              "text": "JU3235DDC840（DJI PHANTOM 4 PRO）"
+            }
+          ],
+          "x": 75,
+          "y": 191,
+          "width": 37,
+          "height": 106,
+          "align": "center"
+        },
+        {
+          "id": "item_2",
+          "label": "点検 2",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 179,
+          "y": 528,
+          "width": 20,
+          "height": 63
+        },
+        {
+          "id": "item_3",
+          "label": "項目 3",
+          "type": "text",
+          "x": 182,
+          "y": 591,
+          "width": 15,
+          "height": 180
+        },
+        {
+          "id": "item_4",
+          "label": "点検 4",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 197,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_5",
+          "label": "項目 5",
+          "type": "text",
+          "x": 199,
+          "y": 592,
+          "width": 18,
+          "height": 179
+        },
+        {
+          "id": "item_6",
+          "label": "点検 6",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 216,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_7",
+          "label": "項目 7",
+          "type": "text",
+          "x": 218,
+          "y": 591,
+          "width": 16,
+          "height": 182
+        },
+        {
+          "id": "item_8",
+          "label": "点検 8",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 235,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_9",
+          "label": "項目 9",
+          "type": "text",
+          "x": 235,
+          "y": 591,
+          "width": 17,
+          "height": 180
+        },
+        {
+          "id": "item_10",
+          "label": "点検 10",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 253,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_11",
+          "label": "項目 11",
+          "type": "text",
+          "x": 254,
+          "y": 592,
+          "width": 17,
+          "height": 179
+        },
+        {
+          "id": "item_12",
+          "label": "点検 12",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 272,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_13",
+          "label": "項目 13",
+          "type": "text",
+          "x": 273,
+          "y": 591,
+          "width": 17,
+          "height": 180
+        },
+        {
+          "id": "item_14",
+          "label": "点検 14",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 290,
+          "y": 528,
+          "width": 37,
+          "height": 63
+        },
+        {
+          "id": "item_15",
+          "label": "項目 15",
+          "type": "text",
+          "x": 291,
+          "y": 592,
+          "width": 35,
+          "height": 179
+        },
+        {
+          "id": "item_16",
+          "label": "点検 16",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 327,
+          "y": 528,
+          "width": 19,
+          "height": 63
+        },
+        {
+          "id": "item_17",
+          "label": "項目 17",
+          "type": "text",
+          "x": 327,
+          "y": 591,
+          "width": 18,
+          "height": 180
+        },
+        {
+          "id": "item_18",
+          "label": "点検 18",
+          "type": "select",
+          "options": [
+            "〇",
+            "✕"
+          ],
+          "default": "〇",
+          "align": "center",
+          "x": 345,
+          "y": 528,
+          "width": 18,
+          "height": 63
+        },
+        {
+          "id": "item_19",
+          "label": "項目 19",
+          "type": "text",
+          "x": 346,
+          "y": 592,
+          "width": 17,
+          "height": 180
+        },
+        {
+          "id": "item_28",
+          "label": "項目 28",
+          "type": "text",
+          "x": 454,
+          "y": 71,
+          "width": 27,
+          "height": 700
+        },
+        {
+          "id": "item_29",
+          "label": "実施場所",
+          "type": "location",
+          "align": "center",
+          "x": 498,
+          "y": 73,
+          "width": 19,
+          "height": 246
+        },
+        {
+          "id": "item_30",
+          "label": "点検日",
+          "type": "date",
+          "default": "today",
+          "align": "center",
+          "x": 498,
+          "y": 320,
+          "width": 17,
+          "height": 229
+        },
+        {
+          "id": "item_31",
+          "label": "実施者",
+          "type": "text",
+          "align": "center",
+          "x": 499,
+          "y": 549,
+          "width": 17,
+          "height": 223
+        }
+      ]
+    },
+    {
+      "id": "template_2",
+      "name": "点検整備記録",
+      "pdfPath": "template_2.pdf",
+      "filePrefix": "点検整備記録",
+      "rotation": 90,
+      "fields": [
+        {
+          "id": "無人機登録",
+          "label": "無人機登録",
+          "type": "select",
+          "options": [
+            {
+              "value": "JU32636BA3D2",
+              "text": "JU32636BA3D2（DJI Matrice 4E）"
+            },
+            {
+              "value": "JU3235658E75",
+              "text": "JU3235658E75（DJI Air2S）"
+            },
+            {
+              "value": "JU3235E21263",
+              "text": "JU3235E21263（DJI Air2S）"
+            },
+            {
+              "value": "JU3235DDC840",
+              "text": "JU3235DDC840（DJI PHANTOM 4 PRO）"
+            }
+          ],
+          "x": 77,
+          "y": 192,
+          "width": 35,
+          "height": 105,
+          "align": "center"
+        },
+        {
+          "id": "item_1",
+          "label": "項目 1",
+          "type": "date",
+          "x": 179,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_2",
+          "label": "項目 2",
+          "type": "date",
+          "x": 216,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_3",
+          "label": "項目 3",
+          "type": "date",
+          "x": 253,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_4",
+          "label": "項目 4",
+          "type": "date",
+          "x": 290,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_5",
+          "label": "項目 5",
+          "type": "date",
+          "x": 327,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_6",
+          "label": "項目 6",
+          "type": "date",
+          "x": 364,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_7",
+          "label": "項目 7",
+          "type": "date",
+          "x": 401,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_8",
+          "label": "項目 8",
+          "type": "date",
+          "x": 438,
+          "y": 72,
+          "width": 37,
+          "height": 84
+        },
+        {
+          "id": "item_9",
+          "label": "項目 9",
+          "type": "text",
+          "x": 180,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_10",
+          "label": "項目 10",
+          "type": "text",
+          "x": 217,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_11",
+          "label": "項目 11",
+          "type": "text",
+          "x": 254,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_12",
+          "label": "項目 12",
+          "type": "text",
+          "x": 291,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_13",
+          "label": "項目 13",
+          "type": "text",
+          "x": 328,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_14",
+          "label": "項目 14",
+          "type": "text",
+          "x": 365,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_15",
+          "label": "項目 15",
+          "type": "text",
+          "x": 402,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_16",
+          "label": "項目 16",
+          "type": "text",
+          "x": 439,
+          "y": 156,
+          "width": 37,
+          "height": 85
+        },
+        {
+          "id": "item_17",
+          "label": "項目 17",
+          "type": "text",
+          "x": 181,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_18",
+          "label": "項目 18",
+          "type": "text",
+          "x": 218,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_19",
+          "label": "項目 19",
+          "type": "text",
+          "x": 255,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_20",
+          "label": "項目 20",
+          "type": "text",
+          "x": 292,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_21",
+          "label": "項目 21",
+          "type": "text",
+          "x": 329,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_22",
+          "label": "項目 22",
+          "type": "text",
+          "x": 366,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_23",
+          "label": "項目 23",
+          "type": "text",
+          "x": 403,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_24",
+          "label": "項目 24",
+          "type": "text",
+          "x": 440,
+          "y": 242,
+          "width": 36,
+          "height": 169
+        },
+        {
+          "id": "item_25",
+          "label": "項目 25",
+          "type": "text",
+          "x": 180,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_26",
+          "label": "項目 26",
+          "type": "text",
+          "x": 217,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_27",
+          "label": "項目 27",
+          "type": "text",
+          "x": 254,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_28",
+          "label": "項目 28",
+          "type": "text",
+          "x": 291,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_29",
+          "label": "項目 29",
+          "type": "text",
+          "x": 328,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_30",
+          "label": "項目 30",
+          "type": "text",
+          "x": 365,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_31",
+          "label": "項目 31",
+          "type": "text",
+          "x": 402,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_32",
+          "label": "項目 32",
+          "type": "text",
+          "x": 439,
+          "y": 411,
+          "width": 36,
+          "height": 141
+        },
+        {
+          "id": "item_33",
+          "label": "項目 33",
+          "type": "text",
+          "x": 181,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_34",
+          "label": "項目 34",
+          "type": "text",
+          "x": 218,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_35",
+          "label": "項目 35",
+          "type": "text",
+          "x": 255,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_36",
+          "label": "項目 36",
+          "type": "text",
+          "x": 292,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_37",
+          "label": "項目 37",
+          "type": "text",
+          "x": 329,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_38",
+          "label": "項目 38",
+          "type": "text",
+          "x": 366,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_39",
+          "label": "項目 39",
+          "type": "text",
+          "x": 403,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_40",
+          "label": "項目 40",
+          "type": "text",
+          "x": 440,
+          "y": 553,
+          "width": 35,
+          "height": 77
+        },
+        {
+          "id": "item_41",
+          "label": "項目 41",
+          "type": "text",
+          "x": 180,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_42",
+          "label": "項目 42",
+          "type": "text",
+          "x": 217,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_43",
+          "label": "項目 43",
+          "type": "text",
+          "x": 254,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_44",
+          "label": "項目 44",
+          "type": "text",
+          "x": 291,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_45",
+          "label": "項目 45",
+          "type": "text",
+          "x": 328,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_46",
+          "label": "項目 46",
+          "type": "text",
+          "x": 365,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_47",
+          "label": "項目 47",
+          "type": "text",
+          "x": 402,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_48",
+          "label": "項目 48",
+          "type": "text",
+          "x": 439,
+          "y": 630,
+          "width": 36,
+          "height": 70
+        },
+        {
+          "id": "item_49",
+          "label": "項目 49",
+          "type": "text",
+          "x": 180,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_50",
+          "label": "項目 50",
+          "type": "text",
+          "x": 217,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_51",
+          "label": "項目 51",
+          "type": "text",
+          "x": 254,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_52",
+          "label": "項目 52",
+          "type": "text",
+          "x": 291,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_53",
+          "label": "項目 53",
+          "type": "text",
+          "x": 328,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_54",
+          "label": "項目 54",
+          "type": "text",
+          "x": 365,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_55",
+          "label": "項目 55",
+          "type": "text",
+          "x": 402,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        },
+        {
+          "id": "item_56",
+          "label": "項目 56",
+          "type": "text",
+          "x": 439,
+          "y": 701,
+          "width": 37,
+          "height": 68
+        }
+      ]
+    }
+  ]
+}

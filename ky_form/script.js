@@ -31,9 +31,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.title = `KY活動表_${y}${m}${d}_${sName.replace(/ /g, '')}_${wc}`;
     });
 
-    // 手書きキャンバスの初期化
-    initSignaturePad();
-
     // 危険度の自動計算機能の初期化
     initAutoCalculateDanger();
 
@@ -42,6 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 〇マークのクリック機能初期化
     initCircleMarks();
+
+    // 参加者サイン用モーダルの初期化処理を開始する
+    initSignatureModal();
 });
 
 // --- 〇マークのクリック・トグル処理 ---
@@ -176,38 +176,115 @@ function initAutoCalculateDanger() {
     }
 }
 
-// --- 手書きキャンバスの処理 ---
-function initSignaturePad() {
-    const canvas = document.getElementById('signature-pad');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+// --- 手書きキャンバス（モーダル版）の処理 ---
+function initSignatureModal() {
+    const mainCanvas = document.getElementById('signature-pad');
+    const modalCanvas = document.getElementById('modal-signature-pad');
+    const modal = document.getElementById('signature-modal');
+    
+    if (!mainCanvas || !modalCanvas || !modal) return;
 
-    function resizeCanvas() {
-        // 現在の描画内容を退避
-        const signatureImage = canvas.toDataURL();
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        ctx.strokeStyle = 'red'; // 赤ペン
-        ctx.lineWidth = 3;       // タブレットで書きやすい太さ
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+    const mainCtx = mainCanvas.getContext('2d');
+    const modalCtx = modalCanvas.getContext('2d');
 
-        // 退避した描画内容を描き戻す
+    // 本紙側キャンバスのリサイズ（表示用）
+    function resizeMainCanvas() {
+        const signatureImage = mainCanvas.toDataURL();
+        const rect = mainCanvas.parentElement.getBoundingClientRect();
+        mainCanvas.width = rect.width;
+        mainCanvas.height = rect.height;
+        mainCtx.strokeStyle = 'black'; // 黒に変更
+        mainCtx.lineWidth = 2;
+        mainCtx.lineCap = 'round';
+        mainCtx.lineJoin = 'round';
+
         if (signatureImage && signatureImage.length > 50) {
             const img = new Image();
-            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            img.onload = () => mainCtx.drawImage(img, 0, 0, mainCanvas.width, mainCanvas.height);
             img.src = signatureImage;
         }
     }
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    resizeMainCanvas();
+    window.addEventListener('resize', resizeMainCanvas);
 
+    // 本紙キャンバスの親ラッパー（またはキャンバス自体）をクリック/タップしたらモーダルを開く
+    const wrapper = document.getElementById('signature-wrapper');
+    if (!wrapper && !mainCanvas) return;
+    
+    const triggerEl = wrapper || mainCanvas;
+
+    // ガイドライン（縦8分割の半透明点線）を描画する関数
+    function drawGridLines() {
+        modalCtx.save();
+        modalCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)'; // 半透明の黒
+        modalCtx.lineWidth = 1;
+        modalCtx.setLineDash([5, 5]); // 点線
+        
+        const w = modalCanvas.width;
+        const h = modalCanvas.height;
+        
+        modalCtx.beginPath();
+        
+        // 横線なし、縦に8分割（縦線7本）
+        for (let i = 1; i <= 7; i++) {
+            modalCtx.moveTo((w / 8) * i, 0);
+            modalCtx.lineTo((w / 8) * i, h);
+        }
+        
+        modalCtx.stroke();
+        modalCtx.restore(); // 線種の設定などを元に戻す
+    }
+
+    function openSignatureModal(e) {
+        // クリアボタンが押された場合はイベントを無視する
+        if (e && e.target && (e.target.id === 'btn-clear-signature' || e.target.closest('#btn-clear-signature'))) {
+            return;
+        }
+        
+        if (e) e.preventDefault();
+        
+        modal.style.display = 'flex';
+        
+        // モーダル表示後にキャンバスサイズを確定させる
+        setTimeout(() => {
+            const rect = modalCanvas.parentElement.getBoundingClientRect();
+            modalCanvas.width = rect.width;
+            modalCanvas.height = rect.height;
+            modalCtx.strokeStyle = 'black'; // 黒に変更
+            modalCtx.lineWidth = 4;
+            modalCtx.lineCap = 'round';
+            modalCtx.lineJoin = 'round';
+            
+            // 8分割の点線ガイドを描画
+            drawGridLines();
+            
+            // 本紙からコピー
+            const currentImg = mainCanvas.toDataURL();
+            if (currentImg && currentImg.length > 50) {
+                const img = new Image();
+                img.onload = () => modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height);
+                img.src = currentImg;
+            }
+        }, 50);
+    }
+
+    triggerEl.addEventListener('click', openSignatureModal);
+    triggerEl.addEventListener('touchstart', openSignatureModal, { passive: false });
+
+    // --- モーダル内の描画処理 ---
     let drawing = false;
+    let isEraser = false; // 消しゴムモードかどうかのフラグ
+    let undoStack = [];   // 描画履歴(DataURL)を保存する配列
+
+    // 現在のキャンバス状態をスタックに保存する
+    function saveState() {
+        if (undoStack.length > 20) undoStack.shift(); // 最大戻り回数を20に制限
+        undoStack.push(modalCanvas.toDataURL());
+    }
 
     function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
+        const rect = modalCanvas.getBoundingClientRect();
         let clientX = e.clientX;
         let clientY = e.clientY;
         if (e.touches && e.touches.length > 0) {
@@ -223,43 +300,128 @@ function initSignaturePad() {
     function startDraw(e) {
         e.preventDefault();
         drawing = true;
+        // 描画開始直前の状態を保存する
+        saveState();
+
         const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
+        modalCtx.beginPath();
+        modalCtx.moveTo(pos.x, pos.y);
+
+        // ペンか消しゴムかで線の設定を変える
+        if (isEraser) {
+            modalCtx.globalCompositeOperation = 'destination-out';
+            modalCtx.lineWidth = 20; // 消しゴムは太め
+        } else {
+            modalCtx.globalCompositeOperation = 'source-over';
+            modalCtx.strokeStyle = 'black';
+            modalCtx.lineWidth = 4;
+            modalCtx.lineCap = 'round';
+            modalCtx.lineJoin = 'round';
+        }
     }
 
     function draw(e) {
         if (!drawing) return;
         e.preventDefault();
         const pos = getPos(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
+        modalCtx.lineTo(pos.x, pos.y);
+        modalCtx.stroke();
     }
 
     function endDraw(e) {
         if (!drawing) return;
         e.preventDefault();
         drawing = false;
-        ctx.closePath();
+        modalCtx.closePath();
     }
 
-    // マウスイベント
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', endDraw);
-    canvas.addEventListener('mouseout', endDraw);
+    // マウス
+    modalCanvas.addEventListener('mousedown', startDraw);
+    modalCanvas.addEventListener('mousemove', draw);
+    modalCanvas.addEventListener('mouseup', endDraw);
+    modalCanvas.addEventListener('mouseout', endDraw);
+    // タッチ
+    modalCanvas.addEventListener('touchstart', startDraw, { passive: false });
+    modalCanvas.addEventListener('touchmove', draw, { passive: false });
+    modalCanvas.addEventListener('touchend', endDraw);
+    modalCanvas.addEventListener('touchcancel', endDraw);
 
-    // タッチイベント
-    canvas.addEventListener('touchstart', startDraw, { passive: false });
-    canvas.addEventListener('touchmove', draw, { passive: false });
-    canvas.addEventListener('touchend', endDraw);
-    canvas.addEventListener('touchcancel', endDraw);
+    // モーダル内ボタン処理
+    document.getElementById('modal-signature-clear').addEventListener('click', () => {
+        // スタックを保存してから全消去する（全消去自体もUndoできるようにする）
+        saveState();
+        modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+        drawGridLines(); // やり直し時にガイドラインを再描画
+    });
 
-    // クリアボタン連携
+    document.getElementById('modal-signature-undo').addEventListener('click', () => {
+        if (undoStack.length === 0) {
+            // 履歴がなければ何もしない（全消去状態にするかそのまま）
+            return;
+        }
+        // 1つ前の状態を取得して描画
+        const prevState = undoStack.pop();
+        const img = new Image();
+        img.onload = () => {
+            modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+            modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height);
+            // ※必要に応じてガイドラインの再描画を追加してもよいが、画像ごと戻るのでそのままにするか、状況次第
+            // 背景透過キャンバスなので消した部分のガイドラインも戻る
+        };
+        img.src = prevState;
+    });
+
+    const btnEraser = document.getElementById('modal-signature-eraser');
+    btnEraser.addEventListener('click', () => {
+        isEraser = !isEraser;
+        if (isEraser) {
+            btnEraser.textContent = 'ペンに戻す';
+            btnEraser.style.background = '#475569'; // 少し暗く
+            modalCanvas.style.cursor = 'crosshair'; // または他のアイコン
+        } else {
+            btnEraser.textContent = '消しゴム';
+            btnEraser.style.background = '#64748b'; // 元の色
+            modalCanvas.style.cursor = 'crosshair';
+        }
+    });
+
+    document.getElementById('modal-signature-cancel').addEventListener('click', () => {
+        modal.style.display = 'none';
+        // キャンセル時はペンモードに戻しておく
+        isEraser = false;
+        btnEraser.textContent = '消しゴム';
+        btnEraser.style.background = '#64748b';
+    });
+
+    document.getElementById('modal-signature-save').addEventListener('click', () => {
+        // モーダルの内容を本紙側にコピーして閉じる
+        mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+        
+        // --- ガイドラインを消して（無視して）保存したいが、今回は表示状態をそのまま画像化する ---
+        // (厳密には再描画からやり直す方法もあるが現状維持)
+        
+        const signedImg = modalCanvas.toDataURL();
+        if (signedImg && signedImg.length > 50) {
+            const img = new Image();
+            img.onload = () => mainCtx.drawImage(img, 0, 0, mainCanvas.width, mainCanvas.height);
+            img.src = signedImg;
+        }
+        modal.style.display = 'none';
+        
+        // 次回のためにペンモードに戻す
+        isEraser = false;
+        btnEraser.textContent = '消しゴム';
+        btnEraser.style.background = '#64748b';
+        
+        // 入力イベントを発火させて保存フラグを立てる等のため（必要に応じ）
+        mainCanvas.dispatchEvent(new Event('input'));
+    });
+
+    // 本紙側のクリアボタン連携（一応残す）
     const clearBtn = document.getElementById('btn-clear-signature');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
         });
     }
 }
@@ -312,6 +474,7 @@ function collectFormData() {
         sign1: document.getElementById('sign1').value,
         sign2: document.getElementById('sign2').value,
         sign3: document.getElementById('sign3').value,
+        constructionName: document.getElementById('construction-name') ? document.getElementById('construction-name').value : '',
         workContent: document.getElementById('work-content').value,
         todayGoal: document.getElementById('today-goal').value,
 
@@ -361,6 +524,9 @@ function populateFormData(data) {
     if (data.sign1) document.getElementById('sign1').value = data.sign1;
     if (data.sign2) document.getElementById('sign2').value = data.sign2;
     if (data.sign3) document.getElementById('sign3').value = data.sign3;
+    if (data.constructionName && document.getElementById('construction-name')) {
+        document.getElementById('construction-name').value = data.constructionName;
+    }
     if (data.workContent) document.getElementById('work-content').value = data.workContent;
     if (data.todayGoal) document.getElementById('today-goal').value = data.todayGoal;
 
@@ -550,6 +716,16 @@ async function loadData(siteId) {
             console.log("LocalStorageからデータをロードしました");
         } catch (e) {
             console.error("LocalStorageパースエラー", e);
+        }
+    }
+
+    // 工事名が空の場合、選択中の現場名を初期値として自動設定する
+    const cNameInput = document.getElementById('construction-name');
+    if (cNameInput && !cNameInput.value) {
+        const selectEl = document.getElementById('site-select');
+        const selectedText = selectEl.options[selectEl.selectedIndex]?.text;
+        if (selectedText && selectedText !== '-- 現場を選択してください --') {
+            cNameInput.value = selectedText;
         }
     }
 }
