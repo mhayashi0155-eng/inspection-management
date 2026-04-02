@@ -664,7 +664,7 @@
                 </div>
                 <div class="input-group">
                     <label>現場代理人</label>
-                    <input type="text" id="representative" placeholder="氏名" list="staff-list">
+                    <input type="text" id="representative" placeholder="氏名" list="representative-list">
                 </div>
                 <div class="input-group">
                     <label>安全管理者</label>
@@ -680,9 +680,8 @@
                 </div>
             </div>
 
-            <datalist id="staff-list">
-                <!-- JSで動的に追加されます -->
-            </datalist>
+            <datalist id="staff-list"></datalist>
+            <datalist id="representative-list"></datalist>
 
             <div class="legend" id="legend-section">
                 <span class="legend-item"><span class="mark good">レ</span> 良好</span>
@@ -828,9 +827,9 @@
 
 
     <!-- Ver90: Fixed Version Indicator -->
-    <script src="script.js?v=Ver114b_FixDatalist"></script>
+    <script src="script.js?v=Ver115_DatalistFixed"></script>
     <!-- App Version -->
-    <div id="app-version" style="position: fixed; bottom: 5px; right: 10px; font-size: 0.75rem; color: #94a3b8; pointer-events: none; z-index: 9999;">v1.0.1</div>
+    <div id="app-version" style="position: fixed; bottom: 5px; right: 10px; font-size: 0.75rem; color: #94a3b8; pointer-events: none; z-index: 9999;">v2026.04.02-Ver115_DatalistFixed</div>
 </body>
 
 

@@ -604,8 +604,8 @@ window.addEventListener('afterprint', () => {
 // --- インデックス画面 (現場管理) ---
 function initIndex() {
     renderSiteList();
-    if (window.renderRepresentativeList) window.renderRepresentativeList();
-    if (window.renderStaffList) window.renderStaffList();
+    renderRepresentativeList();
+    renderStaffList();
 
     const siteModal = document.getElementById('site-modal');
     const newSiteBtn = document.getElementById('new-site-btn');
@@ -3282,10 +3282,9 @@ async function fetchDynamicStaffList() {
         }
     });
 
-    if (updated) {
-        renderRepresentativeList();
-        renderStaffList();
-    }
+    // Always render once to ensure any fetched data is displayed
+    renderRepresentativeList();
+    renderStaffList();
 }
 
 function renderRepresentativeList() {

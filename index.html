@@ -368,7 +368,7 @@
     <datalist id="staff-list"></datalist>
     <datalist id="representative-list"></datalist>
 
-    <script src="script.js?v=Ver114b_FixDatalist"></script>
+    <script src="script.js?v=Ver115_DatalistFixed"></script>
     <div class="sidebar-decoration left"></div>
     <div class="sidebar-decoration right"></div>
 
@@ -378,40 +378,10 @@
         v2026.03.13-Ver123_RemoveKYBtn
     </div>
 
-    <!-- Ver114b: datalist空フィールド修正 (インライン・CDNキャッシュに依存しない) -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // setupDatalistUXを上書き：空フィールドでもdatalistが表示されるよう修正
-        var datalistIds = [
-            'new-site-representative', 'new-site-inspector', 'new-site-safety-manager',
-            'representative', 'inspector-main', 'inspector-sub', 'safety-manager',
-            'company-machine-id'
-        ];
-        datalistIds.forEach(function(id) {
-            var el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('focus', function() {
-                if (!this.dataset.defaultPlaceholder) {
-                    this.dataset.defaultPlaceholder = this.placeholder || '';
-                }
-                this.dataset.originalValue = this.value;
-                if (this.value) {
-                    this.placeholder = this.value;
-                }
-                this.value = ''; // 常に空にしてリストを強制表示
-            }, true); // キャプチャフェーズで実行（古いハンドラより先に動く）
-            el.addEventListener('blur', function() {
-                if (this.value === '' && this.dataset.originalValue) {
-                    this.value = this.dataset.originalValue;
-                }
-                this.placeholder = this.dataset.defaultPlaceholder || '';
-            }, true);
-        });
-    });
-    </script>
+
 
     <!-- App Version -->
-    <div id="app-version" style="position: fixed; bottom: 5px; right: 10px; font-size: 0.75rem; color: #94a3b8; pointer-events: none; z-index: 9999;">v2026.04.02-Ver114b</div>
+    <div id="app-version" style="position: fixed; bottom: 5px; right: 10px; font-size: 0.75rem; color: #94a3b8; pointer-events: none; z-index: 9999;">v2026.04.02-Ver115_DatalistFixed</div>
 </body>
 
 </html>
