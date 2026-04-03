@@ -73,7 +73,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.1</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.2</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -542,20 +542,23 @@
 
                 let textVal = el.value;
 
-                // 日付フィールドの場合はフォーマット変換 (例: 2024-05-20 -> 2024/05/20（月）)
+                // 日付フィールドの場合はフォーマット変換 (例: 2024-05-20 -> R6/5/20)
                 if (field.type === 'date') {
                     const d = new Date(textVal);
                     if (!isNaN(d.getTime())) {
-                        const days = ['日', '月', '火', '水', '木', '金', '土'];
                         const yyyy = d.getFullYear();
-                        const mm = String(d.getMonth() + 1).padStart(2, '0');
-                        const dd = String(d.getDate()).padStart(2, '0');
-                        const day = days[d.getDay()];
-                        textVal = `${yyyy}/${mm}/${dd}（${day}）`;
+                        const mm = d.getMonth() + 1;
+                        const dd = d.getDate();
+                        const r = yyyy - 2018; // 令和
+                        textVal = `R${r}/${mm}/${dd}`;
                     }
                 }
 
-                const fontSize = 11;
+                let fontSize = 11;
+                // 飛行日誌（template_3）の日付欄は枠が狭いため少しフォントを小さくする
+                if (currentTemplate.id === 'template_3' && field.type === 'date') {
+                    fontSize = 9;
+                }
                 const rot = currentTemplate.rotation || 0;
                 
                 const textWidth = customFont.widthOfTextAtSize(textVal, fontSize);

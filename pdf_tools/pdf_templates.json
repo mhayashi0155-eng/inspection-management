@@ -869,139 +869,169 @@
           "label": "無人航空機登録番号"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_1",
           "x": 149,
           "height": 49,
           "label": "項目 1",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_2",
           "x": 167,
           "height": 49,
           "label": "項目 2",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_3",
           "x": 185,
           "height": 49,
           "label": "項目 3",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_4",
           "x": 203,
           "height": 49,
           "label": "項目 4",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_5",
           "x": 221,
           "height": 49,
           "label": "項目 5",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_6",
           "x": 239,
           "height": 49,
           "label": "項目 6",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_7",
           "x": 257,
           "height": 49,
           "label": "項目 7",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_8",
           "x": 275,
           "height": 49,
           "label": "項目 8",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_9",
           "x": 293,
           "height": 49,
           "label": "項目 9",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_10",
           "x": 311,
           "height": 49,
           "label": "項目 10",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_11",
           "x": 329,
           "height": 49,
           "label": "項目 11",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_12",
           "x": 347,
           "height": 49,
           "label": "項目 12",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_13",
           "x": 365,
           "height": 49,
           "label": "項目 13",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_14",
           "x": 383,
           "height": 49,
           "label": "項目 14",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
-          "type": "text",
+          "type": "date",
           "id": "item_15",
           "x": 401,
           "height": 49,
           "label": "項目 15",
           "width": 18,
-          "y": 62
+          "y": 62,
+          "default": "today",
+          "align": "center"
         },
         {
           "type": "text",
