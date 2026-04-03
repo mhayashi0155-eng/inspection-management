@@ -73,7 +73,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.3</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.4</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -542,9 +542,10 @@
 
                 let textVal = el.value;
 
-                // 日付フィールドの場合はフォーマット変換 (例: 2024-05-20 -> R6/5/20)
-                if (field.type === 'date') {
-                    const d = new Date(textVal);
+                // 日付フィールド、または日付形式の文字列の場合はフォーマット変換 (例: 2024-05-20 -> R6/5/20)
+                if (field.type === 'date' || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(textVal)) {
+                    // 区切り文字をハイフンに統一してDateオブジェクトを作成
+                    const d = new Date(textVal.replace(/\//g, '-'));
                     if (!isNaN(d.getTime())) {
                         const yyyy = d.getFullYear();
                         const mm = d.getMonth() + 1;
