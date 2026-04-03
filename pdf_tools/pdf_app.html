@@ -73,6 +73,7 @@
 
 <div class="header-panel">
     <div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.0</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -347,14 +348,6 @@
                 // 90度回転時は physical_width が visual_height となるため判定を分岐
                 const isMultiLine = rot === 90 ? (field.width >= 25) : (field.height > 30);
                 input = document.createElement(isMultiLine ? 'textarea' : 'input');
-                // PDF本来の背景文字の邪魔になるため、「項目〇」などのプレースホルダー（薄い文字）は表示しない
-                input.placeholder = "";
-                
-                // テキストのデフォルト値があれば初期挿入する
-                if (field.default) {
-                    input.value = field.default;
-                }
-                
                 if (field.height <= 30) {
                     input.type = 'text';
                 } else {
