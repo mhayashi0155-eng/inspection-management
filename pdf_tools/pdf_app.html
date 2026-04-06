@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.6</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.7</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -165,8 +165,16 @@
         let folderDate = '2000/01';
         let fileDate = 'YYYYMM';
         if (dateEl && dateEl.value) {
-            const d = new Date(dateEl.value);
-            if (!isNaN(d.getTime())) {
+            let d;
+            if (dateEl.value.startsWith('R')) {
+                const parts = dateEl.value.substring(1).split('/');
+                if (parts.length === 3) {
+                    d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
+                }
+            } else {
+                d = new Date(dateEl.value);
+            }
+            if (d && !isNaN(d.getTime())) {
                 folderDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`; 
                 fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
             }
@@ -357,8 +365,30 @@
                 }
             } else if (field.type === 'date') {
                 input = document.createElement('input');
-                input.type = 'date';
+                // 日付を和暦（R〇/〇/〇）で短く表示するため、見た目はtextにし、カレンダーは見えないdate機能で呼ぶ
+                input.type = 'text';
                 
+                const hiddenDateInput = document.createElement('input');
+                hiddenDateInput.type = 'date';
+                hiddenDateInput.style.position = 'absolute';
+                hiddenDateInput.style.opacity = '0';
+                hiddenDateInput.style.width = '1px';
+                hiddenDateInput.style.height = '1px';
+                hiddenDateInput.style.pointerEvents = 'none';
+                wrapper.appendChild(hiddenDateInput);
+
+                // 選択された日付を和暦にしてtext inputに反映
+                hiddenDateInput.addEventListener('change', (e) => {
+                    const d = new Date(e.target.value);
+                    if (!isNaN(d.getTime())) {
+                        const yyyy = d.getFullYear();
+                        const mm = d.getMonth() + 1;
+                        const dd = d.getDate();
+                        const r = yyyy - 2018;
+                        input.value = `R${r}/${mm}/${dd}`;
+                    }
+                });
+
                 // カレンダーボタンを枠の左側（24px左）に配置
                 const calBtn = document.createElement('div');
                 calBtn.className = 'calendar-trigger';
@@ -369,11 +399,11 @@
                 calBtn.style.width = '16px';
                 calBtn.style.height = '16px';
                 calBtn.onclick = () => {
-                    const el = document.getElementById('input_' + field.id);
-                    if (el.showPicker) {
-                        el.showPicker();
+                    if (hiddenDateInput.showPicker) {
+                        // showPickerはユーザーのアクションでしか呼ばれないため、onclick内で実行する
+                        hiddenDateInput.showPicker();
                     } else {
-                        el.focus();
+                        input.focus();
                     }
                 };
                 wrapper.appendChild(calBtn);
@@ -381,9 +411,11 @@
                 if (field.default === 'today') {
                     const today = new Date();
                     const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    input.value = `${yyyy}-${mm}-${dd}`; // HTML5の入力形式
+                    const mm = today.getMonth() + 1;
+                    const dd = today.getDate();
+                    const r = yyyy - 2018;
+                    // デフォルトで和暦を挿入
+                    input.value = `R${r}/${mm}/${dd}`;
                 } else if (field.default) {
                     input.value = field.default;
                 }
@@ -419,6 +451,10 @@
             // 無人機登録のように文字が長い箇所は枠内に収まるように文字を極小化
             if (field.id === '無人機登録') {
                 baseFontSize = 7.5; 
+            }
+            // 飛行日誌の日付欄も狭いのでUI上の文字サイズを調整
+            if (currentTemplate?.id === 'template_3' && field.type === 'date') {
+                baseFontSize = 9.5;
             }
             
             // ズーム状況に応じたフォントサイズを算出（下限6px）
@@ -586,7 +622,8 @@
                 let textVal = el.value;
 
                 // 日付フィールド、または日付形式の文字列の場合はフォーマット変換 (例: 2024-05-20 -> R6/5/20)
-                if (field.type === 'date' || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(textVal)) {
+                // 既にRで始まる場合はスキップする
+                if (!textVal.startsWith('R') && (field.type === 'date' || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(textVal))) {
                     // 区切り文字をハイフンに統一してDateオブジェクトを作成
                     const d = new Date(textVal.replace(/\//g, '-'));
                     if (!isNaN(d.getTime())) {
@@ -599,9 +636,9 @@
                 }
 
                 let fontSize = 11;
-                // 飛行日誌（template_3）の日付欄は枠が極めて狭いためフォントを最小化(通常の60%)
+                // 飛行日誌（template_3）の日付欄は枠が極めて狭いためフォントを最小化
                 if (currentTemplate.id === 'template_3' && field.type === 'date') {
-                    fontSize = 6.6;
+                    fontSize = 5.0; // 少しでも短くなるようにさらに小さく
                 }
                 const rot = currentTemplate.rotation || 0;
                 
@@ -683,8 +720,16 @@
             let folderDate = '2000/01';
             let fileDate = 'YYYYMM';
             if (dateEl && dateEl.value) {
-                const d = new Date(dateEl.value);
-                if (!isNaN(d.getTime())) {
+                let d;
+                if (dateEl.value.startsWith('R')) {
+                    const parts = dateEl.value.substring(1).split('/');
+                    if (parts.length === 3) {
+                        d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    }
+                } else {
+                    d = new Date(dateEl.value);
+                }
+                if (d && !isNaN(d.getTime())) {
                     folderDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
                     fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
                 }
