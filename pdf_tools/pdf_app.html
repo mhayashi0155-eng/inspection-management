@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.7</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.8</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -384,6 +384,18 @@
                         const yyyy = d.getFullYear();
                         const mm = d.getMonth() + 1;
                         const dd = d.getDate();
+                        const r = yyyy - 2018;
+                        input.value = `R${r}/${mm}/${dd}`;
+                    }
+                });
+
+                // 空の入力欄をタップ(フォーカス)した際、自動的に今日の日付をセットする
+                input.addEventListener('focus', () => {
+                    if (!input.value) {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = today.getMonth() + 1;
+                        const dd = today.getDate();
                         const r = yyyy - 2018;
                         input.value = `R${r}/${mm}/${dd}`;
                     }
