@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.10</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.11</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -457,6 +457,25 @@
 
             input.className = 'pdf-input';
             input.id = `input_${field.id}`;
+            
+            // 項目46〜105: 時間入力等（フォーカス時に空欄なら現在時刻セット）
+            if (currentTemplate?.id === 'template_3') {
+                const match = field.id.match(/^item_(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    // 指定された46〜75（および画像の時刻欄である76〜105）に時刻自動入力を適用
+                    if (num >= 46 && num <= 105) {
+                        input.addEventListener('focus', function() {
+                            if (!this.value) {
+                                const now = new Date();
+                                const hh = String(now.getHours()).padStart(2, '0');
+                                const mm = String(now.getMinutes()).padStart(2, '0');
+                                this.value = `${hh}:${mm}`;
+                            }
+                        });
+                    }
+                }
+            }
             
             // 項目によって文字の大きさがバラバラになるのを防ぐため、全項目共通の「基準サイズ(13pt相當)」にスケールを掛けて一律にする
             let baseFontSize = field.type === 'select' ? 12 : 13;
