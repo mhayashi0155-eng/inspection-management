@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.14</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.15</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -500,8 +500,57 @@
                                     const h = Math.floor(diff / 60);
                                     const m = diff % 60;
                                     elapsedItem.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                                    elapsedItem.dispatchEvent(new Event('input', { bubbles: true }));
                                 } else {
                                     elapsedItem.value = '';
+                                    elapsedItem.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+                        });
+                    }
+                    
+                    // 飛行時間（106〜120）または総飛行時間（121〜135）が入力された際、縦列の総飛行時間（121〜135）を再計算する
+                    if (num >= 106 && num <= 135) {
+                        input.addEventListener('input', function() {
+                            const parseTime = (str) => {
+                                if (!str) return null;
+                                const m = str.trim().replace('.', ':').match(/^(\d+):(\d{1,2})$/);
+                                if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+                                return null;
+                            };
+                            const formatTime = (mins) => {
+                                const h = Math.floor(mins / 60);
+                                const m = mins % 60;
+                                return `${h}:${String(m).padStart(2, '0')}`;
+                            };
+
+                            // 行1 (index 0) の総時間の初期値反映（空欄の場合のみ自動セット）
+                            const flight0 = document.getElementById(`input_item_106`);
+                            const total0 = document.getElementById(`input_item_121`);
+                            if (flight0 && total0 && !total0.value && flight0.value && document.activeElement !== total0) {
+                                const fMins = parseTime(flight0.value);
+                                if (fMins !== null) total0.value = formatTime(fMins);
+                            }
+
+                            // 行2〜15 (index 1〜14) の総時間を上書きしていく
+                            for (let i = 1; i < 15; i++) {
+                                const prevTotalEl = document.getElementById(`input_item_${121 + i - 1}`);
+                                const currentFlightEl = document.getElementById(`input_item_${106 + i}`);
+                                const currentTotalEl = document.getElementById(`input_item_${121 + i}`);
+
+                                if (!prevTotalEl || !currentFlightEl || !currentTotalEl) continue;
+                                
+                                // ユーザーが今直接そのマスの総時間を手入力している場合は上書きしない
+                                if (document.activeElement === currentTotalEl) continue;
+
+                                const prevMins = parseTime(prevTotalEl.value);
+                                const fliMins = parseTime(currentFlightEl.value);
+
+                                if (prevMins !== null && fliMins !== null) {
+                                    currentTotalEl.value = formatTime(prevMins + fliMins);
+                                } else if (prevMins !== null && !currentFlightEl.value) {
+                                    // 飛行時間が空なら空にする
+                                    currentTotalEl.value = '';
                                 }
                             }
                         });
