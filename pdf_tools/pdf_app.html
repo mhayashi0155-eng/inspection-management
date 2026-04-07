@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.16</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.17</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -588,12 +588,12 @@
             input.style.height = `${domHeight}px`;
             input.style.fontSize = `${fontSize}px`;
             
-            // 項目16〜45、136〜150: 自由入力枠などで文字が枠にはみ出さないように動的縮小
+            // 項目16〜45、136〜175: 自由入力枠などで文字が枠にはみ出さないように動的縮小
             if (currentTemplate?.id === 'template_3') {
                 const match = field.id.match(/^item_(\d+)$/);
                 if (match) {
                     const num = parseInt(match[1], 10);
-                    if ((num >= 16 && num <= 45) || (num >= 136 && num <= 150)) {
+                    if ((num >= 16 && num <= 45) || (num >= 136 && num <= 175)) {
                         input.style.fontSize = `${Math.max(5, 9.0 * currentViewport.scale)}px`;
                         input.addEventListener('input', function() {
                             const originalFS = Math.max(5, 9.0 * currentViewport.scale);
@@ -796,12 +796,12 @@
                 
                 let textWidth = customFont.widthOfTextAtSize(textVal, fontSize);
 
-                // 項目16～45、136〜150等の自由入力欄がはみ出る場合はPDF描画フォントも縮小する
+                // 項目16～45、136〜175等の自由入力欄がはみ出る場合はPDF描画フォントも縮小する
                 if (currentTemplate.id === 'template_3') {
                     const match = field.id.match(/^item_(\d+)$/);
                     if (match) {
                         const num = parseInt(match[1], 10);
-                        if ((num >= 16 && num <= 45) || (num >= 136 && num <= 150)) {
+                        if ((num >= 16 && num <= 45) || (num >= 136 && num <= 175)) {
                             const maxWidth = rot === 90 ? field.height - 4 : field.width - 4;
                             while (textWidth > maxWidth && fontSize > 4.0) {
                                 fontSize -= 0.5;
