@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.13</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.14</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -519,6 +519,16 @@
             if (currentTemplate?.id === 'template_3' && field.type === 'date') {
                 baseFontSize = 9.5;
             }
+            // 飛行日誌の時刻・飛行時間の枠（76〜120）も見切れ防止のため文字サイズを最初から小さくする
+            if (currentTemplate?.id === 'template_3') {
+                const match = field.id.match(/^item_(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num >= 76 && num <= 120) {
+                        baseFontSize = 7.5;
+                    }
+                }
+            }
             
             // ズーム状況に応じたフォントサイズを算出（下限6px）
             const fontSize = Math.max(6, baseFontSize * currentViewport.scale);
@@ -722,6 +732,16 @@
                 // 飛行日誌（template_3）の日付欄は枠が極めて狭いためフォントを最小化
                 if (currentTemplate.id === 'template_3' && field.type === 'date') {
                     fontSize = 5.0; // 少しでも短くなるようにさらに小さく
+                }
+                // 飛行日誌の時刻・経過時間欄（76〜120）もフォントを事前に小さくして見切れを防ぐ
+                if (currentTemplate.id === 'template_3') {
+                    const match = field.id.match(/^item_(\d+)$/);
+                    if (match) {
+                        const num = parseInt(match[1], 10);
+                        if (num >= 76 && num <= 120) {
+                            fontSize = 5.0;
+                        }
+                    }
                 }
                 const rot = currentTemplate.rotation || 0;
                 
