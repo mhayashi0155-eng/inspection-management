@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.18</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.19</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -253,8 +253,9 @@
         const wrapper = document.getElementById('pdf-wrapper');
         const canvas = document.getElementById('pdf-canvas');
         const loadingMsg = document.getElementById('loading-msg');
-        const oldInputs = wrapper.querySelectorAll('.pdf-input');
-        oldInputs.forEach(el => el.remove());
+        // 古い入力欄に加え、カレンダーボタン(📅)や位置情報ピン(📍)、隠れdate入力なども全てクリーンアップする
+        const oldElements = wrapper.querySelectorAll('.pdf-input, .calendar-trigger, button, input[type="date"]');
+        oldElements.forEach(el => el.remove());
         
         loadingMsg.style.display = 'block';
         wrapper.style.display = 'none';
