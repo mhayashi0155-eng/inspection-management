@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.11</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.12</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -458,7 +458,7 @@
             input.className = 'pdf-input';
             input.id = `input_${field.id}`;
             
-            // 項目46〜105: 時間入力等（フォーカス時に空欄なら現在時刻セット）
+            // 項目46〜105: 時間入力等（フォーカス時に空欄なら現在時刻セット）及び 飛行時間の自動計算
             if (currentTemplate?.id === 'template_3') {
                 const match = field.id.match(/^item_(\d+)$/);
                 if (match) {
@@ -471,6 +471,38 @@
                                 const hh = String(now.getHours()).padStart(2, '0');
                                 const mm = String(now.getMinutes()).padStart(2, '0');
                                 this.value = `${hh}:${mm}`;
+                                this.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        });
+                    }
+                    
+                    // 項目46〜75が入力されたら、対応する項目76〜90に「経過時間」を自動計算して反映
+                    if (num >= 46 && num <= 75) {
+                        input.addEventListener('input', function() {
+                            const index = num >= 61 ? num - 61 : num - 46;
+                            const startItem = document.getElementById(`input_item_${46 + index}`);
+                            const endItem = document.getElementById(`input_item_${61 + index}`);
+                            const elapsedItem = document.getElementById(`input_item_${76 + index}`);
+                            
+                            if (startItem && endItem && elapsedItem) {
+                                const parseTime = (str) => {
+                                    if (!str) return null;
+                                    const m = str.trim().replace('.', ':').match(/^(\d{1,2}):(\d{1,2})$/);
+                                    if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+                                    return null;
+                                };
+                                const startMins = parseTime(startItem.value);
+                                const endMins = parseTime(endItem.value);
+                                
+                                if (startMins !== null && endMins !== null) {
+                                    let diff = endMins - startMins;
+                                    if (diff < 0) diff += 24 * 60; // 日またぎ
+                                    const h = Math.floor(diff / 60);
+                                    const m = diff % 60;
+                                    elapsedItem.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                                } else {
+                                    elapsedItem.value = '';
+                                }
                             }
                         });
                     }
