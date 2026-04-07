@@ -8,17 +8,13 @@
         body {
             font-family: 'Segoe UI', Meiryo, sans-serif;
             background: #e0e5ec;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             margin: 0;
             padding: 20px;
         }
         
         .controls {
-            margin-bottom: 30px;
+            margin: 0 auto 30px auto;
+            max-width: 600px;
             text-align: center;
             background: #fff;
             padding: 20px;
@@ -48,6 +44,16 @@
             background: #1557b0;
         }
         
+        /* 画面上用：複数枚を並べるコンテナ */
+        .card-sheet {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
         /* 名刺サイズのカードデザイン (日本標準サイズ 91mm x 55mm) */
         .business-card {
             width: 91mm;
@@ -133,20 +139,30 @@
                 background: white; 
                 padding: 0; 
                 margin: 0; 
-                justify-content: flex-start;
-                align-items: flex-start;
+                display: block;
             }
             .controls { 
                 display: none; /* ボタンなどは印刷しない */
             }
+            .card-sheet {
+                display: grid;
+                grid-template-columns: repeat(2, 91mm);
+                grid-auto-rows: 55mm;
+                gap: 0;
+                justify-content: center;
+                align-content: start;
+                width: 100%;
+                margin: 0;
+            }
             .business-card { 
                 box-shadow: none; 
-                border: 1px dashed #999; /* 切取り線として利用 */
-                margin: 5mm; 
+                border: 1px dashed #ccc; /* 印刷時の切取り線 */
+                margin: 0; 
                 page-break-inside: avoid;
             }
             @page {
-                margin: 5mm; /* 用紙の余白を最小に */
+                size: A4;
+                margin: 10mm; /* A4周辺の余白 */
             }
         }
     </style>
@@ -160,17 +176,29 @@
     </div>
 
     <!-- ここから下が名刺サイズ枠 -->
-    <div class="business-card">
-        <div class="card-left">
-            <h1>UAV点検電子表</h1>
-            <p>お手持ちのタブレットやスマートフォンのカメラで右のQRコードを読み取ってアクセスしてください。</p>
-            <p class="url">https://yama522133.static.jp/pdf_tools/pdf_app.html</p>
-        </div>
-        <div class="card-right">
-            <!-- 完全に無料のQR生成APIを利用して、自動的にURLをQRコード化 -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fyama522133.static.jp%2Fpdf_tools%2Fpdf_app.html" alt="点検アプリ QRコード">
+    <div class="card-sheet" id="card-sheet">
+        <div class="business-card">
+            <div class="card-left">
+                <h1>UAV点検電子表</h1>
+                <p>お手持ちのタブレットやスマートフォンのカメラで右のQRコードを読み取ってアクセスしてください。</p>
+                <p class="url">https://yama522133.static.jp/pdf_tools/pdf_app.html</p>
+            </div>
+            <div class="card-right">
+                <!-- 完全に無料のQR生成APIを利用して、自動的にURLをQRコード化 -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fyama522133.static.jp%2Fpdf_tools%2Fpdf_app.html" alt="点検アプリ QRコード">
+            </div>
         </div>
     </div>
 
+    <script>
+        // A4 1枚にちょうど入るように、カードを10枚(2列×5行)に複製する
+        document.addEventListener('DOMContentLoaded', () => {
+            const sheet = document.getElementById('card-sheet');
+            const card = sheet.querySelector('.business-card');
+            for (let i = 0; i < 9; i++) {
+                sheet.appendChild(card.cloneNode(true));
+            }
+        });
+    </script>
 </body>
 </html>
