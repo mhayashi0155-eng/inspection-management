@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.20</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.21</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -707,25 +707,29 @@
     async function generatePDF(actionType) {
         if (!currentTemplate) return;
         
-        // --- 必須項目の入力チェック（バリデーション） ---
+        // --- 必須項目の入力チェック（バリデーション）：日常点検表(template_1)のみ適用 ---
         const droneEl = document.getElementById('input_無人機登録'); // 機械番号
-        const inspectorEl = document.getElementById('input_item_31'); // 実施者
-        const locationEl = document.getElementById('input_item_29'); // 実施場所
-        
+
         if (!droneEl || !droneEl.value || droneEl.value === "") {
             alert('⚠️ 警告\n「機体番号（無人機登録）」を選択してください。\n未設定のまま保存することはできません。');
             if (droneEl) droneEl.focus();
             return;
         }
-        if (!locationEl || !locationEl.value.trim()) {
-            alert('⚠️ 警告\n「実施場所」が入力されていません。\n未入力のまま保存することはできません。（📍ボタンで自動取得も可能です）');
-            if (locationEl) locationEl.focus();
-            return;
-        }
-        if (!inspectorEl || !inspectorEl.value.trim()) {
-            alert('⚠️ 警告\n「実施者」の名前が入力されていません。\n未入力のまま保存することはできません。');
-            if (inspectorEl) inspectorEl.focus();
-            return;
+
+        if (currentTemplate.id === 'template_1') {
+            const inspectorEl = document.getElementById('input_item_31'); // 実施者
+            const locationEl = document.getElementById('input_item_29'); // 実施場所
+            
+            if (!locationEl || !locationEl.value.trim()) {
+                alert('⚠️ 警告\n「実施場所」が入力されていません。\n未入力のまま保存することはできません。（📍ボタンで自動取得も可能です）');
+                if (locationEl) locationEl.focus();
+                return;
+            }
+            if (!inspectorEl || !inspectorEl.value.trim()) {
+                alert('⚠️ 警告\n「実施者」の名前が入力されていません。\n未入力のまま保存することはできません。');
+                if (inspectorEl) inspectorEl.focus();
+                return;
+            }
         }
         // ------------------------------------------------
         
