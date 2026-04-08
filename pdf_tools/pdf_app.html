@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.23</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.25</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -160,27 +160,42 @@
     };
 
     // クラウドから最新のPDF（続き）を読み込む
-    async function fetchLatestPDF() {
+    async function fetchLatestPDF(isAutoLoad = false) {
         if (!currentTemplate) return;
         const droneEl = document.getElementById('input_無人機登録');
+        if (isAutoLoad && (!droneEl || !droneEl.value)) return;
         const droneId = droneEl && droneEl.value ? droneEl.value : '不明な機体';
-        const dateEl = document.getElementById('input_item_30');
-        let folderDate = '2000/01';
-        let fileDate = 'YYYYMM';
-        if (dateEl && dateEl.value) {
-            let d;
-            if (dateEl.value.startsWith('R')) {
-                const parts = dateEl.value.substring(1).split('/');
+        let d = new Date(); // 今月をデフォルトとする
+        let foundDateValue = null;
+        
+        // テンプレート内のdateタイプの入力欄から値を探す
+        if (currentTemplate && currentTemplate.fields) {
+            const dateFields = currentTemplate.fields.filter(f => f.type === 'date');
+            for (const df of dateFields) {
+                const el = document.getElementById(`input_${df.id}`);
+                if (el && el.value) {
+                    foundDateValue = el.value;
+                    break;
+                }
+            }
+        }
+
+        if (foundDateValue) {
+            if (foundDateValue.startsWith('R')) {
+                const parts = foundDateValue.substring(1).split('/');
                 if (parts.length === 3) {
                     d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
                 }
             } else {
-                d = new Date(dateEl.value);
+                d = new Date(foundDateValue);
             }
-            if (d && !isNaN(d.getTime())) {
-                folderDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`; 
-                fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-            }
+        }
+
+        let folderDate = '2000/01';
+        let fileDate = 'YYYYMM';
+        if (d && !isNaN(d.getTime())) {
+            folderDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`; 
+            fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
         }
         
         const btn = document.getElementById('btn-get-latest');
@@ -207,15 +222,28 @@
             
             if (result.status === 'success' && result.fileData) {
                 fetchedPdfBase64 = result.fileData;
-                alert("クラウドから「今月の書きかけの用紙」を読み込みました！\nこのまま続きを入力できます。");
+                if (isAutoLoad) {
+                    alert("過去データがあるので読み込みます。");
+                } else {
+                    alert("クラウドから「今月の書きかけの用紙」を読み込みました！\nこのまま続きを入力できます。");
+                }
                 await renderPDFCanvas(); // 取得したPDFで再描画
+                const newDroneEl = document.getElementById('input_無人機登録');
+                if (newDroneEl) newDroneEl.value = droneId;
             } else {
-                alert("クラウド上に今月の続きデータは見つかりませんでした。\n新しい白紙の用紙から開始します。");
+                if (!isAutoLoad) {
+                    alert("クラウド上に今月の続きデータは見つかりませんでした。\n新しい白紙の用紙から開始します。");
+                }
+                const oldBase64 = fetchedPdfBase64;
                 fetchedPdfBase64 = null;
-                await renderPDFCanvas();
+                if (!isAutoLoad || oldBase64) {
+                    await renderPDFCanvas();
+                    const newDroneEl = document.getElementById('input_無人機登録');
+                    if (newDroneEl) newDroneEl.value = droneId;
+                }
             }
         } catch (e) {
-            alert('通信エラーが発生しました。');
+            if (!isAutoLoad) alert('通信エラーが発生しました。');
         } finally {
             btn.textContent = '🔄 続きを読込';
             btn.disabled = false;
@@ -365,6 +393,15 @@
                         }
                         
                         input.appendChild(optionEl);
+                    });
+                }
+                
+                // 自動読込: 「無人機登録」が選択変更された時
+                if (field.id === '無人機登録') {
+                    input.addEventListener('change', async function() {
+                        if (this.value && (currentTemplate.id === 'template_2' || currentTemplate.id === 'template_3')) {
+                            await fetchLatestPDF(true);
+                        }
                     });
                 }
             } else if (field.type === 'date') {
@@ -566,11 +603,11 @@
             let baseFontSize = field.type === 'select' ? 12 : 13;
             // 無人機登録のように文字が長い箇所は枠内に収まるように文字を極小化
             if (field.id === '無人機登録') {
-                baseFontSize = 7.5; 
+                baseFontSize = 9.0; 
             }
             // 飛行日誌の日付欄も狭いのでUI上の文字サイズを調整
             if (currentTemplate?.id === 'template_3' && field.type === 'date') {
-                baseFontSize = 10.5;
+                baseFontSize = 11.5;
             }
             // 飛行日誌の時刻・飛行時間の枠（76〜120）も見切れ防止のため文字サイズを最初から小さくする
             if (currentTemplate?.id === 'template_3') {
@@ -578,7 +615,7 @@
                 if (match) {
                     const num = parseInt(match[1], 10);
                     if (num >= 76 && num <= 120) {
-                        baseFontSize = 9.5;
+                        baseFontSize = 11.0;
                     }
                 }
             }
@@ -598,9 +635,9 @@
                 if (match) {
                     const num = parseInt(match[1], 10);
                     if ((num >= 16 && num <= 45) || (num >= 136 && num <= 175)) {
-                        input.style.fontSize = `${Math.max(5, 9.0 * currentViewport.scale)}px`;
+                        input.style.fontSize = `${Math.max(5, 10.0 * currentViewport.scale)}px`;
                         input.addEventListener('input', function() {
-                            const originalFS = Math.max(5, 9.0 * currentViewport.scale);
+                            const originalFS = Math.max(5, 10.0 * currentViewport.scale);
                             this.style.fontSize = `${originalFS}px`;
                             let currentFS = originalFS;
                             while (this.scrollWidth > this.clientWidth && currentFS > 4 * currentViewport.scale) {
@@ -788,16 +825,16 @@
                 let fontSize = 11;
                 // 飛行日誌（template_3）の日付欄は枠が極めて狭いためフォントを最小化
                 if (currentTemplate.id === 'template_3' && field.type === 'date') {
-                    fontSize = 8.0; 
+                    fontSize = 10.0; 
                 }
                 // 飛行日誌の時刻・経過時間欄（76〜120）もフォントを事前に小さくして見切れを防ぐ
                 if (currentTemplate.id === 'template_3') {
                     const match = field.id.match(/^item_(\d+)$/);
                     if (match) {
                         const num = parseInt(match[1], 10);
-                    if (num >= 76 && num <= 120) {
-                        fontSize = 8.0;
-                    }
+                        if (num >= 76 && num <= 120) {
+                            fontSize = 10.0;
+                        }
                     }
                 }
                 const rot = currentTemplate.rotation || 0;
