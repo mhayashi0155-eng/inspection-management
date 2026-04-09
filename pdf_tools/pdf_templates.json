@@ -1,4 +1,4 @@
-{"templates":[{"id":"template_1","name":"無人機登録用 点検表","pdfPath":"template_1.pdf","filePrefix":"日常点検表","rotation":90,"fields":[{"id":"無人機登録","label":"無人機登録","type":"select","options":[{"value":"JU32636BA3D2","text":"JU32636BA3D2（DJI Matrice 4E）"},
+{"templates":[{"id":"template_1","name":"無人航空機の日常点検記録","pdfPath":"template_1.pdf","filePrefix":"無人航空機の日常点検記録","rotation":90,"fields":[{"id":"無人機登録","label":"無人機登録","type":"select","options":[{"value":"JU32636BA3D2","text":"JU32636BA3D2（DJI Matrice 4E）"},
 {"value":"JU3235658E75","text":"JU3235658E75（DJI Air2S）"},
 {"value":"JU3235E21263","text":"JU3235E21263（DJI Air2S）"},
 {"value":"JU3235DDC840","text":"JU3235DDC840（DJI PHANTOM 4 PRO）"}],"x":75,"y":191,"width":37,"height":106,"align":"center"},
