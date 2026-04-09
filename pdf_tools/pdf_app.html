@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.30</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.31</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -189,10 +189,10 @@
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         
-        // ウォーターフォール検索パターン（成功するまで順次試行）
+        // ウォーターフォール検索パターン ( Ver 1.1.31: 日本語フォルダ形式を最優先 )
         const attempts = [
-            { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: `${y}${m}` },
             { label: `今月分 (${y}年${m}月)`, folderDate: `${y}年${m}月`, fileDate: `${y}${m}` },
+            { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: `${y}${m}` },
             { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" }
         ];
 
