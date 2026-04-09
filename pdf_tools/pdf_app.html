@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.29</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.30</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -161,6 +161,7 @@
     };
 
     // クラウドから最新のPDF（続き）を読み込む
+    // クラウドから最新のPDF（続き）を読み込む
     async function fetchLatestPDF(isAutoLoad = false) {
         if (!currentTemplate) return;
         const droneEl = document.getElementById('input_無人機登録');
@@ -168,82 +169,82 @@
         const droneId = droneEl && droneEl.value ? droneEl.value.trim() : '不明な機体';
         const st = document.getElementById('status-msg');
         
-        // 基準となる日付を特定（未入力ならnullとし、広域検索モードへ）
-        let d = null; 
-        let foundDateValue = null;
+        // 基準となる日付を特定
+        let d = new Date(); 
+        let tempDateValue = null;
         if (currentTemplate && currentTemplate.fields) {
             const dateFields = currentTemplate.fields.filter(f => f.type === 'date');
             for (const df of dateFields) {
                 const el = document.getElementById(`input_${df.id}`);
-                if (el && el.value) {
-                    foundDateValue = el.value;
-                    break;
-                }
+                if (el && el.value) { tempDateValue = el.value; break; }
             }
         }
-
-        if (foundDateValue) {
-            if (foundDateValue.startsWith('R')) {
-                const parts = foundDateValue.substring(1).split('/');
-                if (parts.length === 3) {
-                    d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
-                }
-            } else {
-                d = new Date(foundDateValue);
-            }
+        if (tempDateValue) {
+            if (tempDateValue.startsWith('R')) {
+                const parts = tempDateValue.substring(1).split('/');
+                if (parts.length === 3) d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
+            } else { d = new Date(tempDateValue); }
         }
 
-        // 重要：dがnullなら2000/01とYYYYMMを送り、GAS側に「過去の最新」を探させる
-        const folderDate = (d && !isNaN(d.getTime())) ? `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}` : '2000/01';
-        const fileDate = (d && !isNaN(d.getTime())) ? `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` : 'YYYYMM';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
         
+        // ウォーターフォール検索パターン（成功するまで順次試行）
+        const attempts = [
+            { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: `${y}${m}` },
+            { label: `今月分 (${y}年${m}月)`, folderDate: `${y}年${m}月`, fileDate: `${y}${m}` },
+            { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" }
+        ];
+
         const btn = document.getElementById('btn-get-latest');
         btn.textContent = '⏳ 読込中...';
         btn.disabled = true;
-        if (st) st.textContent = '📡 データ照会中...';
-        
-        const prefix = currentTemplate.filePrefix || "点検表";
-        const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
-        
-        console.log(`[FetchDebug] Target: ${targetFilename}, Folder: ${folderDate}, isAuto: ${isAutoLoad}`);
 
-        try {
-            const payload = { action: 'get_latest', droneId: droneId, date: folderDate, filename: targetFilename };
-            
-            const res = await fetch('https://script.google.com/macros/s/AKfycbxJGTKxVJqe35L95w8FZz1aD9AcLNAY088-HBSrtK_x5PqZmQkfAKoK6-ubYqEN7sNp/exec', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json();
-            console.log("[FetchDebug] Server Result:", result);
-            
-            if (result.status === 'success' && result.fileData) {
-                fetchedPdfBase64 = result.fileData;
-                if (st) st.textContent = '✅ データ取得成功';
-                alert(isAutoLoad ? "過去データがあるので読み込みます。" : "クラウドから「今月の書きかけの用紙」を読み込みました！\nこのまま続きを入力できます。");
-                await renderPDFCanvas();
-                const newDroneEl = document.getElementById('input_無人機登録');
-                if (newDroneEl) newDroneEl.value = droneId;
-            } else {
-                if (st) st.textContent = 'ℹ️ 続きなし';
-                if (!isAutoLoad) {
-                    alert("クラウド上に続きデータは見つかりませんでした。\n新しい白紙の用紙から開始します。");
+        const prefix = currentTemplate.filePrefix || "点検表";
+        let success = false;
+
+        for (const attempt of attempts) {
+            if (st) st.textContent = `📡 ${attempt.label}を検索中...`;
+            const targetFilename = `${prefix}_${droneId}_${attempt.fileDate}.pdf`;
+            console.log(`[FetchAttempt] ${attempt.label}: ${targetFilename} in ${attempt.folderDate}`);
+
+            try {
+                const payload = { action: 'get_latest', droneId: droneId, date: attempt.folderDate, filename: targetFilename };
+                const res = await fetch('https://script.google.com/macros/s/AKfycbxJGTKxVJqe35L95w8FZz1aD9AcLNAY088-HBSrtK_x5PqZmQkfAKoK6-ubYqEN7sNp/exec', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                console.log(`[FetchResult] ${attempt.label}:`, result);
+                
+                if (result.status === 'success' && result.fileData) {
+                    fetchedPdfBase64 = result.fileData;
+                    if (st) st.textContent = '✅ 取得成功';
+                    alert(isAutoLoad ? "過去データがあるので読み込みます。" : "クラウドから前回の続きを読み込みました！");
+                    await renderPDFCanvas();
+                    const newDroneEl = document.getElementById('input_無人機登録');
+                    if (newDroneEl) newDroneEl.value = droneId;
+                    success = true;
+                    break;
                 }
-                fetchedPdfBase64 = null;
-                await renderPDFCanvas();
-                const newDroneEl = document.getElementById('input_無人機登録');
-                if (newDroneEl) newDroneEl.value = droneId;
+            } catch (e) {
+                console.warn(`[FetchError] ${attempt.label} 中断:`, e);
             }
-        } catch (e) {
-            console.error("[FetchDebug] Error:", e);
-            if (st) st.textContent = '❌ 通信失敗';
-            if (!isAutoLoad) alert('通信エラーが発生しました。詳細はコンソールを確認してください。');
-        } finally {
-            btn.textContent = '🔄 続きを読込';
-            btn.disabled = false;
-            setTimeout(() => { if(st && st.textContent.includes('中')) st.textContent = ''; }, 3000);
         }
+
+        if (!success) {
+            if (st) st.textContent = 'ℹ️ 続きなし';
+            if (!isAutoLoad) alert("クラウド上に続きデータは見つかりませんでした。\n新しい白紙から開始します。");
+            fetchedPdfBase64 = null;
+            await renderPDFCanvas();
+            const newDroneEl = document.getElementById('input_無人機登録');
+            if (newDroneEl) newDroneEl.value = droneId;
+        }
+
+        btn.textContent = '🔄 続きを読込';
+        btn.disabled = false;
+        setTimeout(() => { if(st && st.textContent.includes('中')) st.textContent = ''; }, 3000);
     }
 
     // ドロップダウンが変更されたときの処理
