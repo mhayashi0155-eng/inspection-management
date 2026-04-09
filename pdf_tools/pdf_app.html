@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.26</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.27</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -165,7 +165,7 @@
         const droneEl = document.getElementById('input_無人機登録');
         if (isAutoLoad && (!droneEl || !droneEl.value)) return;
         const droneId = droneEl && droneEl.value ? droneEl.value : '不明な機体';
-        let d = new Date(); // デフォルトはPCの今月
+        let d = new Date(); // デフォルトは今月
         let foundDateValue = null;
         
         // テンプレート内のdateタイプの入力欄から値を探す
@@ -191,21 +191,26 @@
             }
         }
 
-        const prefix = currentTemplate.filePrefix || "点検表";
+        let folderDate = '2000/01';
+        let fileDate = 'YYYYMM';
+        if (d && !isNaN(d.getTime())) {
+            folderDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`; 
+            fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        
         const btn = document.getElementById('btn-get-latest');
         btn.textContent = '⏳ 読込中...';
         btn.disabled = true;
-
-        async function tryFetchMonth(targetDate) {
-            const fDate = `${targetDate.getFullYear()}/${String(targetDate.getMonth() + 1).padStart(2, '0')}`; 
-            const flDate = `${targetDate.getFullYear()}${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
-            const tName = `${prefix}_${droneId}_${flDate}.pdf`;
-            
+        
+        const prefix = currentTemplate.filePrefix || "点検表";
+        const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
+        
+        try {
             const payload = {
                 action: 'get_latest',
                 droneId: droneId,
-                date: fDate,
-                filename: tName
+                date: folderDate,
+                filename: targetFilename
             };
             
             const res = await fetch('https://script.google.com/macros/s/AKfycbxJGTKxVJqe35L95w8FZz1aD9AcLNAY088-HBSrtK_x5PqZmQkfAKoK6-ubYqEN7sNp/exec', {
@@ -213,46 +218,28 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
-            return await res.json();
-        }
-
-        try {
-            let result = null;
-            let finalTargetDate = new Date(d);
-
-            // 当月〜過去2ヶ月（最大3回）まで遡ってデータを検索する
-            for (let i = 0; i < 3; i++) {
-                finalTargetDate = new Date(d);
-                finalTargetDate.setMonth(finalTargetDate.getMonth() - i);
-                
-                result = await tryFetchMonth(finalTargetDate);
-                // 成功したらループを抜ける
-                if (result && result.status === 'success' && result.fileData) {
-                    break;
-                }
-            }
+            const result = await res.json();
             
-            if (result && result.status === 'success' && result.fileData) {
+            if (result.status === 'success' && result.fileData) {
                 fetchedPdfBase64 = result.fileData;
                 if (isAutoLoad) {
                     alert("過去データがあるので読み込みます。");
                 } else {
-                    alert("クラウドから過去の書きかけの用紙を読み込みました！\nこのまま続きを入力できます。");
+                    alert("クラウドから「今月の書きかけの用紙」を読み込みました！\nこのまま続きを入力できます。");
                 }
                 await renderPDFCanvas(); // 取得したPDFで再描画
                 const newDroneEl = document.getElementById('input_無人機登録');
                 if (newDroneEl) newDroneEl.value = droneId;
             } else {
                 if (!isAutoLoad) {
-                    alert("クラウド上に直近3ヶ月の続きデータは見つかりませんでした。\n新しい白紙の用紙から開始します。");
+                    alert("クラウド上に今月の続きデータは見つかりませんでした。\n新しい白紙の用紙から開始します。");
                 }
                 const oldBase64 = fetchedPdfBase64;
                 fetchedPdfBase64 = null;
-                if (!isAutoLoad || oldBase64) {
-                    await renderPDFCanvas();
-                    const newDroneEl = document.getElementById('input_無人機登録');
-                    if (newDroneEl) newDroneEl.value = droneId;
-                }
+                // 自動読み込み時にデータがなくても、少なくとも機種選択状態を維持するために再描画（または値の復元）を行う
+                await renderPDFCanvas();
+                const newDroneEl = document.getElementById('input_無人機登録');
+                if (newDroneEl) newDroneEl.value = droneId;
             }
         } catch (e) {
             if (!isAutoLoad) alert('通信エラーが発生しました。');
