@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.25</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.26</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -165,7 +165,7 @@
         const droneEl = document.getElementById('input_無人機登録');
         if (isAutoLoad && (!droneEl || !droneEl.value)) return;
         const droneId = droneEl && droneEl.value ? droneEl.value : '不明な機体';
-        let d = new Date(); // 今月をデフォルトとする
+        let d = null;
         let foundDateValue = null;
         
         // テンプレート内のdateタイプの入力欄から値を探す
