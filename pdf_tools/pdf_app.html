@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.40</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.41</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -227,20 +227,42 @@
                         fetchedPdfBase64 = null;
                         await renderPDFCanvas();
                         const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                        
+                        // 1. まず全フィールドの値を復元
                         for (const [fieldId, value] of Object.entries(fv)) {
                             const el = document.getElementById(`input_${fieldId}`);
                             if (el) {
                                 el.value = value;
                                 if (el.tagName === 'SELECT') {
+                                    el.value = value;
                                     for (const opt of el.options) {
                                         opt.selected = (opt.value === value);
                                     }
                                 }
                             }
                         }
-                        console.log('[FieldRestore] JSON復元:', Object.keys(fv).length, '件');
+                        
+                        // 2. 自動計算フィールドのinputイベントを再発火して飛行時間・総飛行時間を再計算
+                        if (currentTemplate?.id === 'template_3') {
+                            // 離着陸時刻(76-105)のイベントを発火→飛行時間(106-120)が再計算される
+                            for (let i = 76; i <= 105; i++) {
+                                const el = document.getElementById(`input_item_${i}`);
+                                if (el && el.value) {
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+                            // 飛行時間(106-135)のイベントを発火→総飛行時間(121-135)が再計算される
+                            for (let i = 106; i <= 135; i++) {
+                                const el = document.getElementById(`input_item_${i}`);
+                                if (el && el.value) {
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+                        }
+                        
+                        console.log('[FieldRestore] JSON復元完了:', Object.keys(fv).length, '件');
                     } else {
-                        // ★ 旧データ互換: 過去PDFを背景に表示（テキストは画像として見える）
+                        // ★ 旧データ互換: 過去PDFを背景に表示
                         fetchedPdfBase64 = result.fileData;
                         await renderPDFCanvas();
                         console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
