@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.35</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.36</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -225,6 +225,25 @@
                     await renderPDFCanvas();
                     const newDroneEl = document.getElementById('input_無人機登録');
                     if (newDroneEl) newDroneEl.value = droneId;
+                    
+                    // 保存時に記録したフィールド値をフォームに復元する
+                    if (result.fieldValues) {
+                        const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                        for (const [fieldId, value] of Object.entries(fv)) {
+                            const el = document.getElementById(`input_${fieldId}`);
+                            if (el) {
+                                el.value = value;
+                                // selectの場合は選択状態を反映
+                                if (el.tagName === 'SELECT') {
+                                    for (const opt of el.options) {
+                                        opt.selected = (opt.value === value);
+                                    }
+                                }
+                            }
+                        }
+                        console.log('[FieldRestore] フィールド値を復元しました:', Object.keys(fv).length, '件');
+                    }
+                    
                     success = true;
                     break;
                 }
@@ -944,13 +963,23 @@
             
             link.download = targetFilename; // エラー時のフォールバック用
 
+            // 全フィールドの入力値を収集（次回読み込み時に復元するため）
+            const fieldValues = {};
+            currentTemplate.fields.forEach(field => {
+                const el = document.getElementById(`input_${field.id}`);
+                if (el && el.value) {
+                    fieldValues[field.id] = el.value;
+                }
+            });
+
             const payload = {
                 action: actionType,
                 filename: targetFilename,
                 fileData: base64data,
                 droneId: droneId,
                 date: folderDate,
-                prefix: prefix // 深層フォルダ構築用に様式名を追加
+                prefix: prefix, // 深層フォルダ構築用に様式名を追加
+                fieldValues: fieldValues // 入力値をJSON保存
             };
             
             try {
