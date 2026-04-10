@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.41</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.42</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -220,7 +220,19 @@
                 
                 if (result.status === 'success' && (result.fieldValues || result.fileData)) {
                     if (st) st.textContent = '✅ 取得成功';
-                    alert(isAutoLoad ? "過去データがあるので読み込みます。" : "クラウドから前回の続きを読み込みました！");
+                    
+                    // 自動読込時はユーザーに確認。キャンセルでスキップ可能
+                    const shouldLoad = isAutoLoad 
+                        ? confirm('過去データが見つかりました。\n読み込みますか？\n\n※「キャンセル」で白紙から始められます') 
+                        : true;
+                    
+                    if (!shouldLoad) {
+                        if (st) st.textContent = 'ℹ️ スキップ';
+                        success = false;
+                        break;
+                    }
+                    
+                    if (!isAutoLoad) alert('クラウドから前回の続きを読み込みました！');
                     
                     if (result.fieldValues) {
                         // ★ 新方式: 白紙テンプレート + JSON復元
