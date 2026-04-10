@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.37</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.38</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -218,31 +218,27 @@
                 const result = await res.json();
                 console.log(`[FetchResult] ${attempt.label}:`, result);
                 
-                if (result.status === 'success' && result.fileData) {
-                    fetchedPdfBase64 = result.fileData;
+                if (result.status === 'success' && result.fieldValues) {
+                    // ★ JSON復元方式: PDFは取得せず、常に白紙テンプレート＋JSONデータで再現する
                     if (st) st.textContent = '✅ 取得成功';
                     alert(isAutoLoad ? "過去データがあるので読み込みます。" : "クラウドから前回の続きを読み込みました！");
+                    fetchedPdfBase64 = null; // 常に白紙テンプレートを使用
                     await renderPDFCanvas();
-                    const newDroneEl = document.getElementById('input_無人機登録');
-                    if (newDroneEl) newDroneEl.value = droneId;
                     
-                    // 保存時に記録したフィールド値をフォームに復元する
-                    if (result.fieldValues) {
-                        const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-                        for (const [fieldId, value] of Object.entries(fv)) {
-                            const el = document.getElementById(`input_${fieldId}`);
-                            if (el) {
-                                el.value = value;
-                                // selectの場合は選択状態を反映
-                                if (el.tagName === 'SELECT') {
-                                    for (const opt of el.options) {
-                                        opt.selected = (opt.value === value);
-                                    }
+                    // JSONからフィールド値を復元
+                    const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                    for (const [fieldId, value] of Object.entries(fv)) {
+                        const el = document.getElementById(`input_${fieldId}`);
+                        if (el) {
+                            el.value = value;
+                            if (el.tagName === 'SELECT') {
+                                for (const opt of el.options) {
+                                    opt.selected = (opt.value === value);
                                 }
                             }
                         }
-                        console.log('[FieldRestore] フィールド値を復元しました:', Object.keys(fv).length, '件');
                     }
+                    console.log('[FieldRestore] フィールド値を復元しました:', Object.keys(fv).length, '件');
                     
                     success = true;
                     break;
@@ -793,16 +789,8 @@
         btn.textContent = '⏳ 合成処理中...';
 
         try {
-            let pdfBytesOrigin;
-            // 追記モード 且つ 取得済みのPDFがあればそれに追記する
-            if (actionType === 'save_append' && fetchedPdfBase64) {
-                const binStr = window.atob(fetchedPdfBase64);
-                pdfBytesOrigin = new Uint8Array(binStr.length);
-                for (let i = 0; i < binStr.length; i++) pdfBytesOrigin[i] = binStr.charCodeAt(i);
-            } else {
-                // 新規モード または 取得データがない場合は白紙のテンプレートを使う
-                pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
-            }
+            // ★ 常に白紙テンプレートからPDFを生成（重ね書きによる劣化を防止）
+            const pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
 
             const { PDFDocument, rgb, degrees } = window.PDFLib;
             const pdfDoc = await PDFDocument.load(pdfBytesOrigin);
@@ -991,7 +979,7 @@
                 
                 if (result.status === 'success') {
                     // もし新しく上書きしたのであれば、画面の背景PDFデータも更新しておく（連続書き込みに対応）
-                    fetchedPdfBase64 = base64data;
+                    // データはJSONで管理するため、PDFの再取得は不要
                     
                     if (confirm(`✅ Google Drive への通信が完了しました！\n（作成先フォルダ： ${result.folder} ）\n\n念のため、現在の端末内（このタブレット本体）にも同じPDFをダウンロードしておきますか？`)) {
                         link.click();
