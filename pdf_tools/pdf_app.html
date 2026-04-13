@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.43</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.44</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -204,6 +204,8 @@
     // クラウドから最新のデータ（続き）を読み込む
     async function fetchLatestPDF(isAutoLoad = false) {
         if (!currentTemplate) return;
+        // 日常点検記録(template_1)は毎回新規なので過去データ読み込み不要
+        if (currentTemplate.id === 'template_1') return;
         const droneEl = document.getElementById('input_無人機登録');
         if (isAutoLoad && (!droneEl || !droneEl.value)) return;
         const droneId = droneEl && droneEl.value ? droneEl.value.trim() : '不明な機体';
@@ -461,7 +463,8 @@
             wrapper.style.display = 'inline-block';
             document.getElementById('generate-btn').disabled = false;
             document.getElementById('generate-new-btn').disabled = false;
-            document.getElementById('btn-get-latest').disabled = false;
+            // 日常点検記録(template_1)は過去データ不要なので読込ボタンを無効のままにする
+            document.getElementById('btn-get-latest').disabled = (currentTemplate?.id === 'template_1');
 
         } catch (error) {
             console.error(error);
