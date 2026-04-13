@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.44</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.45</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -137,6 +137,7 @@
     let currentTemplate = null;
     let currentViewport = null;
     let fetchedPdfBase64 = null; // サーバーから読み込んだ追記用PDFデータ
+    let loadedFromLegacy = false; // 旧データ（JSONなし）から読み込んだかどうかのフラグ
 
     // 起動時にJSON設定ファイルを読み込む
     window.onload = async function() {
@@ -232,12 +233,11 @@
         const m = String(d.getMonth() + 1).padStart(2, '0');
         
         // ウォーターフォール検索パターン
-        // ★ 各パターンで同じファイル名（prefix_droneId_YYYYMM.pdf）を検索し、フォルダの指定方法だけを変える
         const fileDate = `${y}${m}`;
         const attempts = [
             { label: `今月分 (${y}年${m}月)`, folderDate: `${y}年${m}月`, fileDate: fileDate },
             { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: fileDate },
-            { label: "最新データを広域検索", folderDate: "", fileDate: fileDate }
+            { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" } // GAS側のワイルドカード指定
         ];
 
         const btn = document.getElementById('btn-get-latest');
@@ -345,9 +345,11 @@
                         }
                         
                         console.log(`[FieldRestore] JSON復元完了: ${restoredCount}件復元, ${skippedCount}件スキップ（該当フィールドなし）`);
+                        loadedFromLegacy = false;
                     } else {
                         // ★ 旧データ互換: 過去PDFを背景に表示
                         fetchedPdfBase64 = result.fileData;
+                        loadedFromLegacy = true; 
                         await renderPDFCanvas();
                         console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
                     }
@@ -366,6 +368,7 @@
             if (st) st.textContent = 'ℹ️ 続きなし';
             if (!isAutoLoad) alert("クラウド上に続きデータは見つかりませんでした。\n新しい白紙から開始します。");
             fetchedPdfBase64 = null;
+            loadedFromLegacy = false;
             await renderPDFCanvas();
             const newDroneEl = document.getElementById('input_無人機登録');
             if (newDroneEl) newDroneEl.value = droneId;
@@ -398,6 +401,7 @@
         currentTemplate = configData.templates.find(t => t.id === selectId);
         idleMsg.style.display = 'none';
         fetchedPdfBase64 = null; // 用紙を変えたらリセット
+        loadedFromLegacy = false;
         
         await renderPDFCanvas();
     }
@@ -904,8 +908,17 @@
         btn.textContent = '⏳ 合成処理中...';
 
         try {
-            // ★ 常に白紙テンプレートからPDFを生成（重ね書きによる劣化を防止）
-            const pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
+            // ★ 白紙テンプレートまたは旧データ(背景PDF)をベースに生成する
+            let pdfBytesOrigin;
+            if (loadedFromLegacy && fetchedPdfBase64) {
+                // 旧形式(JSONなし)の続きを読み込んでいた場合は、背景PDFの文字を消さないためにそれをベースにする
+                const binStr = window.atob(fetchedPdfBase64);
+                pdfBytesOrigin = new Uint8Array(binStr.length);
+                for (let i = 0; i < binStr.length; i++) pdfBytesOrigin[i] = binStr.charCodeAt(i);
+            } else {
+                // 通常・JSON復元の場合は白紙テンプレートから生成（重ね書きによる劣化を防止）
+                pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
+            }
 
             const { PDFDocument, rgb, degrees } = window.PDFLib;
             const pdfDoc = await PDFDocument.load(pdfBytesOrigin);
@@ -1079,7 +1092,7 @@
                 droneId: droneId,
                 date: folderDate,
                 prefix: prefix, // 深層フォルダ構築用に様式名を追加
-                fieldValues: fieldValues // 入力値をJSON保存
+                fieldValues: loadedFromLegacy ? null : fieldValues // 旧データの場合はJSONを保存しない(次回も旧データとして読込)
             };
             
             try {
