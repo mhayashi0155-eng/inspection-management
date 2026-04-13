@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.45</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.46</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -432,7 +432,12 @@
             }
 
             // 背景用PDFを読み込んでキャンバスに描画 (pdf.js)
-            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+            // ★ 文字化け防止のため、日本語フォントを適切に解釈するCMapを読み込む
+            const loadingTask = pdfjsLib.getDocument({ 
+                data: pdfBytes,
+                cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/cmaps/',
+                cMapPacked: true
+            });
             const pdf = await loadingTask.promise;
             const pdfPage = await pdf.getPage(1); // 1ページ目
 
