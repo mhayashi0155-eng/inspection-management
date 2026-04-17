@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.46</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.47</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -305,12 +305,29 @@
                         // ★ 新方式: 白紙テンプレート + JSON復元
                         fetchedPdfBase64 = null;
                         await renderPDFCanvas();
-                        const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                        let fv;
+                        try {
+                            fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                        } catch (e) {
+                            console.error('[FieldRestore] JSON Parse Error (possible mojibake):', e);
+                            alert("過去データの復元中にエラーが発生しました（データ破損または文字化け）。\n新しい用紙から入力するか、サポートにお問い合わせください。");
+                            return;
+                        }
                         
                         // 1. まず全フィールドの値を復元（現在のテンプレートに存在するフィールドのみ）
                         let restoredCount = 0;
                         let skippedCount = 0;
-                        for (const [fieldId, value] of Object.entries(fv)) {
+                        for (const [fieldId, rawValue] of Object.entries(fv)) {
+                            let value = rawValue;
+                            if (typeof value === 'string' && value.startsWith('__b64__')) {
+                                try {
+                                    value = decodeURIComponent(escape(window.atob(value.substring(7))));
+                                } catch (e) {
+                                    console.warn(`[FieldRestore] Base64 decode failed for field ${fieldId}:`, e);
+                                    value = rawValue; // decode failed, use raw as fallback
+                                }
+                            }
+
                             const el = document.getElementById(`input_${fieldId}`);
                             if (el) {
                                 el.value = value;
@@ -1086,7 +1103,9 @@
             currentTemplate.fields.forEach(field => {
                 const el = document.getElementById(`input_${field.id}`);
                 if (el && el.value) {
-                    fieldValues[field.id] = el.value;
+                    // ★ GAS保存時や通信時の文字化け(Mojibake)を完全に防ぐため、値をBase64エンコードして保存
+                    const b64Val = window.btoa(unescape(encodeURIComponent(el.value)));
+                    fieldValues[field.id] = `__b64__${b64Val}`;
                 }
             });
 
