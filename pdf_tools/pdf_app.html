@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.51</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.52</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -178,26 +178,9 @@
             }
         }
 
-        // 2. fieldValues の検証（JSON復元の場合、現在のテンプレートのフィールドIDと照合）
-        if (result.fieldValues && currentTemplate) {
-            const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-            const responseKeys = Object.keys(fv);
-            const templateFieldIds = new Set(currentTemplate.fields.map(f => f.id));
-            
-            // レスポンスのキーのうち、現在のテンプレートに存在するものの割合をチェック
-            const matchCount = responseKeys.filter(k => templateFieldIds.has(k)).length;
-            const matchRatio = responseKeys.length > 0 ? matchCount / responseKeys.length : 0;
-            
-            console.log(`[Validate] フィールドID照合: ${matchCount}/${responseKeys.length} 一致 (${(matchRatio * 100).toFixed(0)}%)`);
-            
-            // 一致率が50%未満の場合は別テンプレートのデータと判定
-            if (responseKeys.length > 0 && matchRatio < 0.5) {
-                return { 
-                    valid: false, 
-                    reason: `フィールドID不一致: 一致率${(matchRatio * 100).toFixed(0)}% (${matchCount}/${responseKeys.length})` 
-                };
-            }
-        }
+        // 過去のJSONデータが文字化け等でキーが一致しない場合でも、
+        // 描画済みPDF(fileData)が存在すればそれを背景として読み込めるようにするため、
+        // ここでの fieldValues の厳格な検証(一致率チェック)は廃止する。
 
         return { valid: true, reason: 'OK' };
     }
@@ -301,18 +284,30 @@
                     
                     if (!isAutoLoad) alert('クラウドから前回の続きを読み込みました！');
                     
+                    // JSONデータが有効か（現在のテンプレートと一致するキーがあるか）を判定する
+                    let useJsonRestore = false;
+                    let fv = null;
                     if (result.fieldValues) {
+                        try {
+                            fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                            const responseKeys = Object.keys(fv);
+                            const templateFieldIds = new Set(currentTemplate.fields.map(f => f.id));
+                            const matchCount = responseKeys.filter(k => templateFieldIds.has(k)).length;
+                            
+                            if (matchCount > 0) {
+                                useJsonRestore = true;
+                            } else {
+                                console.warn('[FieldRestore] JSONキーがテンプレートと一致しません。旧形式(背景PDF)として読み込みます。');
+                            }
+                        } catch (e) {
+                            console.warn('[FieldRestore] JSON Parse Error (possible mojibake):', e);
+                        }
+                    }
+                    
+                    if (useJsonRestore && fv) {
                         // ★ 新方式: 白紙テンプレート + JSON復元
                         fetchedPdfBase64 = null;
                         await renderPDFCanvas();
-                        let fv;
-                        try {
-                            fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-                        } catch (e) {
-                            console.error('[FieldRestore] JSON Parse Error (possible mojibake):', e);
-                            alert("過去データの復元中にエラーが発生しました（データ破損または文字化け）。\n新しい用紙から入力するか、サポートにお問い合わせください。");
-                            return;
-                        }
                         
                         // 1. まず全フィールドの値を復元（現在のテンプレートに存在するフィールドのみ）
                         let restoredCount = 0;
