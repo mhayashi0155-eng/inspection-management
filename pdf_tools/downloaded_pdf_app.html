@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.49</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.42</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -137,7 +137,6 @@
     let currentTemplate = null;
     let currentViewport = null;
     let fetchedPdfBase64 = null; // サーバーから読み込んだ追記用PDFデータ
-    let loadedFromLegacy = false; // 旧データ（JSONなし）から読み込んだかどうかのフラグ
 
     // 起動時にJSON設定ファイルを読み込む
     window.onload = async function() {
@@ -161,52 +160,10 @@
         }
     };
 
-    /**
-     * レスポンスが現在のテンプレートのデータかどうかを検証する
-     * @param {object} result - GASからのレスポンス
-     * @param {string} expectedPrefix - 期待されるファイル接頭辞 (例: "無人航空機の日常点検記録")
-     * @returns {{valid: boolean, reason: string}}
-     */
-    function validateResponse(result, expectedPrefix) {
-        // 1. ファイル名ベースの検証（返されたファイル名が期待するprefixで始まるか）
-        if (result.filename) {
-            if (!result.filename.startsWith(expectedPrefix)) {
-                return { 
-                    valid: false, 
-                    reason: `ファイル名不一致: 期待="${expectedPrefix}..." 実際="${result.filename}"` 
-                };
-            }
-        }
-
-        // 2. fieldValues の検証（JSON復元の場合、現在のテンプレートのフィールドIDと照合）
-        if (result.fieldValues && currentTemplate) {
-            const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-            const responseKeys = Object.keys(fv);
-            const templateFieldIds = new Set(currentTemplate.fields.map(f => f.id));
-            
-            // レスポンスのキーのうち、現在のテンプレートに存在するものの割合をチェック
-            const matchCount = responseKeys.filter(k => templateFieldIds.has(k)).length;
-            const matchRatio = responseKeys.length > 0 ? matchCount / responseKeys.length : 0;
-            
-            console.log(`[Validate] フィールドID照合: ${matchCount}/${responseKeys.length} 一致 (${(matchRatio * 100).toFixed(0)}%)`);
-            
-            // 一致率が50%未満の場合は別テンプレートのデータと判定
-            if (responseKeys.length > 0 && matchRatio < 0.5) {
-                return { 
-                    valid: false, 
-                    reason: `フィールドID不一致: 一致率${(matchRatio * 100).toFixed(0)}% (${matchCount}/${responseKeys.length})` 
-                };
-            }
-        }
-
-        return { valid: true, reason: 'OK' };
-    }
-
-    // クラウドから最新のデータ（続き）を読み込む
+    // クラウドから最新のPDF（続き）を読み込む
+    // クラウドから最新のPDF（続き）を読み込む
     async function fetchLatestPDF(isAutoLoad = false) {
         if (!currentTemplate) return;
-        // 日常点検記録(template_1)は毎回新規なので過去データ読み込み不要
-        if (currentTemplate.id === 'template_1') return;
         const droneEl = document.getElementById('input_無人機登録');
         if (isAutoLoad && (!droneEl || !droneEl.value)) return;
         const droneId = droneEl && droneEl.value ? droneEl.value.trim() : '不明な機体';
@@ -232,12 +189,11 @@
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         
-        // ウォーターフォール検索パターン
-        const fileDate = `${y}${m}`;
+        // ウォーターフォール検索パターン ( Ver 1.1.31: 日本語フォルダ形式を最優先 )
         const attempts = [
-            { label: `今月分 (${y}年${m}月)`, folderDate: `${y}年${m}月`, fileDate: fileDate },
-            { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: fileDate },
-            { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" } // GAS側のワイルドカード指定
+            { label: `今月分 (${y}年${m}月)`, folderDate: `${y}年${m}月`, fileDate: `${y}${m}` },
+            { label: `今月分 (${y}/${m})`, folderDate: `${y}/${m}`, fileDate: `${y}${m}` },
+            { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" }
         ];
 
         const btn = document.getElementById('btn-get-latest');
@@ -247,45 +203,22 @@
         const prefix = currentTemplate.filePrefix || "点検表";
         let success = false;
 
-        console.log(`[FetchStart] テンプレート="${currentTemplate.name}" prefix="${prefix}" ドローン="${droneId}"`);
-
         for (const attempt of attempts) {
             if (st) st.textContent = `📡 ${attempt.label}を検索中...`;
             const targetFilename = `${prefix}_${droneId}_${attempt.fileDate}.pdf`;
-            console.log(`[FetchAttempt] ${attempt.label}: "${targetFilename}" in folder="${attempt.folderDate}"`);
+            console.log(`[FetchAttempt] ${attempt.label}: ${targetFilename} in ${attempt.folderDate}`);
 
             try {
-                const payload = { 
-                    action: 'get_latest', 
-                    droneId: droneId, 
-                    date: attempt.folderDate, 
-                    filename: targetFilename, 
-                    prefix: prefix 
-                };
+                const payload = { action: 'get_latest', droneId: droneId, date: attempt.folderDate, filename: targetFilename, prefix: prefix };
                 const res = await fetch('https://script.google.com/macros/s/AKfycbysGawyBydG7mg0XXl5PPLxv03a6DDzKwLtDR5qcizp8egT_qAkrTLg3psHYnN98PtZDQ/exec', {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 const result = await res.json();
-                console.log(`[FetchResult] ${attempt.label}:`, { 
-                    status: result.status, 
-                    filename: result.filename || '(なし)',
-                    hasFieldValues: !!result.fieldValues,
-                    hasFileData: !!result.fileData,
-                    fieldValueKeys: result.fieldValues ? Object.keys(typeof result.fieldValues === 'string' ? JSON.parse(result.fieldValues) : result.fieldValues).slice(0, 5).join(', ') + '...' : '(なし)'
-                });
+                console.log(`[FetchResult] ${attempt.label}:`, result);
                 
                 if (result.status === 'success' && (result.fieldValues || result.fileData)) {
-                    // ★★★ 核心修正: 返されたデータが本当にこのテンプレートのものかを検証 ★★★
-                    const validation = validateResponse(result, prefix);
-                    if (!validation.valid) {
-                        console.warn(`[FetchReject] ${attempt.label}: データ検証失敗 - ${validation.reason}`);
-                        console.warn(`[FetchReject] 返されたデータは別テンプレートのものです。スキップして次の検索パターンへ...`);
-                        continue; // 次のウォーターフォールパターンへ
-                    }
-                    console.log(`[FetchAccept] ${attempt.label}: データ検証OK`);
-                    
                     if (st) st.textContent = '✅ 取得成功';
                     
                     // 自動読込時はユーザーに確認。キャンセルでスキップ可能
@@ -305,32 +238,10 @@
                         // ★ 新方式: 白紙テンプレート + JSON復元
                         fetchedPdfBase64 = null;
                         await renderPDFCanvas();
-                        let fv;
-                        try {
-                            fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-                        } catch (e) {
-                            console.error('[FieldRestore] JSON Parse Error (possible mojibake):', e);
-                            alert("過去データの復元中にエラーが発生しました（データ破損または文字化け）。\n新しい用紙から入力するか、サポートにお問い合わせください。");
-                            return;
-                        }
+                        const fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
                         
-                        // 1. まず全フィールドの値を復元（現在のテンプレートに存在するフィールドのみ）
-                        let restoredCount = 0;
-                        let skippedCount = 0;
-                        for (const [fieldId, rawValue] of Object.entries(fv)) {
-                            let value = rawValue;
-                            if (typeof value === 'string' && value.startsWith('__b64__')) {
-                                try {
-                                    const b64Str = value.substring(7);
-                                    value = decodeURIComponent(window.atob(b64Str).split('').map(function(c) {
-                                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                                    }).join(''));
-                                } catch (e) {
-                                    console.warn(`[FieldRestore] Base64 decode failed for field ${fieldId}:`, e);
-                                    value = rawValue; // decode failed, use raw as fallback
-                                }
-                            }
-
+                        // 1. まず全フィールドの値を復元
+                        for (const [fieldId, value] of Object.entries(fv)) {
                             const el = document.getElementById(`input_${fieldId}`);
                             if (el) {
                                 el.value = value;
@@ -340,9 +251,6 @@
                                         opt.selected = (opt.value === value);
                                     }
                                 }
-                                restoredCount++;
-                            } else {
-                                skippedCount++;
                             }
                         }
                         
@@ -364,20 +272,16 @@
                             }
                         }
                         
-                        console.log(`[FieldRestore] JSON復元完了: ${restoredCount}件復元, ${skippedCount}件スキップ（該当フィールドなし）`);
-                        loadedFromLegacy = false;
+                        console.log('[FieldRestore] JSON復元完了:', Object.keys(fv).length, '件');
                     } else {
                         // ★ 旧データ互換: 過去PDFを背景に表示
                         fetchedPdfBase64 = result.fileData;
-                        loadedFromLegacy = true; 
                         await renderPDFCanvas();
                         console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
                     }
                     
                     success = true;
                     break;
-                } else {
-                    console.log(`[FetchSkip] ${attempt.label}: データなし (status=${result.status})`);
                 }
             } catch (e) {
                 console.warn(`[FetchError] ${attempt.label} 中断:`, e);
@@ -388,7 +292,6 @@
             if (st) st.textContent = 'ℹ️ 続きなし';
             if (!isAutoLoad) alert("クラウド上に続きデータは見つかりませんでした。\n新しい白紙から開始します。");
             fetchedPdfBase64 = null;
-            loadedFromLegacy = false;
             await renderPDFCanvas();
             const newDroneEl = document.getElementById('input_無人機登録');
             if (newDroneEl) newDroneEl.value = droneId;
@@ -421,7 +324,6 @@
         currentTemplate = configData.templates.find(t => t.id === selectId);
         idleMsg.style.display = 'none';
         fetchedPdfBase64 = null; // 用紙を変えたらリセット
-        loadedFromLegacy = false;
         
         await renderPDFCanvas();
     }
@@ -452,12 +354,7 @@
             }
 
             // 背景用PDFを読み込んでキャンバスに描画 (pdf.js)
-            // ★ 文字化け防止のため、日本語フォントを適切に解釈するCMapを読み込む
-            const loadingTask = pdfjsLib.getDocument({ 
-                data: pdfBytes,
-                cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/cmaps/',
-                cMapPacked: true
-            });
+            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
             const pdf = await loadingTask.promise;
             const pdfPage = await pdf.getPage(1); // 1ページ目
 
@@ -492,8 +389,7 @@
             wrapper.style.display = 'inline-block';
             document.getElementById('generate-btn').disabled = false;
             document.getElementById('generate-new-btn').disabled = false;
-            // 日常点検記録(template_1)は過去データ不要なので読込ボタンを無効のままにする
-            document.getElementById('btn-get-latest').disabled = (currentTemplate?.id === 'template_1');
+            document.getElementById('btn-get-latest').disabled = false;
 
         } catch (error) {
             console.error(error);
@@ -933,17 +829,8 @@
         btn.textContent = '⏳ 合成処理中...';
 
         try {
-            // ★ 白紙テンプレートまたは旧データ(背景PDF)をベースに生成する
-            let pdfBytesOrigin;
-            if (loadedFromLegacy && fetchedPdfBase64) {
-                // 旧形式(JSONなし)の続きを読み込んでいた場合は、背景PDFの文字を消さないためにそれをベースにする
-                const binStr = window.atob(fetchedPdfBase64);
-                pdfBytesOrigin = new Uint8Array(binStr.length);
-                for (let i = 0; i < binStr.length; i++) pdfBytesOrigin[i] = binStr.charCodeAt(i);
-            } else {
-                // 通常・JSON復元の場合は白紙テンプレートから生成（重ね書きによる劣化を防止）
-                pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
-            }
+            // ★ 常に白紙テンプレートからPDFを生成（重ね書きによる劣化を防止）
+            const pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
 
             const { PDFDocument, rgb, degrees } = window.PDFLib;
             const pdfDoc = await PDFDocument.load(pdfBytesOrigin);
@@ -1106,12 +993,7 @@
             currentTemplate.fields.forEach(field => {
                 const el = document.getElementById(`input_${field.id}`);
                 if (el && el.value) {
-                    // ★ GAS保存時や通信時の文字化け(Mojibake)を完全に防ぐため、値をBase64エンコードして保存
-                    // escape/unescape や TextEncoder に依存しない、全ブラウザ対応の安全なBase64変換
-                    const b64Val = window.btoa(encodeURIComponent(el.value).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                        return String.fromCharCode('0x' + p1);
-                    }));
-                    fieldValues[field.id] = `__b64__${b64Val}`;
+                    fieldValues[field.id] = el.value;
                 }
             });
 
@@ -1122,7 +1004,7 @@
                 droneId: droneId,
                 date: folderDate,
                 prefix: prefix, // 深層フォルダ構築用に様式名を追加
-                fieldValues: loadedFromLegacy ? null : fieldValues // 旧データの場合はJSONを保存しない(次回も旧データとして読込)
+                fieldValues: fieldValues // 入力値をJSON保存
             };
             
             try {
