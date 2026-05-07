@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.50</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.51</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -372,9 +372,12 @@
                         loadedFromLegacy = true;
                         await renderPDFCanvas();
                         console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
-                        const restoredDroneEl = document.getElementById('input_無人機登録');
-                        if (restoredDroneEl) restoredDroneEl.value = droneId;
                     }
+                    
+                    // ★★★ 機体番号の選択状態を強制的に復元する ★★★
+                    // renderPDFCanvas によって入力欄が再生成されるため、ここで復元しないと保存時のバリデーションに失敗する
+                    const restoredDroneEl = document.getElementById('input_無人機登録');
+                    if (restoredDroneEl) restoredDroneEl.value = droneId;
                     
                     success = true;
                     break;
