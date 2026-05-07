@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.47</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.48</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -321,7 +321,12 @@
                             let value = rawValue;
                             if (typeof value === 'string' && value.startsWith('__b64__')) {
                                 try {
-                                    value = decodeURIComponent(escape(window.atob(value.substring(7))));
+                                    const binStr = window.atob(value.substring(7));
+                                    const bytes = new Uint8Array(binStr.length);
+                                    for (let i = 0; i < binStr.length; i++) {
+                                        bytes[i] = binStr.charCodeAt(i);
+                                    }
+                                    value = new TextDecoder().decode(bytes);
                                 } catch (e) {
                                     console.warn(`[FieldRestore] Base64 decode failed for field ${fieldId}:`, e);
                                     value = rawValue; // decode failed, use raw as fallback
@@ -1104,7 +1109,13 @@
                 const el = document.getElementById(`input_${field.id}`);
                 if (el && el.value) {
                     // ★ GAS保存時や通信時の文字化け(Mojibake)を完全に防ぐため、値をBase64エンコードして保存
-                    const b64Val = window.btoa(unescape(encodeURIComponent(el.value)));
+                    // escape/unescape は非推奨であり一部ブラウザで文字化けを引き起こすため、TextEncoder を使用
+                    const utf8Bytes = new TextEncoder().encode(el.value);
+                    let binaryStr = '';
+                    for (let i = 0; i < utf8Bytes.length; i++) {
+                        binaryStr += String.fromCharCode(utf8Bytes[i]);
+                    }
+                    const b64Val = window.btoa(binaryStr);
                     fieldValues[field.id] = `__b64__${b64Val}`;
                 }
             });
