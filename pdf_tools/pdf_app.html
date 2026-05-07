@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.49</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.50</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -369,9 +369,11 @@
                     } else {
                         // ★ 旧データ互換: 過去PDFを背景に表示
                         fetchedPdfBase64 = result.fileData;
-                        loadedFromLegacy = true; 
+                        loadedFromLegacy = true;
                         await renderPDFCanvas();
                         console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
+                        const restoredDroneEl = document.getElementById('input_無人機登録');
+                        if (restoredDroneEl) restoredDroneEl.value = droneId;
                     }
                     
                     success = true;
