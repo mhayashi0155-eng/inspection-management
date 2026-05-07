@@ -97,7 +97,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.52</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.53</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -296,6 +296,17 @@
                             
                             if (matchCount > 0) {
                                 useJsonRestore = true;
+                                // 文字化け対策（Ver 1.1.47）以前のデータかチェック
+                                // __b64__ プレフィックスを持たない文字列データが1つでもあれば、
+                                // 古い形式（文字化けしている可能性が高い）とみなしてJSON復元をキャンセルする
+                                for (const key in fv) {
+                                    const val = fv[key];
+                                    if (typeof val === 'string' && val.length > 0 && !val.startsWith('__b64__')) {
+                                        console.warn(`[FieldRestore] 古いデータ形式(非Base64)を検出しました: ${key}. 文字化けを防ぐため旧形式(背景PDF)として読み込みます。`);
+                                        useJsonRestore = false;
+                                        break;
+                                    }
+                                }
                             } else {
                                 console.warn('[FieldRestore] JSONキーがテンプレートと一致しません。旧形式(背景PDF)として読み込みます。');
                             }
