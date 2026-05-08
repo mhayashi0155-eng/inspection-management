@@ -118,7 +118,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.3</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.4</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -978,9 +978,26 @@
             const base64data = await blobToBase64(blob);
 
             const droneId = droneEl.value;
-            const today = new Date();
-            let folderDate = `${today.getFullYear()}年${String(today.getMonth() + 1).padStart(2, '0')}月`;
-            let fileDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+            
+            // 入力欄の日付を最優先で取得し、保存先ファイル名を決定する
+            let d = new Date();
+            let tempDateValue = null;
+            if (currentTemplate && currentTemplate.fields) {
+                const dateFields = currentTemplate.fields.filter(f => f.type === 'date');
+                for (const df of dateFields) {
+                    const dateEl = document.getElementById(`input_${df.id}`);
+                    if (dateEl && dateEl.value) { tempDateValue = dateEl.value; break; }
+                }
+            }
+            if (tempDateValue) {
+                if (tempDateValue.startsWith('R')) {
+                    const parts = tempDateValue.substring(1).split('/');
+                    if (parts.length === 3) d = new Date(parseInt(parts[0]) + 2018, parseInt(parts[1]) - 1, parseInt(parts[2]));
+                } else { d = new Date(tempDateValue); }
+            }
+            
+            let folderDate = `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月`;
+            let fileDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
             
             const prefix = currentTemplate.filePrefix || "点検表";
             const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
