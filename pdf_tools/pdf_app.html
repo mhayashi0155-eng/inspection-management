@@ -91,13 +91,34 @@
         .calendar-trigger:hover { background: #e8f0fe; transform: scale(1.1); }
 
         .hint { color: #888; font-size: 14px; margin-top: 10px; text-align: left; }
+        
+        /* 全画面ローディング用オーバーレイ */
+        #full-loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85); z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3; border-top: 8px solid #1a73e8;
+            border-radius: 50%; width: 60px; height: 60px;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #full-loading-text { font-size: 24px; font-weight: bold; color: #1a73e8; }
+        #full-loading-subtext { font-size: 14px; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
+<div id="full-loading-overlay">
+    <div class="spinner"></div>
+    <div id="full-loading-text">🔄 クラウドからデータを読み込み中...</div>
+    <div id="full-loading-subtext"></div>
+</div>
+
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 1.1.53</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.1</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -109,8 +130,8 @@
     <div style="display: flex; gap: 10px; align-items: center;">
         <span id="status-msg" style="font-size: 12px; color: #e8710a; font-weight: bold; margin-right: 10px;"></span>
         <button id="btn-get-latest" class="btn-primary" style="background: #424242;" onclick="fetchLatestPDF()" title="クラウド上にある今月の書きかけの用紙を読み込みます" disabled>🔄 続きを読込</button>
-        <button id="generate-btn" class="btn-primary" onclick="generatePDF('save_append')" disabled>📥 追記保存</button>
-        <button id="generate-new-btn" class="btn-primary" style="background: #e53935;" onclick="generatePDF('save_new')" disabled>📄 新しい紙で保存</button>
+        <button id="generate-btn" class="btn-primary" onclick="saveData()" disabled>💾 データ保存</button>
+        <button id="export-pdf-btn" class="btn-primary" style="background: #e53935;" onclick="exportPDF()" disabled>📄 PDF出力</button>
     </div>
 </div>
 
@@ -223,9 +244,17 @@
             { label: "最新データを広域検索", folderDate: "2000/01", fileDate: "YYYYMM" } // GAS側のワイルドカード指定
         ];
 
+        const overlay = document.getElementById('full-loading-overlay');
+        const overlaySubtext = document.getElementById('full-loading-subtext');
+        
         const btn = document.getElementById('btn-get-latest');
         btn.textContent = '⏳ 読込中...';
         btn.disabled = true;
+        document.getElementById('generate-btn').disabled = true;
+        document.getElementById('export-pdf-btn').disabled = true;
+        
+        overlay.style.display = 'flex';
+        if (overlaySubtext) overlaySubtext.textContent = `機体: ${droneId} の過去データを検索しています...`;
 
         const prefix = currentTemplate.filePrefix || "点検表";
         let success = false;
@@ -271,18 +300,7 @@
                     
                     if (st) st.textContent = '✅ 取得成功';
                     
-                    // 自動読込時はユーザーに確認。キャンセルでスキップ可能
-                    const shouldLoad = isAutoLoad 
-                        ? confirm('過去データが見つかりました。\n読み込みますか？\n\n※「キャンセル」で白紙から始められます') 
-                        : true;
-                    
-                    if (!shouldLoad) {
-                        if (st) st.textContent = 'ℹ️ スキップ';
-                        success = false;
-                        break;
-                    }
-                    
-                    if (!isAutoLoad) alert('クラウドから前回の続きを読み込みました！');
+                    if (overlaySubtext) overlaySubtext.textContent = 'データを展開しています...';
                     
                     // JSONデータが有効か（現在のテンプレートと一致するキーがあるか）を判定する
                     let useJsonRestore = false;
@@ -405,8 +423,11 @@
             if (newDroneEl) newDroneEl.value = droneId;
         }
 
+        overlay.style.display = 'none';
         btn.textContent = '🔄 続きを読込';
         btn.disabled = false;
+        document.getElementById('generate-btn').disabled = false;
+        document.getElementById('export-pdf-btn').disabled = false;
         setTimeout(() => { if(st && st.textContent.includes('中')) st.textContent = ''; }, 3000);
     }
 
@@ -422,7 +443,7 @@
         if (!selectId) {
             currentTemplate = null;
             document.getElementById('generate-btn').disabled = true;
-            document.getElementById('generate-new-btn').disabled = true;
+            document.getElementById('export-pdf-btn').disabled = true;
             document.getElementById('btn-get-latest').disabled = true;
             wrapper.style.display = 'none';
             idleMsg.style.display = 'block';
@@ -449,7 +470,7 @@
         loadingMsg.style.display = 'block';
         wrapper.style.display = 'none';
         document.getElementById('generate-btn').disabled = true;
-        document.getElementById('generate-new-btn').disabled = true;
+        document.getElementById('export-pdf-btn').disabled = true;
         document.getElementById('btn-get-latest').disabled = true;
 
         try {
@@ -502,7 +523,7 @@
             loadingMsg.style.display = 'none';
             wrapper.style.display = 'inline-block';
             document.getElementById('generate-btn').disabled = false;
-            document.getElementById('generate-new-btn').disabled = false;
+            document.getElementById('export-pdf-btn').disabled = false;
             // 日常点検記録(template_1)は過去データ不要なので読込ボタンを無効のままにする
             document.getElementById('btn-get-latest').disabled = (currentTemplate?.id === 'template_1');
 
@@ -904,13 +925,12 @@
         });
     }
 
-    // PDF合成＆出力処理 (pdf-lib)
-    async function generatePDF(actionType) {
+    // データのみを保存する高速保存処理
+    async function saveData() {
         if (!currentTemplate) return;
         
-        // --- 必須項目の入力チェック（バリデーション）：日常点検表(template_1)のみ適用 ---
-        const droneEl = document.getElementById('input_無人機登録'); // 機械番号
-
+        // --- 必須項目の入力チェック ---
+        const droneEl = document.getElementById('input_無人機登録');
         if (!droneEl || !droneEl.value || droneEl.value === "") {
             alert('⚠️ 警告\n「機体番号（無人機登録）」を選択してください。\n未設定のまま保存することはできません。');
             if (droneEl) droneEl.focus();
@@ -918,43 +938,148 @@
         }
 
         if (currentTemplate.id === 'template_1') {
-            const inspectorEl = document.getElementById('input_item_31'); // 実施者
-            const locationEl = document.getElementById('input_item_29'); // 実施場所
-            
+            const inspectorEl = document.getElementById('input_item_31');
+            const locationEl = document.getElementById('input_item_29');
             if (!locationEl || !locationEl.value.trim()) {
-                alert('⚠️ 警告\n「実施場所」が入力されていません。\n未入力のまま保存することはできません。（📍ボタンで自動取得も可能です）');
+                alert('⚠️ 警告\n「実施場所」が入力されていません。');
                 if (locationEl) locationEl.focus();
                 return;
             }
             if (!inspectorEl || !inspectorEl.value.trim()) {
-                alert('⚠️ 警告\n「実施者」の名前が入力されていません。\n未入力のまま保存することはできません。');
+                alert('⚠️ 警告\n「実施者」の名前が入力されていません。');
                 if (inspectorEl) inspectorEl.focus();
                 return;
             }
         }
-        // ------------------------------------------------
+
+        // --- 満杯チェック（飛行日誌: template_3 のみ） ---
+        let isFull = false;
+        if (currentTemplate.id === 'template_3') {
+            // 15行目の日付(item_15) または 離着陸時間(item_105) が入力されていれば満杯とみなす
+            const item15 = document.getElementById('input_item_15');
+            const item105 = document.getElementById('input_item_105');
+            if ((item15 && item15.value.trim()) || (item105 && item105.value.trim())) {
+                isFull = true;
+            }
+        }
+
+        if (isFull) {
+            const doExport = confirm('最後の行（15行目）まで書き込まれています。\nこれまでの記録を「PDFファイル」として出力し、新しい紙（白紙）に変更しますか？');
+            if (doExport) {
+                // 自動PDF出力処理へ移行
+                await exportPDF(true); // isAutoExport = true
+                return;
+            }
+        }
+
+        const btn = document.getElementById('generate-btn');
+        btn.disabled = true;
+        document.getElementById('export-pdf-btn').disabled = true;
+        document.getElementById('btn-get-latest').disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '☁️ データ保存中...';
+
+        try {
+            // データ送信用のJSON（Base64エンコード済み）を生成
+            const fieldValues = {};
+            currentTemplate.fields.forEach(field => {
+                const el = document.getElementById(`input_${field.id}`);
+                if (el && el.value) {
+                    const b64Val = window.btoa(encodeURIComponent(el.value).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                        return String.fromCharCode('0x' + p1);
+                    }));
+                    fieldValues[field.id] = `__b64__${b64Val}`;
+                }
+            });
+
+            // GASへダミーとして送る「白紙テンプレートPDF」を取得（合成処理なしで非常に高速）
+            const pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
+            const blob = new Blob([pdfBytesOrigin], { type: 'application/pdf' });
+            const blobToBase64 = (b) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(b);
+            });
+            const base64data = await blobToBase64(blob);
+
+            const droneId = droneEl.value;
+            const today = new Date();
+            let folderDate = `${today.getFullYear()}年${String(today.getMonth() + 1).padStart(2, '0')}月`;
+            let fileDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+            
+            const prefix = currentTemplate.filePrefix || "点検表";
+            const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
+
+            const payload = {
+                action: 'save_append',
+                filename: targetFilename,
+                fileData: base64data,
+                droneId: droneId,
+                date: folderDate,
+                prefix: prefix,
+                fieldValues: fieldValues
+            };
+            
+            const response = await fetch('https://script.google.com/macros/s/AKfycbysGawyBydG7mg0XXl5PPLxv03a6DDzKwLtDR5qcizp8egT_qAkrTLg3psHYnN98PtZDQ/exec', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                const st = document.getElementById('status-msg');
+                if (st) {
+                    st.textContent = '✅ 保存完了';
+                    setTimeout(() => { if(st.textContent === '✅ 保存完了') st.textContent = ''; }, 3000);
+                }
+            } else {
+                alert('⚠️ 保存に失敗しました：' + result.message);
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert('通信エラーが発生しました。ネットワークをご確認ください。');
+        } finally {
+            btn.disabled = false;
+            document.getElementById('export-pdf-btn').disabled = false;
+            document.getElementById('btn-get-latest').disabled = (currentTemplate?.id === 'template_1');
+            btn.textContent = originalText;
+        }
+    }
+
+    // 手動または自動でのPDF出力処理 (pdf-lib)
+    async function exportPDF(isAutoExport = false) {
+        if (!currentTemplate) return;
         
-        const btnId = actionType === 'save_new' ? 'generate-new-btn' : 'generate-btn';
-        const btn = document.getElementById(btnId);
+        // --- 必須項目の入力チェック ---
+        const droneEl = document.getElementById('input_無人機登録');
+        if (!droneEl || !droneEl.value || droneEl.value === "") {
+            alert('⚠️ 警告\n「機体番号（無人機登録）」を選択してください。');
+            if (droneEl) droneEl.focus();
+            return;
+        }
+        
+        const btn = document.getElementById('export-pdf-btn');
         const originalText = btn.textContent;
         
         document.getElementById('generate-btn').disabled = true;
-        document.getElementById('generate-new-btn').disabled = true;
+        btn.disabled = true;
         document.getElementById('btn-get-latest').disabled = true;
-        btn.textContent = '⏳ 合成処理中...';
+        
+        const overlay = document.getElementById('full-loading-overlay');
+        const overlayText = document.getElementById('full-loading-text');
+        const overlaySubtext = document.getElementById('full-loading-subtext');
+        
+        overlay.style.display = 'flex';
+        overlayText.textContent = '📄 PDFファイルを作成中...';
+        overlaySubtext.textContent = 'レイアウトを合成しています。しばらくお待ちください。';
 
         try {
-            // ★ 白紙テンプレートまたは旧データ(背景PDF)をベースに生成する
-            let pdfBytesOrigin;
-            if (loadedFromLegacy && fetchedPdfBase64) {
-                // 旧形式(JSONなし)の続きを読み込んでいた場合は、背景PDFの文字を消さないためにそれをベースにする
-                const binStr = window.atob(fetchedPdfBase64);
-                pdfBytesOrigin = new Uint8Array(binStr.length);
-                for (let i = 0; i < binStr.length; i++) pdfBytesOrigin[i] = binStr.charCodeAt(i);
-            } else {
-                // 通常・JSON復元の場合は白紙テンプレートから生成（重ね書きによる劣化を防止）
-                pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
-            }
+            // ★ 白紙テンプレートをベースに生成する
+            const pdfBytesOrigin = await fetch(currentTemplate.pdfPath).then(res => res.arrayBuffer());
 
             const { PDFDocument, rgb, degrees } = window.PDFLib;
             const pdfDoc = await PDFDocument.load(pdfBytesOrigin);
@@ -973,26 +1098,21 @@
 
                 let textVal = el.value;
 
-                // 日付フィールド、または日付形式の文字列の場合はフォーマット変換 (例: 2024-05-20 -> R6/5/20)
-                // 既にRで始まる場合はスキップする
                 if (!textVal.startsWith('R') && (field.type === 'date' || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(textVal))) {
-                    // 区切り文字をハイフンに統一してDateオブジェクトを作成
                     const d = new Date(textVal.replace(/\//g, '-'));
                     if (!isNaN(d.getTime())) {
                         const yyyy = d.getFullYear();
                         const mm = d.getMonth() + 1;
                         const dd = d.getDate();
-                        const r = yyyy - 2018; // 令和
+                        const r = yyyy - 2018; 
                         textVal = `R${r}/${mm}/${dd}`;
                     }
                 }
 
                 let fontSize = 11;
-                // 飛行日誌（template_3）の日付欄は枠が極めて狭いためフォントを最小化
                 if (currentTemplate.id === 'template_3' && field.type === 'date') {
                     fontSize = 10.0; 
                 }
-                // 飛行日誌の時刻・経過時間欄（76〜120）もフォントを事前に小さくして見切れを防ぐ
                 if (currentTemplate.id === 'template_3') {
                     const match = field.id.match(/^item_(\d+)$/);
                     if (match) {
@@ -1006,12 +1126,10 @@
                 
                 let textWidth = customFont.widthOfTextAtSize(textVal, fontSize);
 
-                // 項目16～45、136〜175等の自由入力欄がはみ出る場合はPDF描画フォントも縮小する
                 if (currentTemplate.id === 'template_3') {
                     const match = field.id.match(/^item_(\d+)$/);
                     if (match) {
                         const num = parseInt(match[1], 10);
-                        // 1-15(日付), 16-45(自由記入), 76-120(時刻), 136-175(自由記入)等の項目はPDF描画フォントも縮小する
                         if ((num >= 1 && num <= 45) || (num >= 76 && num <= 120) || (num >= 136 && num <= 175)) {
                             const maxWidth = rot === 90 ? field.height - 4 : field.width - 4;
                             while (textWidth > maxWidth && fontSize > 4.0) {
@@ -1022,19 +1140,14 @@
                     }
                 }
 
-                const textHeight = fontSize; // ベースラインの補正用
-
+                const textHeight = fontSize; 
                 let drawX, drawY;
 
-                // PDFがもともと縦向きで、画面上だけ90度回転させて横向きに見せている場合
                 if (rot === 90) {
-                    // テキストをPDFの本来の軸に合わせて「90度横に寝かせる」必要がある
                     if (field.align === 'center') {
-                        // 横方向(Y座標)は枠の中心に配置し、縦方向(X座標)は以前きれいに収まっていた下端ベースラインで固定する
                         drawX = field.x + field.width - 2; 
                         drawY = field.y + (field.height / 2) - (textWidth / 2);
                     } else {
-                        // 画面上の左端に揃える = PDF本来の軸でいうと一番下端
                         drawX = field.x + field.width - 2; 
                         drawY = field.y + 4; 
                     }
@@ -1047,7 +1160,6 @@
                         rotate: degrees(90),
                     });
                 } else {
-                    // 回転がない通常のPDFの場合
                     if (field.align === 'center') {
                         drawX = field.x + (field.width / 2) - (textWidth / 2);
                         drawY = field.y + (field.height / 2) - (textHeight / 3); 
@@ -1063,118 +1175,106 @@
                         color: rgb(0, 0, 0),
                     });
                 }
-            }); // ← ここで fields.forEach を正しく閉じる
+            });
 
-            // 出力PDFに対する恒久的な回転設定（ファイルを開いた瞬間に正しい向きになるようにする）
             if (currentTemplate.rotation !== undefined) {
                 const outPage = pdfDoc.getPages()[0];
                 outPage.setRotation(degrees(currentTemplate.rotation));
             }
 
-            // 4. ダウンロード準備
+            // ダウンロードファイル名の決定
+            let downloadFilename = `入力済_${currentTemplate.name}.pdf`;
+            
+            if (isAutoExport && currentTemplate.id === 'template_3') {
+                const dateStartEl = document.getElementById('input_item_1');
+                const dateEndEl = document.getElementById('input_item_15');
+                let startStr = dateStartEl && dateStartEl.value ? dateStartEl.value : '';
+                let endStr = dateEndEl && dateEndEl.value ? dateEndEl.value : '';
+                
+                if (startStr && endStr) {
+                    startStr = startStr.replace(/\//g, '.');
+                    endStr = endStr.replace(/\//g, '.');
+                    downloadFilename = `${startStr}～${endStr}飛行日誌.pdf`;
+                } else {
+                    const today = new Date();
+                    downloadFilename = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}_満杯完了_飛行日誌.pdf`;
+                }
+            }
+
             const pdfBytesResult = await pdfDoc.save();
             const blob = new Blob([pdfBytesResult], { type: 'application/pdf' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `入力済_${currentTemplate.name}.pdf`; // エラー時のフォールバック用
+            link.download = downloadFilename; 
             
-            // 5. Google Drive (GAS) へ送信
-            btn.textContent = '☁️ ドライブへ自動保存中...';
+            // ユーザー端末にダウンロード
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 100);
             
-            // PDFをBase64文字列に変換する関数
-            const blobToBase64 = (b) => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(b);
-            });
-            const base64data = await blobToBase64(blob);
-            
-            // フォルダ判定用のデータを取得
-            const droneEl = document.getElementById('input_無人機登録');
-            // 表示文字列ではなく value (JU32... など) を用いる
-            const droneId = droneEl && droneEl.value ? droneEl.value : '不明な機体';
-            
-            // テンプレートによって日付を取る欄が異なるため、適切なIDを選択する
-            // template_1: item_30（点検日）, template_2: item_1（最初の日付欄）, template_3: item_1（最初の日付欄）
-            let dateFieldId = 'input_item_30'; // デフォルト (template_1)
-            if (currentTemplate.id === 'template_2' || currentTemplate.id === 'template_3') {
-                dateFieldId = 'input_item_1';
-            }
-
-            const dateEl = document.getElementById(dateFieldId);
-            const today = new Date();
-            let folderDate = `${today.getFullYear()}年${String(today.getMonth() + 1).padStart(2, '0')}月`;
-            let fileDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
-            
-            const prefix = currentTemplate.filePrefix || "点検表";
-            const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
-            
-            link.download = targetFilename; // エラー時のフォールバック用
-
-            // 全フィールドの入力値を収集（次回読み込み時に復元するため）
-            const fieldValues = {};
-            currentTemplate.fields.forEach(field => {
-                const el = document.getElementById(`input_${field.id}`);
-                if (el && el.value) {
-                    // ★ GAS保存時や通信時の文字化け(Mojibake)を完全に防ぐため、値をBase64エンコードして保存
-                    // escape/unescape や TextEncoder に依存しない、全ブラウザ対応の安全なBase64変換
-                    const b64Val = window.btoa(encodeURIComponent(el.value).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                        return String.fromCharCode('0x' + p1);
-                    }));
-                    fieldValues[field.id] = `__b64__${b64Val}`;
-                }
-            });
-
-            const payload = {
-                action: actionType,
-                filename: targetFilename,
-                fileData: base64data,
-                droneId: droneId,
-                date: folderDate,
-                prefix: prefix, // 深層フォルダ構築用に様式名を追加
-                fieldValues: loadedFromLegacy ? null : fieldValues // 旧データの場合はJSONを保存しない(次回も旧データとして読込)
-            };
-            
-            try {
-                // GASは複雑なCORS設定になるため、text/plainで送るのがセオリー
-                const response = await fetch('https://script.google.com/macros/s/AKfycbysGawyBydG7mg0XXl5PPLxv03a6DDzKwLtDR5qcizp8egT_qAkrTLg3psHYnN98PtZDQ/exec', {
+            // 自動エクスポートの場合は、ダウンロード後に画面をクリアする
+            if (isAutoExport) {
+                overlayText.textContent = '☁️ クラウドデータをリセット中...';
+                overlaySubtext.textContent = '新しい紙を準備しています。';
+                
+                // 全ての入力を消去する（機体番号は保持）
+                const droneId = droneEl.value;
+                currentTemplate.fields.forEach(field => {
+                    if (field.id !== '無人機登録') {
+                        const el = document.getElementById(`input_${field.id}`);
+                        if (el) {
+                            if (el.tagName === 'SELECT') {
+                                el.selectedIndex = 0;
+                            } else {
+                                el.value = '';
+                            }
+                        }
+                    }
+                });
+                
+                // クラウド上のデータを「新しい紙（データ空）」として上書き保存する
+                const today = new Date();
+                let folderDate = `${today.getFullYear()}年${String(today.getMonth() + 1).padStart(2, '0')}月`;
+                let fileDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+                const prefix = currentTemplate.filePrefix || "点検表";
+                const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
+                
+                const blobToBase64 = (b) => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(b);
+                });
+                const base64data = await blobToBase64(new Blob([pdfBytesOrigin], { type: 'application/pdf' }));
+                
+                // 空のデータを送信
+                const payload = {
+                    action: 'save_new',
+                    filename: targetFilename,
+                    fileData: base64data,
+                    droneId: droneId,
+                    date: folderDate,
+                    prefix: prefix,
+                    fieldValues: {} // 空にする
+                };
+                
+                await fetch('https://script.google.com/macros/s/AKfycbysGawyBydG7mg0XXl5PPLxv03a6DDzKwLtDR5qcizp8egT_qAkrTLg3psHYnN98PtZDQ/exec', {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    // もし新しく上書きしたのであれば、画面の背景PDFデータも更新しておく（連続書き込みに対応）
-                    // データはJSONで管理するため、PDFの再取得は不要
-                    
-                    if (confirm(`✅ Google Drive への通信が完了しました！\n（作成先フォルダ： ${result.folder} ）\n\n念のため、現在の端末内（このタブレット本体）にも同じPDFをダウンロードしておきますか？`)) {
-                        link.click();
-                    }
-                } else {
-                    alert('⚠️ ドライブ側での保存処理に失敗しました：' + result.message + '\n\nデータ保護のため、末端機器へ直接ダウンロードします。');
-                    link.click();
-                }
-            } catch (e) {
-                console.error(e);
-                alert('⚠️ 通信エラーによりドライブに接続できませんでした。\nデータ保護のため、端末内に直接PDFをダウンロードします。');
-                link.click();
+                alert('✅ PDFを出力し、新しい記録用紙を準備しました。');
             }
-
-            setTimeout(() => URL.revokeObjectURL(link.href), 100);
 
         } catch (e) {
             console.error(e);
-            alert('PDFの出力エラーが発生しました。通信環境等をご確認ください。');
+            alert('PDFの出力エラーが発生しました。');
         } finally {
             document.getElementById('generate-btn').disabled = false;
-            document.getElementById('generate-new-btn').disabled = false;
-            document.getElementById('btn-get-latest').disabled = false;
-            const btnId = actionType === 'save_new' ? 'generate-new-btn' : 'generate-btn';
-            const btn = document.getElementById(btnId);
-            btn.textContent = actionType === 'save_new' ? '📄 新しい紙で保存' : '📥 追記保存';
+            btn.disabled = false;
+            document.getElementById('btn-get-latest').disabled = (currentTemplate?.id === 'template_1');
+            btn.textContent = originalText;
+            overlay.style.display = 'none';
         }
     }
 </script>
