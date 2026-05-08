@@ -118,7 +118,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.4</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.5</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -305,7 +305,14 @@
                     let fv = null;
                     if (result.fieldValues) {
                         try {
-                            fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
+                            fv = result.fieldValues;
+                            if (typeof fv === 'string') {
+                                try { fv = JSON.parse(fv); } catch(e) {}
+                            }
+                            if (typeof fv === 'string') {
+                                try { fv = JSON.parse(fv); } catch(e) {} // Double parse if necessary
+                            }
+                            if (typeof fv !== 'object' || fv === null) fv = {};
                         } catch (e) {
                             console.warn('[FieldRestore] JSON Parse Error (possible mojibake):', e);
                         }
@@ -1003,13 +1010,13 @@
             const targetFilename = `${prefix}_${droneId}_${fileDate}.pdf`;
 
             const payload = {
-                action: 'save_new',
+                action: 'save_append',
                 filename: targetFilename,
                 fileData: base64data,
                 droneId: droneId,
                 date: folderDate,
                 prefix: prefix,
-                fieldValues: fieldValues
+                fieldValues: JSON.stringify(fieldValues)
             };
             
             const response = await fetch('https://script.google.com/macros/s/AKfycbysGawyBydG7mg0XXl5PPLxv03a6DDzKwLtDR5qcizp8egT_qAkrTLg3psHYnN98PtZDQ/exec', {
