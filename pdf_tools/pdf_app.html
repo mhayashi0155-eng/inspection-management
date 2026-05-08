@@ -118,7 +118,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.1</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.2</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -302,42 +302,21 @@
                     
                     if (overlaySubtext) overlaySubtext.textContent = 'データを展開しています...';
                     
-                    // JSONデータが有効か（現在のテンプレートと一致するキーがあるか）を判定する
-                    let useJsonRestore = false;
                     let fv = null;
                     if (result.fieldValues) {
                         try {
                             fv = (typeof result.fieldValues === 'string') ? JSON.parse(result.fieldValues) : result.fieldValues;
-                            const responseKeys = Object.keys(fv);
-                            const templateFieldIds = new Set(currentTemplate.fields.map(f => f.id));
-                            const matchCount = responseKeys.filter(k => templateFieldIds.has(k)).length;
-                            
-                            if (matchCount > 0) {
-                                useJsonRestore = true;
-                                // 文字化け対策（Ver 1.1.47）以前のデータかチェック
-                                // __b64__ プレフィックスを持たない文字列データが1つでもあれば、
-                                // 古い形式（文字化けしている可能性が高い）とみなしてJSON復元をキャンセルする
-                                for (const key in fv) {
-                                    const val = fv[key];
-                                    if (typeof val === 'string' && val.length > 0 && !val.startsWith('__b64__')) {
-                                        console.warn(`[FieldRestore] 古いデータ形式(非Base64)を検出しました: ${key}. 文字化けを防ぐため旧形式(背景PDF)として読み込みます。`);
-                                        useJsonRestore = false;
-                                        break;
-                                    }
-                                }
-                            } else {
-                                console.warn('[FieldRestore] JSONキーがテンプレートと一致しません。旧形式(背景PDF)として読み込みます。');
-                            }
                         } catch (e) {
                             console.warn('[FieldRestore] JSON Parse Error (possible mojibake):', e);
                         }
                     }
                     
-                    if (useJsonRestore && fv) {
-                        // ★ 新方式: 白紙テンプレート + JSON復元
-                        fetchedPdfBase64 = null;
-                        await renderPDFCanvas();
-                        
+                    // ★ 常に白紙テンプレートを使用し、過去の背景PDF（文字化けの原因）は読み込まない
+                    fetchedPdfBase64 = null;
+                    loadedFromLegacy = false;
+                    await renderPDFCanvas();
+                    
+                    if (fv) {
                         // 1. まず全フィールドの値を復元（現在のテンプレートに存在するフィールドのみ）
                         let restoredCount = 0;
                         let skippedCount = 0;
@@ -389,13 +368,8 @@
                         }
                         
                         console.log(`[FieldRestore] JSON復元完了: ${restoredCount}件復元, ${skippedCount}件スキップ（該当フィールドなし）`);
-                        loadedFromLegacy = false;
                     } else {
-                        // ★ 旧データ互換: 過去PDFを背景に表示
-                        fetchedPdfBase64 = result.fileData;
-                        loadedFromLegacy = true;
-                        await renderPDFCanvas();
-                        console.log('[FieldRestore] 旧形式: PDF背景表示のみ');
+                        console.log('[FieldRestore] 有効なデータなし: 白紙として開始します。');
                     }
                     
                     // ★★★ 機体番号の選択状態を強制的に復元する ★★★
