@@ -118,7 +118,7 @@
 
 <div class="header-panel">
     <div>
-        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.5</div>
+        <div style="font-size: 10px; color: #888; margin-bottom: 2px;">Ver. 2.0.6</div>
         <h2 style="margin: 0 0 5px 0; font-size: 22px; color: #1a73e8;">📝 Antigravity ダイレクト入力</h2>
         <select id="template-select" class="form-control" onchange="loadTemplate()">
             <option value="">-- ロード中... --</option>
@@ -303,6 +303,7 @@
                     if (overlaySubtext) overlaySubtext.textContent = 'データを展開しています...';
                     
                     let fv = null;
+                    let hasValidJson = false;
                     if (result.fieldValues) {
                         try {
                             fv = result.fieldValues;
@@ -313,14 +314,29 @@
                                 try { fv = JSON.parse(fv); } catch(e) {} // Double parse if necessary
                             }
                             if (typeof fv !== 'object' || fv === null) fv = {};
+                            
+                            if (Object.keys(fv).length > 0) {
+                                hasValidJson = true;
+                            }
                         } catch (e) {
                             console.warn('[FieldRestore] JSON Parse Error (possible mojibake):', e);
                         }
                     }
                     
-                    // ★ 常に白紙テンプレートを使用し、過去の背景PDF（文字化けの原因）は読み込まない
-                    fetchedPdfBase64 = null;
-                    loadedFromLegacy = false;
+                    if (hasValidJson) {
+                        // JSONデータがある場合は、白紙テンプレートを使用してJSONから復元する
+                        fetchedPdfBase64 = null;
+                        loadedFromLegacy = false;
+                    } else if (result.fileData) {
+                        // JSONデータがない過去データ（レガシーPDF）の場合は、PDFを背景として読み込む
+                        fetchedPdfBase64 = result.fileData;
+                        loadedFromLegacy = true;
+                        console.log('[FieldRestore] JSONデータがないため、過去のPDFを背景として読み込みます。');
+                    } else {
+                        fetchedPdfBase64 = null;
+                        loadedFromLegacy = false;
+                    }
+                    
                     await renderPDFCanvas();
                     
                     if (fv) {
